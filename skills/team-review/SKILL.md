@@ -15,7 +15,7 @@ Do not use without a reviewable scope. Do not convert a review into a refactor, 
 
 ## Establish coverage
 
-Read [role routing](../team-core/references/role-routing.md), [handoff format](../team-core/references/handoff-format.md), and [execution templates](../team-core/references/execution-templates.md).
+Read [role routing](../team-core/references/role-routing.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
 1. Record the exact review scope, baseline, and stated intent. Inspect the actual diff and enough surrounding code to understand behavior.
 2. Build a Review coverage record. Choose independent read-only roles only where they add distinct coverage: `team-reviewer` for correctness and maintainability, `team-tester` for verification gaps, `team-database-specialist` for material data changes, and `team-explorer` for unfamiliar areas.
@@ -31,3 +31,5 @@ Read [role routing](../team-core/references/role-routing.md), [handoff format](.
 ## Output contract
 
 Return findings ranked by impact, then the coverage record: scope inspected, checks performed, evidence, and uncovered risks. If there are no material findings, say so and state what was reviewed; do not manufacture stylistic findings.
+
+After preparing the review handoff, create the local minimal feedback record described in [feedback recording](../team-core/references/feedback-recording.md). Keep it to coverage, evidence, and risks; do not copy the reviewed diff or raw findings into the feedback store. A recording failure leaves the review result unchanged.

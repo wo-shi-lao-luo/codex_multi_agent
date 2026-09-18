@@ -15,7 +15,7 @@ Do not use for a one-line factual answer, a request to implement immediately aft
 
 ## Build the plan
 
-Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), and [execution templates](../team-core/references/execution-templates.md).
+Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
 1. Create a Task record: outcome, constraints, acceptance checks, and open questions.
 2. Discover repository facts. Use `team-explorer` for unfamiliar scope and `team-architect` for cross-module contracts; request bounded findings with evidence.
@@ -43,3 +43,5 @@ Risks and unresolved decisions
 ```
 
 State what was verified from the repository versus what remains an assumption. The Lead hands this package to `$team-dev` or the user; it does not claim implementation completion.
+
+After preparing this plan handoff, create the local minimal feedback record described in [feedback recording](../team-core/references/feedback-recording.md). Record evidence quality and unresolved decisions, never repository contents. If recording fails, keep the planning result intact and state the local recording gap only as a remaining risk.

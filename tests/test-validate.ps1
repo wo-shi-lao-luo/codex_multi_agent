@@ -29,7 +29,7 @@ function Invoke-CopiedValidator {
 
 try {
   New-Item -ItemType Directory -Path $testRoot -ErrorAction Stop | Out-Null
-  foreach ($item in 'agents', 'skills', 'scripts', 'VERSION') {
+  foreach ($item in 'agents', 'skills', 'scripts', 'VERSION', 'CHANGELOG.md') {
     Copy-Item -LiteralPath (Join-Path $root $item) -Destination $testRoot -Recurse -Force -ErrorAction Stop
   }
 

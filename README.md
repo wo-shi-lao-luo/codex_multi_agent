@@ -35,17 +35,18 @@ To verify the distributable package without touching your actual Codex or Skills
 ```powershell
 .\tests\test-validate.ps1
 .\tests\test-install-user.ps1
+.\tests\test-feedback-runtime.ps1
 ```
 
-These tests run only in unique system-temporary directories. They verify that invalid metadata and missing local references are rejected, then verify the complete package and update behavior; each directory is removed before its test exits.
+These tests run only in unique system-temporary directories. They verify invalid metadata and missing local references, the complete package and update behavior, and the feedback runtime's validation, aggregation, archive, deletion-confirmation, and cleanup behavior; each directory is removed before its test exits.
 
-The installer copies agents to `~/.codex/agents` and Skills (including the internal `team-core` policy bundle) to `~/.agents/skills`. It does not overwrite `~/.codex/config.toml`. If you want the recommended three-subagent cap, merge [`config/recommended-config.toml`](config/recommended-config.toml) into that file once.
+The installer copies agents to `~/.codex/agents` and Skills (including the internal `team-core` policy bundle and feedback runtime) to `~/.agents/skills`. It does not overwrite `~/.codex/config.toml`. If you want the recommended three-subagent cap, merge [`config/recommended-config.toml`](config/recommended-config.toml) into that file once.
 
 The installer validates the kit before writing. Use `-WhatIf` to preview its actions. It stops on an existing file or Skill directory unless it is an unchanged installation recorded by the kit; use `-Force` only when you want conflicting destinations backed up and replaced. The installation receipt and backups are stored under `~/.agents/codex-multi-agent/` by default.
 
 Agent names use the `team-` prefix to avoid collisions with personal agents. If an earlier kit version installed generic names such as `architect.toml`, they are left untouched; remove them manually only after confirming the `team-*` agents work for you.
 
-Current release: `0.2.0`. Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Earlier installed Skill directories are left untouched; remove them manually only after confirming the renamed Skills work for you.
+Current release: `0.3.0`. Explicit `team-*` workflows now write a small, redacted local acceptance record through `team-core`; these records never enter the business repository. See [feedback recording](skills/team-core/references/feedback-recording.md) and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Earlier installed Skill directories are left untouched; remove them manually only after confirming the renamed Skills work for you.
 
 Restart Codex if a newly installed Skill is not immediately visible.
 

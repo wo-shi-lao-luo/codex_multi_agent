@@ -18,6 +18,7 @@ The toolkit source is the current editable master. It is installed into a user's
 - `docs/` — architecture, source-attribution notes, and approved system-design specifications.
 - `docs/superpowers/specs/` — dated, approved architectural designs that await an implementation plan.
 - `backlog/` — Confirmed engineering improvements deferred for later work.
+- `CHANGELOG.md` — public release history for this distributable kit.
 - `VERSION` — the distributable kit version recorded by the installer.
 
 ## Conventions

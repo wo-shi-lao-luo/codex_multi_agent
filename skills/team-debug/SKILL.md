@@ -15,7 +15,7 @@ Do not use when the root cause and safe fix are already evidenced, or when the r
 
 ## Investigate
 
-Read [handoff format](../team-core/references/handoff-format.md) and [execution templates](../team-core/references/execution-templates.md).
+Read [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
 1. Create a Task record with symptom, expected behavior, reproduction, available logs, and impact.
 2. Build a Debug hypothesis ledger. Separate observations from hypotheses and choose the smallest discriminating check for each hypothesis.
@@ -41,3 +41,5 @@ Likely root cause and confidence
 Recommended fix scope, owner, and verification plan
 Remaining uncertainty or required user decision
 ```
+
+After preparing this investigation handoff, create the local minimal feedback record described in [feedback recording](../team-core/references/feedback-recording.md). Record the reproduction and confidence as concise evidence only. A recording failure does not make an unproven cause appear less or more certain.

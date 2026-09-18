@@ -5,10 +5,18 @@ $root = Split-Path -Parent $PSScriptRoot
 $failures = New-Object System.Collections.Generic.List[string]
 
 $versionPath = Join-Path $root 'VERSION'
+$kitVersion = $null
 if (-not (Test-Path -LiteralPath $versionPath)) {
   $failures.Add('VERSION is missing')
-} elseif ((Get-Content -LiteralPath $versionPath -Raw).Trim() -notmatch '^\d+\.\d+\.\d+$') {
+} elseif (($kitVersion = (Get-Content -LiteralPath $versionPath -Raw).Trim()) -notmatch '^\d+\.\d+\.\d+$') {
   $failures.Add('VERSION must use semantic version format, for example 0.1.0')
+}
+
+$changelogPath = Join-Path $root 'CHANGELOG.md'
+if (-not (Test-Path -LiteralPath $changelogPath)) {
+  $failures.Add('CHANGELOG.md is missing')
+} elseif ($null -ne $kitVersion -and -not ((Get-Content -LiteralPath $changelogPath -Raw) -match ('(?m)^## \[' + [regex]::Escape($kitVersion) + '\]'))) {
+  $failures.Add("CHANGELOG.md does not contain a release heading for $kitVersion")
 }
 
 $expectedAgentProfiles = @{
@@ -121,11 +129,23 @@ Get-ChildItem -Path (Join-Path $root 'skills') -Directory | ForEach-Object {
   }
 }
 
-$coreReferences = @('execution-contract.md', 'execution-templates.md', 'role-routing.md', 'file-ownership.md', 'handoff-format.md')
+$coreReferences = @('execution-contract.md', 'execution-templates.md', 'role-routing.md', 'file-ownership.md', 'handoff-format.md', 'feedback-recording.md')
 $coreReferenceDirectory = Join-Path $root 'skills\team-core\references'
 foreach ($reference in $coreReferences) {
   if (-not (Test-Path -LiteralPath (Join-Path $coreReferenceDirectory $reference))) {
     $failures.Add("team-core is missing reference $reference")
+  }
+}
+
+$feedbackRuntime = Join-Path $root 'skills\team-core\scripts\feedback-runtime.ps1'
+if (-not (Test-Path -LiteralPath $feedbackRuntime)) {
+  $failures.Add('team-core is missing scripts/feedback-runtime.ps1')
+} else {
+  $runtimeContent = Get-Content -LiteralPath $feedbackRuntime -Raw
+  foreach ($requiredRuntimeFeature in "'Record'", "'Maintain'", "'SetCandidateState'", 'ConfirmDeletion', 'projectPathDigest') {
+    if (-not $runtimeContent.Contains($requiredRuntimeFeature)) {
+      $failures.Add("feedback-runtime.ps1 is missing $requiredRuntimeFeature")
+    }
   }
 }
 
