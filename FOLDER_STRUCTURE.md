@@ -15,7 +15,8 @@ The toolkit source is the current editable master. It is installed into a user's
 - `config/` — an optional, manually merged Codex configuration fragment.
 - `scripts/` — user-level validation, installation, and safe update helpers.
 - `tests/` — isolated package-validation and installation smoke-test scripts.
-- `docs/` — architecture and source-attribution notes.
+- `docs/` — architecture, source-attribution notes, and approved system-design specifications.
+- `docs/superpowers/specs/` — dated, approved architectural designs that await an implementation plan.
 - `backlog/` — Confirmed engineering improvements deferred for later work.
 - `VERSION` — the distributable kit version recorded by the installer.
 
