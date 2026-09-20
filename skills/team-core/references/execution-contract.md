@@ -46,6 +46,8 @@ For new applications, multi-stage work or material boundary changes, apply the [
 
 ## 4. Execute
 
+For code changes, apply the [code comment contract](code-comments.md) while implementing and updating affected explanations.
+
 **Input:** approved work contract.
 
 **Output:** the bounded implementation, investigation result, or review result requested by the Lead.
@@ -53,6 +55,8 @@ For new applications, multi-stage work or material boundary changes, apply the [
 **Exit:** the assigned work is complete enough for independent verification. A newly discovered scope change returns to Contract; it is not silently absorbed into the current assignment.
 
 ## 5. Verify
+
+Include the code comment contract's writer self-check and, when review is assigned, semantic comment review. Record inspected scope and outcome; automated checks alone do not establish comment correctness.
 
 **Input:** completed work and the verification plan.
 

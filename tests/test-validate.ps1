@@ -35,7 +35,23 @@ try {
 
   Assert-Condition (Invoke-CopiedValidator) 'Baseline validation failed in an isolated package copy.'
 
+  # Keep links valid while removing the required route: generic link checks
+  # alone must not let a writer or reviewer silently lose this contract.
+  foreach ($skillName in 'team-core', 'team-dev', 'team-review', 'code-review', 'frontend-engineering', 'backend-engineering', 'database-engineering', 'testing-engineering') {
+    $commentSkill = Join-Path $testRoot "skills/$skillName/SKILL.md"
+    $originalSkill = Get-Content -LiteralPath $commentSkill -Raw
+    Set-Content -LiteralPath $commentSkill -Value ($originalSkill.Replace('code-comments.md', 'execution-contract.md')) -Encoding utf8
+    Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted missing comment-contract routing in $skillName."
+    Copy-Item -LiteralPath (Join-Path $root "skills/$skillName/SKILL.md") -Destination $commentSkill -Force
+  }
+
   $invalidAgent = Join-Path $testRoot 'agents\team-architect.toml'
+  $commentReference = Join-Path $testRoot 'skills/team-core/references/code-comments.md'
+  Remove-Item -LiteralPath $commentReference -Force
+  Assert-Condition (-not (Invoke-CopiedValidator)) 'Validation accepted a missing code-comment contract.'
+  Copy-Item -LiteralPath (Join-Path $root 'skills/team-core/references/code-comments.md') -Destination $commentReference -Force
+  Assert-Condition (Invoke-CopiedValidator) 'Validation did not recover after restoring comment routing and the contract.'
+
   Add-Content -LiteralPath $invalidAgent -Value 'unsupported = "value"' -Encoding utf8
   Assert-Condition (-not (Invoke-CopiedValidator)) 'Validation accepted an unsupported TOML field.'
   Copy-Item -LiteralPath (Join-Path $root 'agents\team-architect.toml') -Destination $invalidAgent -Force

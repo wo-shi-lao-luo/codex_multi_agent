@@ -12,6 +12,7 @@ The toolkit source is the current editable master. It is installed into a user's
 
 - `agents/` — native Codex custom-agent TOML files.
 - `skills/` — reusable Codex Skills. `team-*` skills are explicit workflow entrypoints; `team-core` bundles their shared policy references for installation.
+- `skills/team-core/references/code-comments.md` — shared code-comment writing, self-check and review contract.
 - `config/` — an optional, manually merged Codex configuration fragment.
 - `scripts/` — user-level validation, installation, and safe update helpers.
 - `tests/` — isolated package, installation, feedback, stage-verification and project-blueprint tests.
@@ -19,7 +20,6 @@ The toolkit source is the current editable master. It is installed into a user's
 - `docs/superpowers/specs/` — dated, approved architectural designs that await an implementation plan.
 - `docs/superpowers/plans/` — dated, approved implementation plans for architectural designs.
 - `docs/release-versioning.md` — release-numbering policy for maintainers.
-- `docs/existing-project-handoff.md` — installed-resource reading index for agents working in existing projects.
 - `backlog/` — Confirmed engineering improvements deferred for later work.
 - `CHANGELOG.md` — public release history for this distributable kit.
 - `VERSION` — the distributable kit version recorded by the installer.

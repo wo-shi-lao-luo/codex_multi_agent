@@ -132,6 +132,7 @@ Get-ChildItem -Path (Join-Path $root 'skills') -Directory | ForEach-Object {
 $coreReferences = @('execution-contract.md', 'execution-templates.md', 'role-routing.md', 'file-ownership.md', 'handoff-format.md', 'feedback-recording.md', 'test-acceptance-contract.md', 'tdd-protocol.md')
 $coreReferenceDirectory = Join-Path $root 'skills\team-core\references'
 $coreReferences += 'project-blueprint.md'
+$coreReferences += 'code-comments.md'
 foreach ($reference in $coreReferences) {
   if (-not (Test-Path -LiteralPath (Join-Path $coreReferenceDirectory $reference))) {
     $failures.Add("team-core is missing reference $reference")
@@ -145,6 +146,13 @@ foreach ($skillName in 'team-dev', 'team-plan', 'team-review', 'frontend-enginee
 if (-not (Test-Path -LiteralPath (Join-Path $root 'skills/team-core/scripts/project-blueprint.ps1'))) { $failures.Add('Missing project-blueprint.ps1') }
 
 $tddWorkflowSkills = @('team-dev', 'team-plan', 'team-debug', 'team-review', 'testing-engineering')
+# This guards contract discovery, not the semantic quality of code comments.
+foreach ($skillName in 'team-core', 'team-dev', 'team-review', 'code-review', 'frontend-engineering', 'backend-engineering', 'database-engineering', 'testing-engineering') {
+  $commentSkill = Join-Path $root "skills/$skillName/SKILL.md"
+  if (-not (Test-Path -LiteralPath $commentSkill) -or -not (Get-Content -LiteralPath $commentSkill -Raw).Contains('code-comments.md')) {
+    $failures.Add("$skillName must reference code-comments.md")
+  }
+}
 foreach ($skillName in $tddWorkflowSkills) {
   $skillPath = Join-Path $root (Join-Path 'skills' (Join-Path $skillName 'SKILL.md'))
   if (-not (Test-Path -LiteralPath $skillPath)) {

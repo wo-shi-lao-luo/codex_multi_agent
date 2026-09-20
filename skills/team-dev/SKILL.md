@@ -34,6 +34,8 @@ After a coherent implementation pass, assign `team-tester` and `team-reviewer` i
 
 ## Verify and close
 
+Apply the [code comment contract](../team-core/references/code-comments.md). Require writers to maintain necessary explanations and record their diff-based self-check, even without an independent reviewer. Include semantic comment coverage when assigning review; resolve or disclose material gaps before completion.
+
 Create a Verification record from actual checks. Record commands and outcomes, inspected behavior, and checks that could not run. Do not close the task until acceptance checks have evidence or the user-facing remaining risk is explicit.
 
 Reconcile every stage-packet row with actual evidence, including Red/Green/refactor evidence or documented alternatives. Run the packet validator before Handoff. Human checks remain `manual pending` until user evidence exists. Archive the packet only after manual verification or explicit user deferral; otherwise link the active packet in the Handoff.

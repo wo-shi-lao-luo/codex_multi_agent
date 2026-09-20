@@ -34,6 +34,7 @@ Check performed:
 Result:
 Evidence:
 Remaining risk or unavailable check:
+Comment self-check (code changes): inspected scope, outcome, remaining gaps
 ```
 
 ## Debug hypothesis ledger
@@ -52,6 +53,7 @@ Next investigation or fix scope:
 ```text
 Review scope:
 Coverage: correctness | tests | data | unfamiliar area
+Comment review (code changes): scope, semantic consistency, missing rationale
 Evidence inspected:
 Findings: impact, file reference, evidence
 Uncovered risk:

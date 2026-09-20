@@ -5,6 +5,8 @@ description: Internal reference bundle for Codex Multi-Agent Kit team workflows.
 
 # Team core
 
+For code implementation or review, read the [code comment contract](references/code-comments.md) for required explanations, writer self-checks and semantic review.
+
 For project and multi-stage work, read the [Project Blueprint contract](references/project-blueprint.md). `scripts/project-blueprint.ps1` initializes and validates the architecture document; it never reorganizes source code. Existing-project discovery, explicit refactor approval, and continued work after refusal are part of this contract.
 
 This is a supporting Skill, not a user-facing workflow entrypoint. Team workflow Skills read the files in `references/` so their shared operating contracts ship with the installed kit. Use `references/execution-contract.md` as the common lifecycle; use the other references for routing, ownership, and child-agent handoffs.

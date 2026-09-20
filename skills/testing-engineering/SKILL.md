@@ -38,6 +38,8 @@ For every material behavior, choose `test-first`, `test-after`, or `manual-or-en
 
 ## Execute and verify
 
+Apply the [code comment contract](../team-core/references/code-comments.md) while writing code and tests. Before handoff, self-check the diff and affected comments for missing rationale, stale descriptions and behavior mismatches; record scope and outcome in the Verification record. For review-only work, inspect and report without editing.
+
 Implement tests using local conventions. Run the relevant commands once they meaningfully cover the changed path. Record whether each planned scenario passed, failed as expected during diagnosis, was not runnable, or needs a wider environment.
 
 ## Return paths

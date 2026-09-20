@@ -36,6 +36,8 @@ Use parameterized queries and least-privilege access. A forward-only migration i
 
 ## Execute and verify
 
+Apply the [code comment contract](../team-core/references/code-comments.md) while writing code and tests. Before handoff, self-check the diff and affected comments for missing rationale, stale descriptions and behavior mismatches; record scope and outcome in the Verification record. For review-only work, inspect and report without editing.
+
 Run the narrowest safe validation available: migration against a representative environment, targeted query checks, application compatibility checks, or a documented dry run. For a data mutation, preserve enough evidence to account for rows or records affected and to support recovery.
 
 Create a Verification record with the migration or query run, result, evidence, and remaining operational risk. If a planned environment or query-plan check is unavailable, state the limitation instead of presenting an unmeasured claim as fact.

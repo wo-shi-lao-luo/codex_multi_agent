@@ -21,6 +21,8 @@ Do not use without an inspectable scope. Do not turn a review into a style rewri
 
 ## Evaluate findings
 
+Apply the [code comment contract](../team-core/references/code-comments.md): inspect important comments against behavior and missing rationale at risky decisions. Record scope and outcome; report concrete impact, not stylistic preferences.
+
 Prioritize incorrect assumptions, broken error handling, authorization gaps, unsafe data changes, concurrency issues, compatibility breaks, and missing verification. A material finding includes:
 
 ```text

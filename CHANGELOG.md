@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions use [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-09-20
+
+### Added
+
+- Shared code-comment standards for non-obvious rationale, synchronized maintenance, writer self-checks and semantic review, with routing validation and isolated regression coverage.
+
+### Removed
+
+- The one-time existing-project handoff guide and its index links after use.
+
 ## [0.5.0] - 2026-09-20
 
 ### Added
