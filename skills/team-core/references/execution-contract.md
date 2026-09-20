@@ -30,6 +30,8 @@ For a small, clear task, the Lead may combine Context, Discover, and Contract in
 
 ## 3. Contract
 
+For new applications, multi-stage work or material boundary changes, apply the [Project Blueprint contract](project-blueprint.md) before the stage contract. Discover existing code before adopting a baseline. Existing-code structural refactoring requires explicit user approval; declining it preserves the baseline with recorded constraints. Map each stage to modules and file responsibilities, and review that mapping against the final diff.
+
 **Input:** task record and discovery evidence.
 
 **Output:** a work contract with:

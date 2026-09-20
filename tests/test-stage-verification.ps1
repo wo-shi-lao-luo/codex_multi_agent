@@ -97,6 +97,33 @@ try {
   Set-ValidPacket -Path $packet -FinalManualStatus 'manual pending'
   & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'tdd-smoke' | Out-Null
 
+  $blueprintScript = Join-Path (Split-Path -Parent $scriptPath) 'project-blueprint.ps1'
+  & $blueprintScript -Action Initialize -ProjectRoot $testRoot | Out-Null
+  $blueprintPath = Join-Path $testRoot 'docs/architecture/project-blueprint.md'
+  $blueprint = (Get-Content -LiteralPath $blueprintPath -Raw).Replace('Project context: draft', 'Project context: existing').Replace('Refactor decision: pending', 'Refactor decision: not needed').Replace('Decision evidence:', 'Decision evidence: Existing parser structure inspected; no reorganization proposed.').Replace('| | | | |', '| parser | Validate packets | skills/team-core/scripts | none |')
+  $blueprint = $blueprint -replace '(?m)^(## [^\r\n]+)', ('$1'+"`nExisting parser boundary inspected; run isolated tests and retain its file ownership.")
+  Set-Content -LiteralPath $blueprintPath -Value $blueprint -Encoding utf8
+  $alignment = @'
+
+## Structural alignment
+Blueprint path: docs/architecture/project-blueprint.md
+Blueprint revision: 1
+Blueprint modules: parser
+Allowed existing files: skills/team-core/scripts/stage-verification.ps1
+Planned additions: none
+Composition roots affected: none
+Blueprint amendment: none
+'@
+  $basePacket = Get-Content -LiteralPath $packet -Raw
+  Set-Content -LiteralPath $packet -Value ($basePacket + $alignment) -Encoding utf8
+  & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'tdd-smoke' | Out-Null
+  Set-Content -LiteralPath $packet -Value ($basePacket + $alignment.Replace('Blueprint revision: 1', 'Blueprint revision: 9')) -Encoding utf8
+  Invoke-ExpectFailure { & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'tdd-smoke' } 'Stale blueprint revision accepted.'
+  Set-Content -LiteralPath $packet -Value ($basePacket + $alignment.Replace('Blueprint modules: parser', 'Blueprint modules: unknown')) -Encoding utf8
+  Invoke-ExpectFailure { & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'tdd-smoke' } 'Unknown blueprint module accepted.'
+  Set-Content -LiteralPath $packet -Value $basePacket -Encoding utf8
+  Invoke-ExpectFailure { & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'tdd-smoke' -BlueprintPath 'docs/architecture/project-blueprint.md' } 'Explicit blueprint requirement was ignored.'
+
   $missingCoverageDecision = (Get-Content -LiteralPath $packet -Raw) -replace '(?m)^\| accessibility \| not applicable \| No user interface exists\. \|\r?\n', ''
   Set-Content -LiteralPath $packet -Value $missingCoverageDecision -Encoding utf8
   Invoke-ExpectFailure { & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'tdd-smoke' } 'Validate accepted a packet without a coverage-category decision.'

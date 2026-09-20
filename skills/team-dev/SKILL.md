@@ -15,6 +15,8 @@ Do not use this workflow to create a task daemon, push branches, merge pull requ
 
 ## Establish the work
 
+Read the [Project Blueprint contract](../team-core/references/project-blueprint.md) before assigning stages. Assess its gate; for existing projects, inspect the baseline first. Record adequate structure as-is; propose evidenced structural repairs separately and obtain explicit user approval before refactoring. If declined or deferred, document retained constraints and continue within the actual structure. When the gate applies, the Lead creates/updates the blueprint from the architect's read-only proposal and includes its path/revision, modules, file scope, root exceptions and amendment decision in every stage packet. Use `-BlueprintPath` for canonical packet validation. Review actual file placement at close; return unplanned boundary changes to Contract.
+
 Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [test and acceptance contract](../team-core/references/test-acceptance-contract.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
 1. Create a Task record. Identify outcome, constraints, acceptance checks, and unknowns.

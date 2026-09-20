@@ -21,6 +21,8 @@ Do not use to introduce a state library, UI library, analytics, client-side secr
 
 ## Establish the frontend work contract
 
+Use the [Project Blueprint contract](../team-core/references/project-blueprint.md) to place features in their declared modules. Classify entrypoints by framework responsibility: startup, app/router/provider roots primarily compose modules. Keep feature UI, state and requests in their owning boundary unless a documented retained-baseline exception applies. Do not refactor existing code without explicit user approval; record and respect a declined refactor.
+
 Before implementation, define:
 
 ```text

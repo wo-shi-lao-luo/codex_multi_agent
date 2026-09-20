@@ -131,11 +131,18 @@ Get-ChildItem -Path (Join-Path $root 'skills') -Directory | ForEach-Object {
 
 $coreReferences = @('execution-contract.md', 'execution-templates.md', 'role-routing.md', 'file-ownership.md', 'handoff-format.md', 'feedback-recording.md', 'test-acceptance-contract.md', 'tdd-protocol.md')
 $coreReferenceDirectory = Join-Path $root 'skills\team-core\references'
+$coreReferences += 'project-blueprint.md'
 foreach ($reference in $coreReferences) {
   if (-not (Test-Path -LiteralPath (Join-Path $coreReferenceDirectory $reference))) {
     $failures.Add("team-core is missing reference $reference")
   }
 }
+
+foreach ($skillName in 'team-dev', 'team-plan', 'team-review', 'frontend-engineering', 'testing-engineering', 'team-core') {
+  $blueprintSkill = Join-Path $root "skills/$skillName/SKILL.md"
+  if (-not (Test-Path -LiteralPath $blueprintSkill) -or -not (Get-Content -LiteralPath $blueprintSkill -Raw).Contains('project-blueprint.md')) { $failures.Add("$skillName must reference project-blueprint.md") }
+}
+if (-not (Test-Path -LiteralPath (Join-Path $root 'skills/team-core/scripts/project-blueprint.ps1'))) { $failures.Add('Missing project-blueprint.ps1') }
 
 $tddWorkflowSkills = @('team-dev', 'team-plan', 'team-debug', 'team-review', 'testing-engineering')
 foreach ($skillName in $tddWorkflowSkills) {

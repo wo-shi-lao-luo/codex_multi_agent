@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions use [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-09-20
+
+### Added
+
+- Project blueprints for application structure, module responsibilities and stage alignment.
+- Existing-project discovery, explicit approval for structural refactoring, and continued development within a declined or deferred refactor baseline.
+- Blueprint initialization/validation and stage checks for blueprint revisions and module IDs, with isolated regression tests.
+
 ## [0.4.0] - 2026-09-20
 
 ### Added

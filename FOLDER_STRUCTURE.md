@@ -14,7 +14,7 @@ The toolkit source is the current editable master. It is installed into a user's
 - `skills/` — reusable Codex Skills. `team-*` skills are explicit workflow entrypoints; `team-core` bundles their shared policy references for installation.
 - `config/` — an optional, manually merged Codex configuration fragment.
 - `scripts/` — user-level validation, installation, and safe update helpers.
-- `tests/` — isolated package-validation and installation smoke-test scripts.
+- `tests/` — isolated package, installation, feedback, stage-verification and project-blueprint tests.
 - `docs/` — architecture, source-attribution notes, and approved system-design specifications.
 - `docs/superpowers/specs/` — dated, approved architectural designs that await an implementation plan.
 - `docs/superpowers/plans/` — dated, approved implementation plans for architectural designs.

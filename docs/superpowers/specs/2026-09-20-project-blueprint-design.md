@@ -2,7 +2,11 @@
 
 ## Status
 
-Approved design awaiting implementation-plan review.
+Implemented in 0.5.0. The user approved direct implementation and added the existing-project adoption requirements below.
+
+## Existing-project adoption
+
+Inspect actual code, dependencies, entrypoints and tests before describing the baseline. If the relevant structure is sound, document and extend it. If concrete issues exist, propose a bounded refactor with impact, behavior-preservation tests and recovery; obtain explicit user approval before reorganizing existing code. If the user declines or defers, record that decision and retained risks, adopt the actual structure, and continue authorized feature work within it. Distinguish an unimplemented target design from current reality. See the shipped [Project Blueprint contract](../../../skills/team-core/references/project-blueprint.md) for the normative workflow.
 
 ## Objective
 

@@ -21,6 +21,8 @@ Do not use to impose a generic coverage target, create tests solely to increase 
 
 ## Build a test contract
 
+Apply the [Project Blueprint contract](../team-core/references/project-blueprint.md) when a blueprint governs the task. Map behavioral tests to its module IDs. Before an approved existing-code refactor, capture current behavior with characterization/regression tests and baseline failures; verify behavior preservation after the move. A declined refactor retains current test entrypoints and documents coverage constraints.
+
 Create a concise test matrix:
 
 ```text

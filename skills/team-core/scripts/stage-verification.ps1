@@ -3,7 +3,8 @@ param(
   [Parameter(Mandatory = $true)][ValidateSet('Initialize', 'Validate', 'Archive')][string]$Action,
   [Parameter(Mandatory = $true)][string]$ProjectRoot,
   [Parameter(Mandatory = $true)][ValidatePattern('^[a-z0-9][a-z0-9-]{0,79}$')][string]$StageSlug,
-  [string]$StageTitle
+  [string]$StageTitle,
+  [string]$BlueprintPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -111,6 +112,31 @@ function Test-Packet {
   $content = Get-Content -LiteralPath $PacketPath -Raw
   $errors = [System.Collections.Generic.List[string]]::new()
 
+  # Existing packets remain valid; a declared blueprint activates structural alignment.
+  $blueprintFields = [regex]::Matches($content, '(?m)^Blueprint path:[ \t]*([^\r\n]*)\r?$')
+  if ($blueprintFields.Count -gt 1) { $errors.Add('Duplicate Blueprint path fields.') }
+  if ($blueprintFields.Count -eq 1) {
+    $declaredPath = $blueprintFields[0].Groups[1].Value.Trim()
+    if ([string]::IsNullOrWhiteSpace($declaredPath)) { $errors.Add('Blueprint path cannot be blank.') }
+    else {
+      try {
+        $blueprintResult = & (Join-Path $PSScriptRoot 'project-blueprint.ps1') -Action Validate -ProjectRoot $ProjectRoot -BlueprintPath $declaredPath | ConvertFrom-Json
+        $revisionMatch = [regex]::Match($content, '(?m)^Blueprint revision:[ \t]*([^\r\n]*)\r?$')
+        if ($revisionMatch.Groups[1].Value.Trim() -ne [string]$blueprintResult.revision) { $errors.Add('Blueprint revision is stale or missing; reconcile the stage mapping.') }
+        $moduleMatch = [regex]::Match($content, '(?m)^Blueprint modules:[ \t]*([^\r\n]*)\r?$')
+        foreach ($module in ($moduleMatch.Groups[1].Value -split ',')) {
+          if ($module.Trim() -notin @($blueprintResult.modules)) { $errors.Add("Unknown blueprint module: $($module.Trim())") }
+        }
+      }
+      catch { $errors.Add("Blueprint validation failed: $($_.Exception.Message)") }
+    }
+    foreach ($field in 'Blueprint revision', 'Blueprint modules', 'Allowed existing files', 'Planned additions', 'Composition roots affected', 'Blueprint amendment') {
+      $matches = [regex]::Matches($content, '(?m)^' + [regex]::Escape($field) + ':[ \t]*([^\r\n]*)\r?$')
+      if ($matches.Count -ne 1 -or [string]::IsNullOrWhiteSpace($matches[0].Groups[1].Value)) { $errors.Add("Structural alignment requires one populated $field field.") }
+    }
+  }
+  if ($BlueprintPath -and ($blueprintFields.Count -ne 1 -or $blueprintFields[0].Groups[1].Value.Trim() -ne $BlueprintPath)) { $errors.Add('Packet must reference the requested BlueprintPath.') }
+
   foreach ($requiredField in 'Packet schema version: 2', 'Stage slug:', 'Contract status:') {
     if (-not $content.Contains($requiredField)) { $errors.Add("Packet is missing required metadata: $requiredField") }
   }
@@ -174,6 +200,21 @@ $paths = Get-StagePaths -Root $ProjectRoot -Slug $StageSlug
 if ($Action -eq 'Initialize') {
   if (Test-Path -LiteralPath $paths.Packet) { throw "Stage packet already exists: $($paths.Packet)" }
   if ([string]::IsNullOrWhiteSpace($StageTitle)) { $StageTitle = $StageSlug }
+  $alignment = ''
+  if ($BlueprintPath) {
+    & (Join-Path $PSScriptRoot 'project-blueprint.ps1') -Action Validate -ProjectRoot $ProjectRoot -BlueprintPath $BlueprintPath | Out-Null
+    $alignment = @"
+## Structural alignment
+Blueprint path: $BlueprintPath
+Blueprint revision:
+Blueprint modules:
+Allowed existing files:
+Planned additions:
+Composition roots affected:
+Blueprint amendment:
+
+"@
+  }
   New-Item -ItemType Directory -Force -Path $paths.Active | Out-Null
   @"
 # Verification: $StageTitle
@@ -184,6 +225,7 @@ Contract status: draft
 Final manual status: manual pending
 Final manual evidence:
 
+$alignment
 ## Stage context
 - Objective:
 - Scope, environment, test data, and cleanup:

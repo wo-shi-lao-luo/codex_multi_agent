@@ -15,6 +15,11 @@ Open questions:
 
 ```text
 Owner:
+Blueprint applicability and evidence:
+Blueprint path/revision and module IDs (when applicable):
+Existing baseline and retained constraints:
+Refactor decision, approved scope, and user evidence:
+Allowed files, planned additions, and composition-root exceptions:
 Affected area or boundary:
 Expected result:
 Shared contract or compatibility concern:
