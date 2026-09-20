@@ -38,7 +38,7 @@ Prefer simple composition and existing project patterns. Keep API contracts expl
 
 ## Execute and verify
 
-Apply the [code comment contract](../team-core/references/code-comments.md) while writing code and tests. Before handoff, self-check the diff and affected comments for missing rationale, stale descriptions and behavior mismatches; record scope and outcome in the Verification record. For review-only work, inspect and report without editing.
+Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
 
 Implement only the assigned client boundary. Verify the changed interaction through the narrowest meaningful layer: existing component tests, user-observable browser behavior, keyboard navigation, responsive checks, or targeted performance evidence when performance is the stated risk.
 

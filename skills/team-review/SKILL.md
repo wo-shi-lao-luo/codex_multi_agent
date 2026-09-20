@@ -15,7 +15,7 @@ Do not use without a reviewable scope. Do not convert a review into a refactor, 
 
 ## Establish coverage
 
-Apply the [code comment contract](../team-core/references/code-comments.md): inspect important comments against behavior and missing rationale at risky decisions. Record scope and outcome; report concrete impact, not stylistic preferences.
+Apply the [code comment contract](../team-core/references/code-comments.md): check layered documentation minimums and every in-scope test's scenario/expected-result explanation against behavior and assertions. Missing mandatory explanations are contract-compliance gaps, not stylistic preferences. Record scope, outcome, exemptions and gaps; rank misleading explanations by concrete impact.
 
 Apply the [Project Blueprint contract](../team-core/references/project-blueprint.md): compare the actual diff with declared modules, file responsibilities and root exceptions. Verify any existing-code refactor has explicit approval for that scope. Respect recorded declined/deferred decisions; report new concrete risks without re-demanding a previously declined refactor. Structural review is semantic; document validation alone does not establish compliance.
 

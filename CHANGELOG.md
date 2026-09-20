@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions use [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-09-21
+
+### Changed
+
+- Define layered comment minimums for files, interfaces, internal business logic and important implementation decisions.
+- Require scenario and expected-result explanations for every in-scope test case, including parameterized and script-based tests, with assertion-consistency checks.
+- Strengthen writer self-checks and review records to distinguish missing mandatory documentation from stylistic preferences.
+
 ## [0.5.1] - 2026-09-20
 
 ### Added

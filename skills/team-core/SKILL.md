@@ -5,7 +5,7 @@ description: Internal reference bundle for Codex Multi-Agent Kit team workflows.
 
 # Team core
 
-For code implementation or review, read the [code comment contract](references/code-comments.md) for required explanations, writer self-checks and semantic review.
+For code implementation or review, read the [code comment contract](references/code-comments.md) for layered documentation minimums, mandatory per-test scenario/expected-result explanations, writer self-checks and semantic review.
 
 For project and multi-stage work, read the [Project Blueprint contract](references/project-blueprint.md). `scripts/project-blueprint.ps1` initializes and validates the architecture document; it never reorganizes source code. Existing-project discovery, explicit refactor approval, and continued work after refusal are part of this contract.
 

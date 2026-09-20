@@ -34,7 +34,7 @@ After a coherent implementation pass, assign `team-tester` and `team-reviewer` i
 
 ## Verify and close
 
-Apply the [code comment contract](../team-core/references/code-comments.md). Require writers to maintain necessary explanations and record their diff-based self-check, even without an independent reviewer. Include semantic comment coverage when assigning review; resolve or disclose material gaps before completion.
+Apply the [code comment contract](../team-core/references/code-comments.md). Require writers to meet layered documentation minimums and explain every in-scope test's scenario and expected result, even simple tests. Record a per-unit self-check against behavior and assertions, including exemptions and gaps, even without an independent reviewer. Include this coverage when assigning review; missing mandatory explanations must be resolved or explicitly disclosed before completion.
 
 Create a Verification record from actual checks. Record commands and outcomes, inspected behavior, and checks that could not run. Do not close the task until acceptance checks have evidence or the user-facing remaining risk is explicit.
 

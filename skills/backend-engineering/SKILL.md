@@ -36,7 +36,7 @@ Preserve compatibility unless the approved task changes the contract. Keep secre
 
 ## Execute and verify
 
-Apply the [code comment contract](../team-core/references/code-comments.md) while writing code and tests. Before handoff, self-check the diff and affected comments for missing rationale, stale descriptions and behavior mismatches; record scope and outcome in the Verification record. For review-only work, inspect and report without editing.
+Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
 
 Implement the assigned boundary using repository conventions. Run focused unit, integration, contract, or job verification that demonstrates the changed success path and material failure path. Include `team-database-specialist` when the work contract reaches the data layer.
 

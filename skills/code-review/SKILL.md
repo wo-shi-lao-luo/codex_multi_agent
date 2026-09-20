@@ -21,7 +21,7 @@ Do not use without an inspectable scope. Do not turn a review into a style rewri
 
 ## Evaluate findings
 
-Apply the [code comment contract](../team-core/references/code-comments.md): inspect important comments against behavior and missing rationale at risky decisions. Record scope and outcome; report concrete impact, not stylistic preferences.
+Apply the [code comment contract](../team-core/references/code-comments.md): check layered documentation minimums and every in-scope test's scenario/expected-result explanation against behavior and assertions. Missing mandatory explanations are contract-compliance gaps, not stylistic preferences. Record scope, outcome, exemptions and gaps; rank misleading explanations by concrete impact.
 
 Prioritize incorrect assumptions, broken error handling, authorization gaps, unsafe data changes, concurrency issues, compatibility breaks, and missing verification. A material finding includes:
 
