@@ -54,6 +54,8 @@ Restart Codex if a newly installed Skill is not immediately visible.
 
 ## Operating rules
 
+For an existing project's agent, use the [resource handoff guide](docs/existing-project-handoff.md) to locate the installed Skills, contracts and scripts.
+
 New applications, multi-stage initiatives and material structural changes use a [Project Blueprint](skills/team-core/references/project-blueprint.md). Discover an existing repository before documenting its modules and file responsibilities. Structural refactoring requires explicit user approval; if declined or deferred, preserve the current structure and record its constraints. Stage packets reference the blueprint revision, module IDs, file scope and entrypoint exceptions. Blueprint validation checks document structure; code review checks the actual architecture.
 
 - The Lead starts at most three child threads at once.
