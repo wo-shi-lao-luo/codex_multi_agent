@@ -129,11 +129,33 @@ Get-ChildItem -Path (Join-Path $root 'skills') -Directory | ForEach-Object {
   }
 }
 
-$coreReferences = @('execution-contract.md', 'execution-templates.md', 'role-routing.md', 'file-ownership.md', 'handoff-format.md', 'feedback-recording.md')
+$coreReferences = @('execution-contract.md', 'execution-templates.md', 'role-routing.md', 'file-ownership.md', 'handoff-format.md', 'feedback-recording.md', 'test-acceptance-contract.md', 'tdd-protocol.md')
 $coreReferenceDirectory = Join-Path $root 'skills\team-core\references'
 foreach ($reference in $coreReferences) {
   if (-not (Test-Path -LiteralPath (Join-Path $coreReferenceDirectory $reference))) {
     $failures.Add("team-core is missing reference $reference")
+  }
+}
+
+$tddWorkflowSkills = @('team-dev', 'team-plan', 'team-debug', 'team-review', 'testing-engineering')
+foreach ($skillName in $tddWorkflowSkills) {
+  $skillPath = Join-Path $root (Join-Path 'skills' (Join-Path $skillName 'SKILL.md'))
+  if (-not (Test-Path -LiteralPath $skillPath)) {
+    $failures.Add("TDD workflow Skill is missing: $skillName")
+  } elseif (-not (Get-Content -LiteralPath $skillPath -Raw).Contains('tdd-protocol.md')) {
+    $failures.Add("$skillName does not reference tdd-protocol.md")
+  }
+}
+
+$stageVerification = Join-Path $root 'skills\team-core\scripts\stage-verification.ps1'
+if (-not (Test-Path -LiteralPath $stageVerification)) {
+  $failures.Add('team-core is missing scripts/stage-verification.ps1')
+} else {
+  $stageVerificationContent = Get-Content -LiteralPath $stageVerification -Raw
+  foreach ($requiredStageFeature in "'Validate'", 'Final manual status:', 'TDD behavior matrix', 'Test-Packet') {
+    if (-not $stageVerificationContent.Contains($requiredStageFeature)) {
+      $failures.Add("stage-verification.ps1 is missing $requiredStageFeature")
+    }
   }
 }
 

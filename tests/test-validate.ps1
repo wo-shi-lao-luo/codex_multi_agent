@@ -44,6 +44,10 @@ try {
   Add-Content -LiteralPath $skillPath -Value '[broken link](missing-local-reference.md)' -Encoding utf8
   Assert-Condition (-not (Invoke-CopiedValidator)) 'Validation accepted a missing local Markdown reference.'
 
+  Copy-Item -LiteralPath (Join-Path $root 'skills\team-dev\SKILL.md') -Destination $skillPath -Force
+  Remove-Item -LiteralPath (Join-Path $testRoot 'skills\team-core\references\tdd-protocol.md') -Force
+  Assert-Condition (-not (Invoke-CopiedValidator)) 'Validation accepted a missing TDD protocol reference.'
+
   Write-Host 'Validation tests passed.'
 } finally {
   $resolvedTestRoot = [System.IO.Path]::GetFullPath($testRoot)

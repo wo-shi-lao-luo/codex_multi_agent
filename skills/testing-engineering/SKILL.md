@@ -5,7 +5,7 @@ description: Plan and implement focused, evidence-backed tests for changed behav
 
 # Testing engineering
 
-Use this Skill to design and verify meaningful tests. Apply the shared [execution contract](../team-core/references/execution-contract.md) and [execution templates](../team-core/references/execution-templates.md); tests should demonstrate behavior and risk coverage, not mirror implementation details.
+Use this Skill to design and verify meaningful tests. Apply the shared [execution contract](../team-core/references/execution-contract.md), [execution templates](../team-core/references/execution-templates.md), and [TDD protocol](../team-core/references/tdd-protocol.md); tests should demonstrate behavior and risk coverage, not mirror implementation details.
 
 ## When to activate
 
@@ -31,6 +31,8 @@ Failure or boundary risk → test layer → scenario → expected evidence
 State any important risk that cannot be tested in the available environment and identify the smallest practical substitute check.
 
 For team development, assess unit, integration, contract/API, E2E, regression, and manual coverage as `required`, `conditional`, or `not applicable`; assess component/UI, accessibility, visual regression, performance/load, security, compatibility, data migration/rollback, resilience/recovery, and exploratory/usability when material. Record every reason; never use a line-coverage target as a substitute for behavior coverage.
+
+For every material behavior, choose `test-first`, `test-after`, or `manual-or-environmental`. Prefer the narrowest observable layer. A completed `test-first` row records named test identity plus actual Red, Green, and post-refactor evidence; another track records a concrete reason and smallest credible alternative.
 
 ## Execute and verify
 

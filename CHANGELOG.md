@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions use [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-20
+
+### Added
+
+- A framework-neutral TDD protocol with `test-first`, documented `test-after`, and `manual-or-environmental` tracks.
+- Packet validation that checks controlled coverage decisions, TDD evidence, a unique final manual status, and safe archival conditions.
+- Isolated tests for stage-packet validation, state handling, archival, and test cleanup.
+
+### Changed
+
+- `$team-dev`, `$team-plan`, `$team-debug`, `$team-review`, and `testing-engineering` now use the shared TDD protocol at their relevant lifecycle points.
+
 ## [0.3.1] - 2026-09-20
 
 ### Added

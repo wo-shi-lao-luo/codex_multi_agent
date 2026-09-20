@@ -15,13 +15,14 @@ Do not use when the root cause and safe fix are already evidenced, or when the r
 
 ## Investigate
 
-Read [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), and [feedback recording](../team-core/references/feedback-recording.md).
+Read [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
 1. Create a Task record with symptom, expected behavior, reproduction, available logs, and impact.
 2. Build a Debug hypothesis ledger. Separate observations from hypotheses and choose the smallest discriminating check for each hypothesis.
 3. Delegate independent investigations to `team-explorer`, `team-tester`, and the relevant domain owner. Give each a different question or evidence source; do not create duplicate exploration.
 4. Compare results. Reject hypotheses with contrary evidence and identify the most likely root cause, including confidence and remaining uncertainty.
-5. Produce a Work contract for the smallest fix scope and its verification. Implementation begins only after this evidence gate passes.
+5. For an automatable defect, capture the smallest failing regression reproduction before recommending a repair. If that is not practical, select and document the `test-after` or `manual-or-environmental` track and its alternative evidence.
+6. Produce a Work contract for the smallest fix scope and its verification. Implementation begins only after this evidence gate passes.
 
 ## Decision and return gates
 
