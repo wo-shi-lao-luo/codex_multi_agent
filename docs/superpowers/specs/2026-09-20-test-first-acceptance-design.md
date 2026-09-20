@@ -60,10 +60,10 @@ For every material behavior, record the preconditions, happy path, alternate pat
 Each row maps a behavior to evidence:
 
 ```text
-Behavior | Risk | Automated layer | Test/E2E scenario | Manual scenario | Owner | Status | Evidence
+Behavior | Risk | Coverage category | Decision | Test/E2E scenario | Manual scenario | Owner | Status | Evidence
 ```
 
-`Automated layer` is one of unit, integration, E2E, or not practical. `Status` is one of `planned`, `written`, `passing`, `manual pending`, `manually verified`, or `exception accepted`. A line-coverage percentage is optional repository evidence, never a substitute for behavior coverage or an invented target.
+Assess unit, integration, contract/API, E2E, regression, and manual coverage for every stage. Also assess component/UI, accessibility, visual regression, performance/load, security, compatibility, data migration/rollback, resilience/recovery, and exploratory/usability when material. `Decision` is `required`, `conditional`, or `not applicable`, with a reason. `Status` is one of `planned`, `written`, `passing`, `manual pending`, `manually verified`, or `exception accepted`. A line-coverage percentage is optional evidence, never a substitute for behavior coverage.
 
 ### 4. Automated-test and E2E plan
 
@@ -113,4 +113,3 @@ The normal workflow handoff summarizes coverage status and links the active or a
 - Isolated tests verify required packet fields, allowed status transitions, archive behavior, and rejection of unsafe or incomplete packets.
 - Installer/update tests confirm all supporting Skill resources are packaged.
 - Manual Codex acceptance verifies that an explicit `$team-dev` invocation creates an initial packet before implementation and reconciles it at close.
-

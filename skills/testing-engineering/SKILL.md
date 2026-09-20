@@ -30,6 +30,8 @@ Failure or boundary risk → test layer → scenario → expected evidence
 
 State any important risk that cannot be tested in the available environment and identify the smallest practical substitute check.
 
+For team development, assess unit, integration, contract/API, E2E, regression, and manual coverage as `required`, `conditional`, or `not applicable`; assess component/UI, accessibility, visual regression, performance/load, security, compatibility, data migration/rollback, resilience/recovery, and exploratory/usability when material. Record every reason; never use a line-coverage target as a substitute for behavior coverage.
+
 ## Execute and verify
 
 Implement tests using local conventions. Run the relevant commands once they meaningfully cover the changed path. Record whether each planned scenario passed, failed as expected during diagnosis, was not runnable, or needs a wider environment.

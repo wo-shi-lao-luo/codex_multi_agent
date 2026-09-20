@@ -15,12 +15,13 @@ Do not use this workflow to create a task daemon, push branches, merge pull requ
 
 ## Establish the work
 
-Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), and [feedback recording](../team-core/references/feedback-recording.md).
+Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [test and acceptance contract](../team-core/references/test-acceptance-contract.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
 1. Create a Task record. Identify outcome, constraints, acceptance checks, and unknowns.
 2. Discover only the facts needed to choose an approach. Use `team-explorer` for uncertain scope and `team-architect` for cross-module contracts.
 3. Create a Work contract before assigning writers. Declare ownership for shared APIs, schemas, migrations, generated clients, and lockfiles. Keep production-code ownership to one writer by default.
-4. Delegate bounded work with expected output, relevant constraints, and verification. Run at most three child threads; child agents do not orchestrate further agents.
+4. Before implementation, create the target repository's Git-tracked stage verification packet required by the Test & Acceptance Contract. `team-tester` owns its coverage matrix and human verification script.
+5. Delegate bounded work with expected output, relevant constraints, and verification. Run at most three child threads; child agents do not orchestrate further agents.
 
 ## Execute and integrate
 
@@ -31,6 +32,8 @@ After a coherent implementation pass, assign `team-tester` and `team-reviewer` i
 ## Verify and close
 
 Create a Verification record from actual checks. Record commands and outcomes, inspected behavior, and checks that could not run. Do not close the task until acceptance checks have evidence or the user-facing remaining risk is explicit.
+
+Reconcile every stage-packet row with actual evidence. Human checks remain `manual pending` until user evidence exists. Archive the packet only after manual verification or explicit user deferral; otherwise link the active packet in the Handoff.
 
 After the normal Handoff is prepared, create the local minimal feedback record described in [feedback recording](../team-core/references/feedback-recording.md). Include only redacted workflow evidence. A recording failure is a non-blocking remaining risk, never a reason to alter the task outcome.
 

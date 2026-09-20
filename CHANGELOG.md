@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions use [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-20
+
+### Added
+
+- Git-tracked stage verification packets with use cases, coverage decisions, automated plans, and human verification scripts.
+
+### Changed
+
+- `$team-dev` establishes and reconciles a Test & Acceptance Contract before and after implementation.
+
 ## [0.3.0] - 2026-09-18
 
 ### Added
@@ -30,4 +40,3 @@ All notable changes to this project are documented in this file. The format foll
 ### Added
 
 - Initial Codex multi-agent team, explicit workflow Skills, and shared execution contracts.
-

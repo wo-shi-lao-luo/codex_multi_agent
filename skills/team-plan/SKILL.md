@@ -15,13 +15,14 @@ Do not use for a one-line factual answer, a request to implement immediately aft
 
 ## Build the plan
 
-Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), and [feedback recording](../team-core/references/feedback-recording.md).
+Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [test and acceptance contract](../team-core/references/test-acceptance-contract.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
 1. Create a Task record: outcome, constraints, acceptance checks, and open questions.
 2. Discover repository facts. Use `team-explorer` for unfamiliar scope and `team-architect` for cross-module contracts; request bounded findings with evidence.
 3. Turn evidence into a Work contract. Define affected boundaries, ownership, compatibility, verification, and rollout or recovery needs when material.
 4. Write ordered tasks only after shared contracts are resolved. Each task needs an owner, a deliverable, dependencies, and a verification step.
 5. Self-check the plan: every acceptance check has a task and verification; no task assumes facts that discovery did not establish.
+6. Include use cases, coverage-category decisions, automated/E2E plan, and human verification requirements. `$team-dev` creates the tracked stage packet before implementation.
 
 ## Decision and return gates
 
