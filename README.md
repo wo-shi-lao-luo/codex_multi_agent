@@ -46,7 +46,7 @@ The installer validates the kit before writing. Use `-WhatIf` to preview its act
 
 Agent names use the `team-` prefix to avoid collisions with personal agents. If an earlier kit version installed generic names such as `architect.toml`, they are left untouched; remove them manually only after confirming the `team-*` agents work for you.
 
-Current release: `0.3.0`. Explicit `team-*` workflows now write a small, redacted local acceptance record through `team-core`; these records never enter the business repository. See [feedback recording](skills/team-core/references/feedback-recording.md) and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Earlier installed Skill directories are left untouched; remove them manually only after confirming the renamed Skills work for you.
+Current release: `0.3.1`. Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`, and `$team-dev` creates Git-tracked stage verification packets in target projects. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Earlier installed Skill directories are left untouched; remove them manually only after confirming the renamed Skills work for you.
 
 Restart Codex if a newly installed Skill is not immediately visible.
 
