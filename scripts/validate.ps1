@@ -1,3 +1,4 @@
+# Validate distributable metadata and resource routing, not runtime or visual quality.
 [CmdletBinding()]
 param()
 
@@ -133,6 +134,7 @@ $coreReferences = @('execution-contract.md', 'execution-templates.md', 'role-rou
 $coreReferenceDirectory = Join-Path $root 'skills\team-core\references'
 $coreReferences += 'project-blueprint.md'
 $coreReferences += 'code-comments.md'
+$coreReferences += 'ui-quality.md'
 foreach ($reference in $coreReferences) {
   if (-not (Test-Path -LiteralPath (Join-Path $coreReferenceDirectory $reference))) {
     $failures.Add("team-core is missing reference $reference")
@@ -144,6 +146,19 @@ foreach ($skillName in 'team-dev', 'team-plan', 'team-review', 'frontend-enginee
   if (-not (Test-Path -LiteralPath $blueprintSkill) -or -not (Get-Content -LiteralPath $blueprintSkill -Raw).Contains('project-blueprint.md')) { $failures.Add("$skillName must reference project-blueprint.md") }
 }
 if (-not (Test-Path -LiteralPath (Join-Path $root 'skills/team-core/scripts/project-blueprint.ps1'))) { $failures.Add('Missing project-blueprint.ps1') }
+
+# Require actual Markdown routes so a mere prose mention cannot hide a lost UI contract.
+foreach ($skillName in 'team-dev', 'team-plan', 'team-review', 'team-core', 'frontend-engineering', 'code-review', 'testing-engineering', 'frontend-design') {
+  $uiSkillPath = Join-Path $root "skills/$skillName/SKILL.md"
+  $uiTarget = if ($skillName -eq 'team-core') { 'references/ui-quality.md' } else { '../team-core/references/ui-quality.md' }
+  if (-not (Test-Path -LiteralPath $uiSkillPath) -or (Get-Content -LiteralPath $uiSkillPath -Raw) -notmatch ('\]\(' + [regex]::Escape($uiTarget) + '\)')) {
+    $failures.Add("$skillName must link to ui-quality.md")
+  }
+}
+$frontendAgentPath = Join-Path $root 'agents/team-frontend-engineer.toml'
+if (-not (Test-Path -LiteralPath $frontendAgentPath) -or -not (Get-Content -LiteralPath $frontendAgentPath -Raw).Contains('frontend-design')) {
+  $failures.Add('team-frontend-engineer must route visible UI work to frontend-design')
+}
 
 $tddWorkflowSkills = @('team-dev', 'team-plan', 'team-debug', 'team-review', 'testing-engineering')
 # This guards contract discovery, not the semantic quality of code comments.

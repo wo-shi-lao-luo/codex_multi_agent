@@ -12,6 +12,12 @@ The main Codex thread is the Lead. It reads project instructions, decides whethe
 
 `$team-dev` starts with scope analysis. For medium and large tasks it normally uses `team-explorer` plus either `team-architect` or a targeted specialist. It then appoints one production-code writer. After implementation, `team-tester` and `team-reviewer` work independently; the Lead handles any fixes and runs the final verification.
 
+## UI work
+
+For new pages and visible UI changes, the Lead passes a lightweight UI brief and names one owner for the coherent page or user flow. The owner uses frontend-design for hierarchy, styling and rendered refinement alongside frontend-engineering for implementation correctness. Small demos normally stay with one implementer; independent work may still be delegated. File boundaries must include necessary shared styles or be adjusted explicitly.
+
+Functional tests and rendered visual inspection are separate evidence. The Lead checks the final integrated page's evidence, and missing browser access remains an explicit unverified state. Agent inspection never replaces user manual acceptance. See the [UI delivery contract](../skills/team-core/references/ui-quality.md). This workflow does not claim measured visual improvement until a matched-task comparison is actually run.
+
 ## Data work
 
 `team-database-specialist` owns SQL safety, schema design, migrations, indexing, query plans, transaction boundaries, and data-change rollback. It is invoked only when data-layer changes are material.

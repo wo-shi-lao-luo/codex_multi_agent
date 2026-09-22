@@ -15,6 +15,8 @@ Do not use this workflow to create a task daemon, push branches, merge pull requ
 
 ## Establish the work
 
+For visible UI work, apply the [UI delivery contract](../team-core/references/ui-quality.md). Preserve the complete product/page goal in the UI brief before delegation, name one page/flow owner, and include necessary shared-style ownership. Small demos normally use one implementer rather than component-by-component delegation. Require the owner to use frontend-design alongside frontend-engineering; routine authorized polish needs no new design approval.
+
 Read the [Project Blueprint contract](../team-core/references/project-blueprint.md) before assigning stages. Assess its gate; for existing projects, inspect the baseline first. Record adequate structure as-is; propose evidenced structural repairs separately and obtain explicit user approval before refactoring. If declined or deferred, document retained constraints and continue within the actual structure. When the gate applies, the Lead creates/updates the blueprint from the architect's read-only proposal and includes its path/revision, modules, file scope, root exceptions and amendment decision in every stage packet. Use `-BlueprintPath` for canonical packet validation. Review actual file placement at close; return unplanned boundary changes to Contract.
 
 Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [test and acceptance contract](../team-core/references/test-acceptance-contract.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [feedback recording](../team-core/references/feedback-recording.md).
@@ -33,6 +35,8 @@ Wait for required discovery or contract decisions before dependent work begins. 
 After a coherent implementation pass, assign `team-tester` and `team-reviewer` independently when the change is material. Include `team-database-specialist` for material data work. The Lead de-duplicates findings, assigns focused fixes, and keeps the original owner responsible for the changed boundary.
 
 ## Verify and close
+
+For applicable UI work, check final integrated page evidence and separate functional results from visual status under the UI delivery contract. Re-inspect affected results if integration invalidated earlier evidence. Do not claim visual readiness with missing inspection or unresolved material visual defects; include specific remaining gaps without falsifying manual acceptance.
 
 Apply the [code comment contract](../team-core/references/code-comments.md). Require writers to meet layered documentation minimums and explain every in-scope test's scenario and expected result, even simple tests. Record a per-unit self-check against behavior and assertions, including exemptions and gaps, even without an independent reviewer. Include this coverage when assigning review; missing mandatory explanations must be resolved or explicitly disclosed before completion.
 

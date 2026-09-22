@@ -5,6 +5,8 @@ description: Internal reference bundle for Codex Multi-Agent Kit team workflows.
 
 # Team core
 
+For new pages and visible UI changes, read the [UI delivery contract](references/ui-quality.md). It preserves page-level goals through delegation and separates functional verification from rendered visual inspection; frontend-design supplies the implementation guidance.
+
 For code implementation or review, read the [code comment contract](references/code-comments.md) for layered documentation minimums, mandatory per-test scenario/expected-result explanations, writer self-checks and semantic review.
 
 For project and multi-stage work, read the [Project Blueprint contract](references/project-blueprint.md). `scripts/project-blueprint.ps1` initializes and validates the architecture document; it never reorganizes source code. Existing-project discovery, explicit refactor approval, and continued work after refusal are part of this contract.

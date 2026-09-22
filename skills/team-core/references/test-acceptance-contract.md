@@ -6,4 +6,6 @@ The packet must contain stage context, use cases with happy and edge paths, test
 
 For deterministic behavior, write a failing practical automated test before implementation and use red-green-refactor. Otherwise record why strict TDD is not practical and define the smallest reliable alternative. Do not invent line-coverage targets.
 
+For visible UI work, apply the [UI delivery contract](ui-quality.md). Include rendered-page inspection in the existing packet and record functional and visual results separately; aesthetic inspection normally uses the manual-or-environmental track, while deterministic UI behavior retains practical automated tests. Agent visual evidence never changes the user-only final manual status. Existing packet schema and archival rules remain unchanged.
+
 At close, reconcile each row as `planned`, `written`, `failing as intended`, `passing`, `manual pending`, `manually verified`, or `exception accepted`. Never mark human-only checks passed without user evidence. Run `stage-verification.ps1 -Action Validate` before handoff. Archive only when the packet's unique `Final manual status` is `manually verified` or `deferred by user`; otherwise keep the packet active and link it in the Handoff.

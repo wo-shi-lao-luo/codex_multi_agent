@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions use [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-09-22
+
+### Added
+
+- A frontend-design Skill for coherent first-version interfaces, reusable visual baselines and rendered-page refinement.
+- A shared UI delivery contract preserving product goals, complete page/flow ownership and separate functional/visual evidence through delegation and integration.
+- UI routing regression checks; the existing isolated installer tests cover the new packaged resources.
+
+### Changed
+
+- Frontend, planning, development, testing and review workflows now distinguish rendered visual verification from functional tests and user acceptance.
+- Frontend role instructions include whole-page quality responsibility without changing model profiles or authorizing unrelated redesigns.
+
 ## [0.5.2] - 2026-09-21
 
 ### Changed

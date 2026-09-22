@@ -38,6 +38,8 @@ For every material behavior, choose `test-first`, `test-after`, or `manual-or-en
 
 ## Execute and verify
 
+For visible UI changes, apply the [UI delivery contract](../team-core/references/ui-quality.md). Keep functional test results separate from rendered-page observations and visual status. Component/E2E assertions and screenshot-diff checks do not replace inspection for hierarchy, consistency and usability. Record unobserved states honestly; agent inspection does not complete user-only manual checks.
+
 Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
 
 Implement tests using local conventions. Run the relevant commands once they meaningfully cover the changed path. Record whether each planned scenario passed, failed as expected during diagnosis, was not runnable, or needs a wider environment.

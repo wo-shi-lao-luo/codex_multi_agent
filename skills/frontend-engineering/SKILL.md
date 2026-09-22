@@ -21,6 +21,8 @@ Do not use to introduce a state library, UI library, analytics, client-side secr
 
 ## Establish the frontend work contract
 
+For visible UI changes, read the [UI delivery contract](../team-core/references/ui-quality.md) and use [frontend-design](../frontend-design/SKILL.md). Own the coherent assigned page/flow as well as its modular code. Preserve the UI brief, existing visual baseline and whole-product context. Normal spacing, typography, states and responsive polish within scope are part of implementation; request a bounded scope adjustment if shared styles are excluded.
+
 Use the [Project Blueprint contract](../team-core/references/project-blueprint.md) to place features in their declared modules. Classify entrypoints by framework responsibility: startup, app/router/provider roots primarily compose modules. Keep feature UI, state and requests in their owning boundary unless a documented retained-baseline exception applies. Do not refactor existing code without explicit user approval; record and respect a declined refactor.
 
 Before implementation, define:
@@ -40,7 +42,7 @@ Prefer simple composition and existing project patterns. Keep API contracts expl
 
 Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
 
-Implement only the assigned client boundary. Verify the changed interaction through the narrowest meaningful layer: existing component tests, user-observable browser behavior, keyboard navigation, responsive checks, or targeted performance evidence when performance is the stated risk.
+Implement the assigned complete page/flow within its client boundary. Verify functional behavior through the narrowest meaningful layer; for visible UI changes, also perform rendered-page inspection under the UI delivery contract. Component tests are not a substitute for visual verification. Fix observed in-scope issues and inspect the affected result again.
 
 Create a Verification record with checks performed, results, evidence, and any unavailable browser or device coverage. Do not call an interaction complete solely because it renders in one state.
 

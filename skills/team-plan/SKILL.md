@@ -15,6 +15,8 @@ Do not use for a one-line factual answer, a request to implement immediately aft
 
 ## Build the plan
 
+For UI work, apply the [UI delivery contract](../team-core/references/ui-quality.md). Include a lightweight UI brief, coherent page/flow ownership, baseline resource paths, necessary shared-style scope and separate functional/rendered verification. Do not reduce the product goal to component tickets or add a mandatory design-document approval gate.
+
 Apply the [Project Blueprint contract](../team-core/references/project-blueprint.md) before breaking an initiative into stages. Inspect existing architecture and representative code first, distinguish facts from proposals, then map stages to durable modules. For a sound existing structure, establish an as-is blueprint. For structural problems, present evidence, a bounded refactor with tests/recovery, and an as-is alternative. Require explicit user approval for refactoring; declining it preserves the actual structure with documented constraints. Planning does not authorize code moves.
 
 Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [test and acceptance contract](../team-core/references/test-acceptance-contract.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [feedback recording](../team-core/references/feedback-recording.md).

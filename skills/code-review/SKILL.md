@@ -15,6 +15,8 @@ Do not use without an inspectable scope. Do not turn a review into a style rewri
 
 ## Establish scope and risk coverage
 
+For visible UI changes, apply the [UI delivery contract](../team-core/references/ui-quality.md). Inspect available final-page evidence against the UI brief, not only the component diff. Record which routes, viewports and states were inspected; code-only evidence cannot establish visual quality. Do not relabel agent inspection as user approval.
+
 1. Record the baseline, changed files, intended behavior, and relevant tests or verification already run.
 2. Read the diff and enough surrounding code to trace changed inputs, outputs, error handling, authorization, data effects, concurrency, compatibility, and observable behavior.
 3. Build a Review coverage record. Identify which risks were reviewed and which need a specialized reviewer, such as database safety or test adequacy.
