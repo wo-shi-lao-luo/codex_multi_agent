@@ -35,6 +35,12 @@ OpenSpec integration adds an optional external CLI boundary, not a fourth execut
 
 Production files remain grouped by these responsibilities rather than implementation stage. No existing-code structural refactor was required or performed. Specs and task wording are fingerprinted; stage packets own results. The adapter cannot establish semantic correctness or authenticate approvals. Its archive lock coordinates kit archives only; external writers must be stopped.
 
+## Installation management boundary
+
+The deployment manager is independent of the Kit's agent/Skill payload. `scripts/deploy-user.ps1` owns manifests, receipt migration, exact unit reconciliation, staging, before-images, recovery journals, stable selection and pruning. The existing install/update entrypoints route to it. Its content-addressed installed copy survives source checkout changes and payload downgrade. No Skill or agent can silently opt a project into rollback.
+
+This approved installer refactor preserves global config and unrelated personal components; it changes the old per-unit restore into whole-operation recovery. No business source layout is reorganized. Snapshot/data compatibility and recovery limits are documented in [safe deployment](safe-deployment.md).
+
 ## Deliberate limits
 
 The toolkit has no background task scheduler, no issue-tracker integration, no automatic Git push or merge, no global hook, and no recursive child orchestration. These limits keep the user-level workflow inspectable and portable across projects.

@@ -69,7 +69,7 @@ try {
   }
 
   $receipt = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json -ErrorAction Stop
-  Assert-Condition ($receipt.schemaVersion -eq 1) 'Installation receipt has an unexpected schema version.'
+  Assert-Condition ($receipt.schemaVersion -eq 2) 'Installation receipt has an unexpected schema version.'
   Assert-Condition ($receipt.kitVersion -eq (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()) 'Installation receipt has an unexpected kit version.'
   Assert-Condition (@($receipt.files).Count -eq $packageFiles.Count) 'Installation receipt does not cover every packaged file exactly once.'
   foreach ($packageRelativePath in $packageFiles.Keys) {

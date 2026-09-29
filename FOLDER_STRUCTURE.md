@@ -6,7 +6,7 @@
 
 ## Active deliverable
 
-The toolkit source is the current editable master. It is installed into a user's Codex directories only by `scripts/install-user.ps1`.
+The toolkit source is the current editable master. `scripts/install-user.ps1` validates current source and delegates installation to `scripts/deploy-user.ps1`, which also manages explicit downgrade and recovery.
 
 ## Directory map
 
@@ -20,6 +20,9 @@ The toolkit source is the current editable master. It is installed into a user's
 - `skills/team-core/templates/openspec/` — independently authored native-schema configuration, copied only on explicit project enablement.
 - `config/` — an optional, manually merged Codex configuration fragment.
 - `scripts/` — user-level validation, installation, and safe update helpers.
+- `scripts/deploy-user.ps1` — self-contained versioned deployment/recovery manager; installed copies live outside Skill discovery paths.
+- `docs/safe-deployment.md` — durable installation, stable snapshot, downgrade, recovery and retention guide.
+- `tests/test-deployment.ps1` — isolated fake-home deployment and fault-injection suite; no actual installation.
 - `tests/` — isolated package, installation, feedback, stage-verification and project-blueprint tests.
 - `tests/fixtures/` — controlled CLI doubles for transport and partial-failure regression tests; never production runtimes.
 - `docs/verification/active/` — implementation verification records awaiting maintainer review; not automated manual acceptance.

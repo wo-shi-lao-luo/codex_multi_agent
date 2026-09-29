@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.0] - 2026-09-29
+
+- Replace per-component installation with receipt-based deployment, exact downgrade reconciliation and whole-operation recovery.
+- Add explicit stable snapshots, an independent persistent rollback entrypoint, local Git-ref deployment, conflict protection and explicit snapshot pruning.
+- Add isolated upgrade/downgrade and fault-injection tests; do not install or declare this preview stable automatically.
+
 ## [0.7.0] - 2026-09-29
 
 - Add an opt-in, externally installed OpenSpec 1.13.2 adapter; retain one Lead and native kit behavior for non-adopters.

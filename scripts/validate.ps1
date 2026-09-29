@@ -5,6 +5,10 @@ param()
 $root = Split-Path -Parent $PSScriptRoot
 $failures = New-Object System.Collections.Generic.List[string]
 
+foreach ($resource in @('scripts/deploy-user.ps1')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing deployment resource: $resource") }
+}
+
 $versionPath = Join-Path $root 'VERSION'
 $kitVersion = $null
 if (-not (Test-Path -LiteralPath $versionPath)) {

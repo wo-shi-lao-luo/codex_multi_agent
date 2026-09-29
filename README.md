@@ -30,7 +30,7 @@ The kit does not implement automatic model fallback. Keep previous model assignm
 
 ## Install for one user
 
-Run PowerShell from this repository:
+Run PowerShell 7 from this repository:
 
 ```powershell
 .\scripts\validate.ps1
@@ -45,6 +45,8 @@ To safely update an existing installation after pulling a newer kit version, run
 
 `update-user.ps1` uses the same receipt, `-WhatIf`, conflict protection, and `-Force` backup behavior as the installer. It does not modify `~/.codex/config.toml`.
 
+Install, upgrade and downgrade share one deployment manager. Receipt-owned components absent from the target are removed, including obsolete files inside retained Skills. Unknown or modified contents block replacement unless explicitly backed up with `-Force`. See [safe deployment and reusable rollback](docs/safe-deployment.md) to pin a tested stable snapshot before trying a new version, restore offline, or deploy a local Git commit without changing the checkout. Backups and the recovery manager intentionally remain outside agent/Skill discovery; project data is not rolled back.
+
 To verify the distributable package without touching your actual Codex or Skills directories, run:
 
 ```powershell
@@ -52,6 +54,7 @@ To verify the distributable package without touching your actual Codex or Skills
 .\tests\test-stage-verification.ps1
 .\tests\test-project-blueprint.ps1
 .\tests\test-install-user.ps1
+.\tests\test-deployment.ps1
 .\tests\test-feedback-runtime.ps1
 ```
 
@@ -61,9 +64,9 @@ The installer copies agents to `~/.codex/agents` and Skills (including the inter
 
 The installer validates the kit before writing. Use `-WhatIf` to preview its actions. It stops on an existing file or Skill directory unless it is an unchanged installation recorded by the kit; use `-Force` only when you want conflicting destinations backed up and replaced. The installation receipt and backups are stored under `~/.agents/codex-multi-agent/` by default.
 
-Agent names use the `team-` prefix to avoid collisions with personal agents. If an earlier kit version installed generic names such as `architect.toml`, they are left untouched; remove them manually only after confirming the `team-*` agents work for you.
+Agent names use the `team-` prefix to avoid collisions with personal agents. Historical components absent from the installation receipt are left untouched; inspect their ownership before removing them manually.
 
-Current release: `0.7.0`. Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Earlier installed Skill directories are left untouched; remove them manually only after confirming the renamed Skills work for you.
+Current release: `0.8.0` (review preview, not automatically stable). Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
 
 Visible UI work uses [frontend-design](skills/frontend-design/SKILL.md) alongside frontend-engineering. The [UI delivery contract](skills/team-core/references/ui-quality.md) preserves page-level goals through delegation and requires rendered inspection separate from functional tests. No extra design agent, model change or per-page design document is required. Missing browser evidence must be reported as visually unverified, not release-ready.
 
