@@ -15,6 +15,8 @@ Do not use for a one-line factual answer, a request to implement immediately aft
 
 ## Build the plan
 
+Check for `openspec/team-integration.json`. If present, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md): read current behavior and active deltas, resolve ambiguity, reuse the blueprint, and designate the change's tasks.md as the sole implementation list. Planning may propose artifacts but does not enable the integration, mutate its configuration or authorize implementation. Missing/stale specification evidence remains explicit. Without the marker, keep the native planning workflow.
+
 For UI work, apply the [UI delivery contract](../team-core/references/ui-quality.md). Include a lightweight UI brief, coherent page/flow ownership, baseline resource paths, necessary shared-style scope and separate functional/rendered verification. Do not reduce the product goal to component tickets or add a mandatory design-document approval gate.
 
 Apply the [Project Blueprint contract](../team-core/references/project-blueprint.md) before breaking an initiative into stages. Inspect existing architecture and representative code first, distinguish facts from proposals, then map stages to durable modules. For a sound existing structure, establish an as-is blueprint. For structural problems, present evidence, a bounded refactor with tests/recovery, and an as-is alternative. Require explicit user approval for refactoring; declining it preserves the actual structure with documented constraints. Planning does not authorize code moves.

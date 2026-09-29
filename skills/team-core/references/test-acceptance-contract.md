@@ -1,5 +1,7 @@
 # Test & Acceptance Contract
 
+For an explicitly enabled OpenSpec project, also apply [spec lifecycle](spec-lifecycle.md). Keep this packet as the only test-result authority, with stable CASE IDs referenced from the change's association index. Spec changes invalidate affected observations until reassessed. The optional adapter may validate active or archived canonical packets; existing projects without the integration retain this contract unchanged.
+
 Before any `$team-dev` writer starts, create one Git-tracked stage packet in the target repository. Reuse an existing repository QA convention; otherwise initialize `docs/verification/active/<stage-slug>.md` with `scripts/stage-verification.ps1`. Apply the companion [TDD protocol](tdd-protocol.md) to decide the evidence track for every material behavior.
 
 The packet must contain stage context, use cases with happy and edge paths, test data and cleanup, coverage matrix, automated test/E2E plan, and numbered human verification steps. Assess unit, integration, contract/API, E2E, regression, and manual coverage for every stage; assess component/UI, accessibility, visual regression, performance/load, security, compatibility, data migration/rollback, resilience/recovery, and exploratory/usability when material. Every category is `required`, `conditional`, or `not applicable` with a reason.

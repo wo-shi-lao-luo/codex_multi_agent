@@ -118,6 +118,14 @@ try {
   Copy-Item -LiteralPath (Join-Path $root 'skills/team-core/references/code-comments.md') -Destination $commentReference -Force
   Assert-Condition (Invoke-CopiedValidator) 'Validation did not recover after restoring comment routing and the contract.'
 
+  # Scenario: adapter runtime or routing is missing. Expected: distributable validation rejects each omission.
+  foreach ($relative in @('skills/team-core/scripts/openspec-adapter.ps1', 'skills/team-core/templates/openspec/config.yaml')) {
+    $resourcePath = Join-Path $testRoot $relative
+    Remove-Item -LiteralPath $resourcePath
+    Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted missing $relative"
+    Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $resourcePath
+  }
+  Assert-Condition (Invoke-CopiedValidator) 'Validation did not recover after restoring OpenSpec files.'
   # Scenario: add an unsupported TOML field. Expected: validation rejects it.
   Add-Content -LiteralPath $invalidAgent -Value 'unsupported = "value"' -Encoding utf8
   Assert-Condition (-not (Invoke-CopiedValidator)) 'Validation accepted an unsupported TOML field.'

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0] - 2026-09-29
+
+- Add an opt-in, externally installed OpenSpec 1.13.2 adapter; retain one Lead and native kit behavior for non-adopters.
+- Link stable requirement/scenario/task IDs to existing stage packets, detect stale specification inputs, and gate archive on actual evidence and user acceptance/deferral.
+- Preserve recovery snapshots on uncertain upstream archive failure; add isolated fault-injection and optional real-CLI lifecycle tests.
+- Version this new specification-management capability as 0.7.0; this does not mark it as maintainer-approved stable or install it locally.
+
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions use [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.6.1] - 2026-09-29

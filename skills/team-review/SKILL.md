@@ -15,6 +15,8 @@ Do not use without a reviewable scope. Do not convert a review into a refactor, 
 
 ## Establish coverage
 
+For a project with `openspec/team-integration.json`, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md). Review requirement/scenario/task/packet links, changed and removed behavior, stale evidence, and real assertions; IDs and checked tasks alone do not prove correctness. Inspect CloseCheck results without archiving or changing reviewer/user acceptance. Do not enable an absent integration during review.
+
 For UI changes, use the [UI delivery contract](../team-core/references/ui-quality.md) to review the assembled page against its brief and rendered evidence. Separate functional and visual conclusions; missing browser evidence is an uncovered visual check, not a pass. Report concrete hierarchy, consistency, layout or interaction defects without imposing personal taste.
 
 Apply the [code comment contract](../team-core/references/code-comments.md): check layered documentation minimums and every in-scope test's scenario/expected-result explanation against behavior and assertions. Missing mandatory explanations are contract-compliance gaps, not stylistic preferences. Record scope, outcome, exemptions and gaps; rank misleading explanations by concrete impact.

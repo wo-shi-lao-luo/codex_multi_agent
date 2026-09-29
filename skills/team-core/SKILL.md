@@ -5,6 +5,8 @@ description: Internal reference bundle for Codex Multi-Agent Kit team workflows.
 
 # Team core
 
+When a target project has `openspec/team-integration.json`, read [spec lifecycle](references/spec-lifecycle.md) and [OpenSpec integration](references/openspec-integration.md). This optional adapter keeps the Lead in control and links native specs/tasks to existing stage evidence. Without the marker, do not adopt OpenSpec automatically.
+
 For new pages and visible UI changes, read the [UI delivery contract](references/ui-quality.md). It preserves page-level goals through delegation and separates functional verification from rendered visual inspection; frontend-design supplies the implementation guidance.
 
 For code implementation or review, read the [code comment contract](references/code-comments.md) for layered documentation minimums, mandatory per-test scenario/expected-result explanations, writer self-checks and semantic review.

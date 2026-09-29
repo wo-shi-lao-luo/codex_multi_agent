@@ -4,7 +4,9 @@ param(
   [Parameter(Mandatory = $true)][string]$ProjectRoot,
   [Parameter(Mandatory = $true)][ValidatePattern('^[a-z0-9][a-z0-9-]{0,79}$')][string]$StageSlug,
   [string]$StageTitle,
-  [string]$BlueprintPath
+  [string]$BlueprintPath,
+  # Optional read-only validation of an archived canonical packet; Initialize/Archive keep their paths.
+  [string]$PacketPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -197,6 +199,11 @@ function Test-Packet {
 }
 
 $paths = Get-StagePaths -Root $ProjectRoot -Slug $StageSlug
+if ($PacketPath) {
+  if ($Action -ne 'Validate' -or $PacketPath -notmatch '^docs/verification/(active|archive)/[a-z0-9_-]+\.md$') { throw 'PacketPath is limited to validation of canonical active/archive packets.' }
+  . (Join-Path $PSScriptRoot 'openspec-common.ps1')
+  $paths.Packet = Resolve-SpecPath $paths.Root $PacketPath
+}
 if ($Action -eq 'Initialize') {
   if (Test-Path -LiteralPath $paths.Packet) { throw "Stage packet already exists: $($paths.Packet)" }
   if ([string]::IsNullOrWhiteSpace($StageTitle)) { $StageTitle = $StageSlug }

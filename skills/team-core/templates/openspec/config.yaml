@@ -1,0 +1,13 @@
+# Native schema only. The kit keeps execution and evidence outside OpenSpec's apply workflow.
+schema: spec-driven
+context: |
+  The Codex Multi-Agent Kit Lead owns implementation, testing and acceptance.
+  Read the installed team-core spec-lifecycle and openspec-integration references.
+  Reuse the project blueprint; do not create a competing architecture source.
+rules:
+  specs:
+    - Prefix requirement titles with stable DOMAIN-REQ-number IDs and scenario titles with DOMAIN-SC-number IDs.
+    - Preserve existing IDs and titles; describe added, modified and removed behavior explicitly.
+  tasks:
+    - Keep this as the only implementation task list, with unique numeric IDs such as 1.1.
+    - Include tests within implementation tasks; task completion is not manual acceptance.

@@ -21,6 +21,8 @@ Do not use to impose a generic coverage target, create tests solely to increase 
 
 ## Build a test contract
 
+For an enabled OpenSpec project, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md). Map requirement/scenario and task IDs to CASE IDs in the existing stage packet, cover changes/removals with regression evidence, and reassess results whenever the specification snapshot changes. Keep test results only in packets; the association index stores links, not duplicate outcomes. Agent verification never fabricates user acceptance.
+
 Apply the [Project Blueprint contract](../team-core/references/project-blueprint.md) when a blueprint governs the task. Map behavioral tests to its module IDs. Before an approved existing-code refactor, capture current behavior with characterization/regression tests and baseline failures; verify behavior preservation after the move. A declined refactor retains current test entrypoints and documents coverage constraints.
 
 Create a concise test matrix:

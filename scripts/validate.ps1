@@ -190,6 +190,14 @@ if (-not (Test-Path -LiteralPath $stageVerification)) {
 }
 
 $feedbackRuntime = Join-Path $root 'skills\team-core\scripts\feedback-runtime.ps1'
+# Guard optional integration distribution and discoverable routing; runtime tests check behavior.
+foreach ($relative in @('references/spec-lifecycle.md','references/openspec-integration.md','scripts/openspec-adapter.ps1','scripts/openspec-common.ps1','scripts/spec-traceability.ps1','templates/openspec/config.yaml')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root "skills/team-core/$relative") -PathType Leaf)) { $failures.Add("Missing optional OpenSpec resource: $relative") }
+}
+foreach ($skillName in @('team-core','team-plan','team-dev','team-review','testing-engineering','code-review')) {
+  $target = if ($skillName -eq 'team-core') { 'references/spec-lifecycle.md' } else { '../team-core/references/spec-lifecycle.md' }
+  if ((Get-Content -LiteralPath (Join-Path $root "skills/$skillName/SKILL.md") -Raw) -notmatch ('\]\(' + [regex]::Escape($target) + '\)')) { $failures.Add("$skillName must link to spec-lifecycle.md") }
+}
 if (-not (Test-Path -LiteralPath $feedbackRuntime)) {
   $failures.Add('team-core is missing scripts/feedback-runtime.ps1')
 } else {
