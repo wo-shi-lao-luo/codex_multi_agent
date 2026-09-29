@@ -39,6 +39,37 @@ try {
   # Scenario: an intact package. Expected: validation succeeds before mutations.
   Assert-Condition (Invoke-CopiedValidator) 'Baseline validation failed in an isolated package copy.'
 
+  # Scenario: shipped roles use the approved GPT-6 allocation.
+  # Expected: every role matches its explicit model and effort, including Tester medium.
+  $approvedProfiles = @{
+    'team-architect' = @('gpt-6-astra', 'high')
+    'team-backend-engineer' = @('gpt-6-sol', 'medium')
+    'team-database-specialist' = @('gpt-6-sol', 'high')
+    'team-explorer' = @('gpt-6-luna', 'medium')
+    'team-frontend-engineer' = @('gpt-6-sol', 'medium')
+    'team-reviewer' = @('gpt-6-sol', 'high')
+    'team-tester' = @('gpt-6-sol', 'medium')
+  }
+  foreach ($role in $approvedProfiles.Keys) {
+    $agentPath = Join-Path $testRoot "agents/$role.toml"
+    $agentContent = Get-Content -LiteralPath $agentPath -Raw
+    $profile = $approvedProfiles[$role]
+    Assert-Condition ($agentContent -match ('(?m)^model = "' + [regex]::Escape($profile[0]) + '"\r?$')) "$role has an unexpected model."
+    Assert-Condition ($agentContent -match ('(?m)^model_reasoning_effort = "' + $profile[1] + '"\r?$')) "$role has an unexpected reasoning effort."
+
+    # Scenario: a role silently reverts to a legacy model or a different effort.
+    # Expected: validation rejects either drift and accepts the restored role.
+    foreach ($mutation in @(
+      $agentContent.Replace('model = "' + $profile[0] + '"', 'model = "gpt-5.6-sol"'),
+      $agentContent.Replace('model_reasoning_effort = "' + $profile[1] + '"', 'model_reasoning_effort = "low"')
+    )) {
+      Set-Content -LiteralPath $agentPath -Value $mutation -Encoding utf8
+      Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted model-profile drift in $role."
+    }
+    Copy-Item -LiteralPath (Join-Path $root "agents/$role.toml") -Destination $agentPath -Force
+    Assert-Condition (Invoke-CopiedValidator) "Validation failed after restoring $role."
+  }
+
   # Scenario: each UI workflow loses its contract route while links remain valid.
   # Expected: reject each mutation, and accept the restored package.
   foreach ($skillName in 'team-dev', 'team-plan', 'team-review', 'team-core', 'frontend-engineering', 'code-review', 'testing-engineering', 'frontend-design') {

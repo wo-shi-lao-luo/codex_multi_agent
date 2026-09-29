@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions use [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-09-29
+
+### Changed
+
+- Move implementation, database, testing and review roles to GPT-6 Sol; keep Tester at medium reasoning and database/review at high.
+- Move Explorer to GPT-6 Luna with medium reasoning; retain Architect on GPT-6 Astra with high reasoning.
+- Update the optional generic subagent default to GPT-6 Sol / medium and document the separate Lead recommendation.
+- Add regression checks for the approved role profiles and rejection of model/effort drift. No automatic legacy-model fallback is introduced.
+
 ## [0.6.0] - 2026-09-22
 
 ### Added

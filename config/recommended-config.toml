@@ -1,9 +1,12 @@
 # Merge this section into ~/.codex/config.toml if no [agents] table exists.
 # If it already exists, add only the missing keys instead of creating a second table.
+# For an existing kit installation, explicitly update the two default_subagent keys.
+# Recommended Lead: select GPT-6 Astra / high in the main session.
+# This fragment does not change the main-session model or implement model fallback.
 
 [agents]
 enabled = true
 max_concurrent_threads_per_session = 3
-default_subagent_model = "gpt-5.6-terra"
+default_subagent_model = "gpt-6-sol"
 default_subagent_reasoning_effort = "medium"
 interrupt_message = true

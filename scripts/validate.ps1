@@ -22,12 +22,12 @@ if (-not (Test-Path -LiteralPath $changelogPath)) {
 
 $expectedAgentProfiles = @{
   'team-architect' = @{ model = 'gpt-6-astra'; reasoning = 'high' }
-  'team-backend-engineer' = @{ model = 'gpt-5.6-sol'; reasoning = 'medium' }
-  'team-database-specialist' = @{ model = 'gpt-5.6-sol'; reasoning = 'high' }
-  'team-explorer' = @{ model = 'gpt-5.6-luna'; reasoning = 'low' }
-  'team-frontend-engineer' = @{ model = 'gpt-5.6-terra'; reasoning = 'medium' }
-  'team-reviewer' = @{ model = 'gpt-5.6-sol'; reasoning = 'high' }
-  'team-tester' = @{ model = 'gpt-5.6-terra'; reasoning = 'medium' }
+  'team-backend-engineer' = @{ model = 'gpt-6-sol'; reasoning = 'medium' }
+  'team-database-specialist' = @{ model = 'gpt-6-sol'; reasoning = 'high' }
+  'team-explorer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
+  'team-frontend-engineer' = @{ model = 'gpt-6-sol'; reasoning = 'medium' }
+  'team-reviewer' = @{ model = 'gpt-6-sol'; reasoning = 'high' }
+  'team-tester' = @{ model = 'gpt-6-sol'; reasoning = 'medium' }
 }
 
 Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-Object {
