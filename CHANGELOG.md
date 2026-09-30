@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.1] - 2026-09-30
+
+- Move Architect to GPT-6.1 Sol / xhigh; retain the separate Lead recommendation of GPT-6 Astra / high.
+- Move frontend, backend, testing, database and review roles and the optional generic subagent default to GPT-6.1 Sol, preserving their reasoning efforts. Explorer remains GPT-6 Luna / medium.
+- Update profile validation and isolated regression checks. This configuration update does not establish measured model-quality improvements or change existing local installations automatically.
+
 ## [0.8.0] - 2026-09-29
 
 - Replace per-component installation with receipt-based deployment, exact downgrade reconciliation and whole-operation recovery.

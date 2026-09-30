@@ -17,14 +17,16 @@ A small, user-level development team for Codex. It uses Codex native subagents a
 
 | Role | Model | Reasoning effort |
 | --- | --- | --- |
-| Architect | `gpt-6-astra` | high |
+| Architect | `gpt-6.1-sol` | xhigh |
 | Explorer | `gpt-6-luna` | medium |
-| Frontend, Backend, Tester | `gpt-6-sol` | medium |
-| Database specialist, Reviewer | `gpt-6-sol` | high |
+| Frontend, Backend, Tester | `gpt-6.1-sol` | medium |
+| Database specialist, Reviewer | `gpt-6.1-sol` | high |
 
-For the Lead, select GPT-6 Astra / high in the main session. This is a recommendation, not an installed agent setting. The optional configuration fragment sets generic subagents to GPT-6 Sol / medium; named team roles retain their explicit profiles. Existing users who merged the old fragment must update its two `default_subagent_*` values explicitly; the installer does not merge global configuration.
+For the Lead, select GPT-6 Astra / high in the main session. This is a recommendation, not an installed agent setting. The optional configuration fragment sets generic subagents to GPT-6.1 Sol / medium; named team roles retain their explicit profiles. Existing users who merged the old fragment must update its two `default_subagent_*` values explicitly; the installer does not merge global configuration.
 
 These are workload choices, not measured quality guarantees. See the official [subagent model guidance](https://learn.chatgpt.com/docs/agent-configuration/subagents). Confirm availability in the target account/client before use.
+
+Architect uses GPT-6.1 Sol / xhigh to budget more reasoning for architecture tradeoffs; the Astra Lead checks material decisions before implementation. Higher effort is not evidence of equivalence to Astra. See the [official model guidance](https://developers.openai.com/api/docs/models/gpt-6.1-sol); evaluate omissions, rework and completion time on representative projects.
 
 The kit does not implement automatic model fallback. Keep previous model assignments in Git history as a manual recovery reference, not a second active profile. If a model is unavailable or shows a reproducible regression, first identify the cause and confirm a replacement is available; make an explicit, scoped configuration change with matching validator updates and verification. Do not silently switch models or assume a legacy model bypasses service outages or account limits.
 
@@ -66,7 +68,7 @@ The installer validates the kit before writing. Use `-WhatIf` to preview its act
 
 Agent names use the `team-` prefix to avoid collisions with personal agents. Historical components absent from the installation receipt are left untouched; inspect their ownership before removing them manually.
 
-Current release: `0.8.0` (review preview, not automatically stable). Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
+Current release: `0.8.1` (review preview, not automatically stable). Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
 
 Visible UI work uses [frontend-design](skills/frontend-design/SKILL.md) alongside frontend-engineering. The [UI delivery contract](skills/team-core/references/ui-quality.md) preserves page-level goals through delegation and requires rendered inspection separate from functional tests. No extra design agent, model change or per-page design document is required. Missing browser evidence must be reported as visually unverified, not release-ready.
 

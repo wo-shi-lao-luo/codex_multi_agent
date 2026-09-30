@@ -40,15 +40,15 @@ try {
   Assert-Condition (Invoke-CopiedValidator) 'Baseline validation failed in an isolated package copy.'
 
   # Scenario: shipped roles use the approved GPT-6 allocation.
-  # Expected: every role matches its explicit model and effort, including Tester medium.
+  # Expected: Architect uses 6.1 Sol/xhigh, Tester stays medium, and Explorer retains Luna/medium.
   $approvedProfiles = @{
-    'team-architect' = @('gpt-6-astra', 'high')
-    'team-backend-engineer' = @('gpt-6-sol', 'medium')
-    'team-database-specialist' = @('gpt-6-sol', 'high')
+    'team-architect' = @('gpt-6.1-sol', 'xhigh')
+    'team-backend-engineer' = @('gpt-6.1-sol', 'medium')
+    'team-database-specialist' = @('gpt-6.1-sol', 'high')
     'team-explorer' = @('gpt-6-luna', 'medium')
-    'team-frontend-engineer' = @('gpt-6-sol', 'medium')
-    'team-reviewer' = @('gpt-6-sol', 'high')
-    'team-tester' = @('gpt-6-sol', 'medium')
+    'team-frontend-engineer' = @('gpt-6.1-sol', 'medium')
+    'team-reviewer' = @('gpt-6.1-sol', 'high')
+    'team-tester' = @('gpt-6.1-sol', 'medium')
   }
   foreach ($role in $approvedProfiles.Keys) {
     $agentPath = Join-Path $testRoot "agents/$role.toml"
