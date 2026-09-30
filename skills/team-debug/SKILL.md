@@ -15,6 +15,8 @@ Do not use when the root cause and safe fix are already evidenced, or when the r
 
 ## Investigate
 
+Apply [role routing](../team-core/references/role-routing.md) before delegation: check needed named roles in the active tool catalog, explicitly select them, and ask before any unavailable-role alternative. Task labels and source profiles do not prove runtime identity. Reconcile actual calls and include the [handoff format](../team-core/references/handoff-format.md)'s actual child roster in the final response, including failures/retries or explicit none.
+
 Read [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
 1. Create a Task record with symptom, expected behavior, reproduction, available logs, and impact.

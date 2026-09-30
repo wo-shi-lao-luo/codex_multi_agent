@@ -11,8 +11,13 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 ## Directory map
 
 - `agents/` — native Codex custom-agent TOML files.
+- `agents/team-docs-maintainer.toml` — Luna/high documentation specialist; bounded assigned-doc maintenance and evidence-backed findings.
 - `skills/` — reusable Codex Skills. `team-*` skills are explicit workflow entrypoints; `team-core` bundles their shared policy references for installation.
+- `skills/team-doc-check/` — documentation readiness/adoption entrypoint; distributed Skill source, not repository discovery configuration.
+- `skills/team-core/references/documentation-governance.md` — task-scoped sufficiency, PRD authority, ambiguity and legacy contract with runtime schema.
+- `skills/team-core/scripts/documentation.ps1` — local document inventory, adoption, scoped review and stale-evidence detector.
 - `skills/team-core/references/code-comments.md` — shared code-comment writing, self-check and review contract.
+- `skills/team-core/references/role-routing.md` and `handoff-format.md` — named-role availability, explicit invocation evidence and final actual child-agent roster contracts.
 - `skills/frontend-design/` — implementation-oriented interface design and rendered refinement Skill, distributed by the installer.
 - `skills/team-core/references/ui-quality.md` — shared UI brief, page ownership and visual-verification contract.
 - `skills/team-core/references/spec-lifecycle.md` and `openspec-integration.md` — optional specification lifecycle and pinned external CLI contract.
@@ -23,9 +28,14 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `scripts/deploy-user.ps1` — self-contained versioned deployment/recovery manager; installed copies live outside Skill discovery paths.
 - `docs/safe-deployment.md` — durable installation, stable snapshot, downgrade, recovery and retention guide.
 - `tests/test-deployment.ps1` — isolated fake-home deployment and fault-injection suite; no actual installation.
+- `tests/test-documentation.ps1` — isolated existing-project adoption and readiness/ambiguity regression tests.
 - `tests/` — isolated package, installation, feedback, stage-verification and project-blueprint tests.
 - `tests/fixtures/` — controlled CLI doubles for transport and partial-failure regression tests; never production runtimes.
 - `docs/verification/active/` — implementation verification records awaiting maintainer review; not automated manual acceptance.
+- `docs/verification/active/role-invocation.md` — role-routing regression evidence, actual invocation roster and pending human checks for the bounded workflow correction.
+- `docs/governance/` — this project's documentation adoption marker, index and current scoped reviews, when initialized. Historical system-owned review records stay under `reviews/archive/`.
+- `docs/PRD/` — product requirements when needed; do not create an empty folder merely for template completeness.
+- `docs/legacy/` — confirmed superseded project documentation, preserving replacement/reason and references; no automatic age-based moves.
 - `docs/` — architecture, source-attribution notes, and approved system-design specifications.
 - `docs/superpowers/specs/` — dated, approved architectural designs that await an implementation plan.
 - `docs/superpowers/plans/` — dated, approved implementation plans for architectural designs.

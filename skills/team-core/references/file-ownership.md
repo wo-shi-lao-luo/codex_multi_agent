@@ -7,3 +7,4 @@
 5. Use a worktree when two writers need separate branches. Do not create worktrees for read-only agents.
 6. A reviewer never rewrites the implementation unless the Lead explicitly assigns a follow-up fix.
 7. For UI work, one owner integrates each page/flow. Explicitly assign shared layout, tokens and styles needed for coherent delivery; coordinate scope changes through the Lead rather than editing another writer's files or accumulating local overrides.
+8. A docs maintainer owns only assigned documentation/index/review paths. Coordinate PRD, Blueprint and stage-packet updates with their owners; do not create duplicate authorities. Ambiguous edits or legacy moves require a user decision before mutation. Lead records readiness and approval evidence.

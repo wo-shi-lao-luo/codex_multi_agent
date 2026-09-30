@@ -2,6 +2,8 @@
 
 ## Activation and authority
 
+Also apply [documentation governance](documentation-governance.md). Discover applicable active PRDs and confirmed user decisions; conflicts with native specs require an explicit decision and reconciliation before dependent work. The documentation marker does not enable OpenSpec, replace native specs/tasks or duplicate stage acceptance results.
+
 Check for `openspec/team-integration.json` before team planning/development/review. Without it, retain the existing kit workflow; the presence of an `openspec/` directory alone is not consent to adopt or rewrite it. Ask before enabling the adapter, installing a dependency or migrating an existing schema. If enabled but invalid/unavailable, stop the affected spec-backed work and explain the error; never silently create a second specification system.
 
 The Lead remains the only execution coordinator. Do not run OpenSpec's apply Skill alongside team-dev, import another agent team, or install competing command Skills. Read [the integration contract](openspec-integration.md) for executable operations and the supported version/profile.

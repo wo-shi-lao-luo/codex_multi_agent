@@ -15,12 +15,17 @@ Open questions:
 
 ```text
 Owner:
+Planned roles and active tool catalog availability evidence:
+Source versus active tool profile expectations and unavailable-role user decisions:
 Blueprint applicability and evidence:
 Blueprint path/revision and module IDs (when applicable):
 Existing baseline and retained constraints:
 Refactor decision, approved scope, and user evidence:
 Allowed files, planned additions, and composition-root exceptions:
 Affected area or boundary:
+Documentation review path, scope/task and freshness evidence:
+Applicable PRD/specification and confirmed decisions:
+Unresolved documentation findings and permitted independent work:
 Expected result:
 Shared contract or compatibility concern:
 Verification:
@@ -44,6 +49,8 @@ Target viewports, states and core interactions:
 
 ```text
 Check performed:
+Invocation reconciliation: planned roles, actual selector arguments, returned handles/observed identity, deviations and user decisions
+Documentation alignment and changed-evidence reassessment:
 Result:
 Evidence:
 Remaining risk or unavailable check:
@@ -52,6 +59,20 @@ UI functional evidence (when applicable):
 UI visual status: verified | issues remain | not verified | not applicable (reason)
 UI rendered evidence: revision, route/page, viewport, state, observation or screenshot reference
 UI fixes, re-inspection and remaining gaps:
+```
+
+## Actual invocation ledger and final roster
+
+Reuse the Verification record or stage packet; do not create an additional sensitive log store. Follow [role routing](role-routing.md) and the [handoff format](handoff-format.md).
+
+```text
+Agent ID/task handle (or failed attempt with no ID):
+Planned role; role-selector argument actually sent:
+Scoped task/owner; creation/reuse/retry and evidence reference:
+Host-reported role identity: confirmed value | unknown (not reported)
+Source profile expectation; active tool definition; resolved model/effort: confirmed value | unknown
+Final known status; deviations and user-approved alternative evidence:
+Final user-facing actual roster: every created/used child for this task, or explicit none
 ```
 
 ## Debug hypothesis ledger

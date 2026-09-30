@@ -35,6 +35,19 @@ OpenSpec integration adds an optional external CLI boundary, not a fourth execut
 
 Production files remain grouped by these responsibilities rather than implementation stage. No existing-code structural refactor was required or performed. Specs and task wording are fingerprinted; stage packets own results. The adapter cannot establish semantic correctness or authenticate approvals. Its archive lock coordinates kit archives only; external writers must be stopped.
 
+## Documentation governance boundary
+
+Task-scoped documentation review runs before planning/implementation and is refreshed when relevant evidence changes. The Lead owns readiness decisions; team-docs-maintainer (Luna/high) inventories and maintains assigned docs; Explorer supplies code facts, Architect judges architectural questions and Tester checks acceptance sufficiency. Existing adequate docs remain authoritative in their original locations. This kit has no OpenSpec opt-in marker in its own repository, so its native workflow is retained.
+
+| Module | Responsibility and owned files | Dependencies |
+| --- | --- | --- |
+| Documentation runtime (DOC-RUNTIME) | team-core/scripts/documentation.ps1: contained discovery, adoption, review validation, fingerprints and current-record pointers | PowerShell 7 and local repository files only |
+| Shared contract (DOC-CONTRACT) | team-core/references/documentation-governance.md: PRD authority, ambiguity, optional information requirements and legacy decisions | Existing Blueprint, OpenSpec and stage acceptance contracts |
+| Routing (DOC-ROUTING) | team-doc-check Skill, docs maintainer agent and existing team workflow routes | Shared contract; one Lead, bounded doc ownership |
+| Verification (DOC-TEST) | tests/test-documentation.ps1 and canonical stage packet | Disposable project copies and existing package/installer suites |
+
+Default project metadata lives in docs/governance, PRDs in docs/PRD and confirmed historical docs in docs/legacy. The runtime never resolves semantic conflicts, moves original documents or rewrites source. Policy version is separate from Kit version; a record of adoption is not a readiness decision. Reviews bind task wording, document inventory/classification and declared code dependencies. Hashes do not establish approval authenticity or semantic sufficiency. Existing project layout is preserved; no code refactor is part of this capability.
+
 ## Installation management boundary
 
 The deployment manager is independent of the Kit's agent/Skill payload. `scripts/deploy-user.ps1` owns manifests, receipt migration, exact unit reconciliation, staging, before-images, recovery journals, stable selection and pruning. The existing install/update entrypoints route to it. Its content-addressed installed copy survives source checkout changes and payload downgrade. No Skill or agent can silently opt a project into rollback.

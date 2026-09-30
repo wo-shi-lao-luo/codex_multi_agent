@@ -15,6 +15,10 @@ Do not use for a one-line factual answer, a request to implement immediately aft
 
 ## Build the plan
 
+Apply [role routing](../team-core/references/role-routing.md) before delegation: check needed named roles in the active tool catalog, explicitly select them, and ask before any unavailable-role alternative. Task labels and source profiles do not prove runtime identity. Reconcile actual calls and include the [handoff format](../team-core/references/handoff-format.md)'s actual child roster in the final response, including failures/retries or explicit none.
+
+Apply [documentation governance](../team-core/references/documentation-governance.md). Discover docs and scoped review evidence, assess missing/stale records, identify applicable active PRDs and task-specific information needs. Use team-docs-maintainer for substantial inventory/consistency work and Explorer for code evidence. Report ambiguity with options for the user; never silently resolve conflicting requirements or archival choices. Planning proposes governance adoption/record updates; persist them only within the user's documentation authority. A plan can identify gaps without pretending development is ready; team-dev establishes a current validated assessment before writers start.
+
 Check for `openspec/team-integration.json`. If present, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md): read current behavior and active deltas, resolve ambiguity, reuse the blueprint, and designate the change's tasks.md as the sole implementation list. Planning may propose artifacts but does not enable the integration, mutate its configuration or authorize implementation. Missing/stale specification evidence remains explicit. Without the marker, keep the native planning workflow.
 
 For UI work, apply the [UI delivery contract](../team-core/references/ui-quality.md). Include a lightweight UI brief, coherent page/flow ownership, baseline resource paths, necessary shared-style scope and separate functional/rendered verification. Do not reduce the product goal to component tickets or add a mandatory design-document approval gate.

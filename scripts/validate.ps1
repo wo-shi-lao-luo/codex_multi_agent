@@ -28,6 +28,7 @@ $expectedAgentProfiles = @{
   'team-architect' = @{ model = 'gpt-6.1-sol'; reasoning = 'xhigh' }
   'team-backend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-database-specialist' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
+  'team-docs-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
   'team-explorer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
   'team-frontend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-reviewer' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
@@ -139,10 +140,34 @@ $coreReferenceDirectory = Join-Path $root 'skills\team-core\references'
 $coreReferences += 'project-blueprint.md'
 $coreReferences += 'code-comments.md'
 $coreReferences += 'ui-quality.md'
+$coreReferences += 'documentation-governance.md'
 foreach ($reference in $coreReferences) {
   if (-not (Test-Path -LiteralPath (Join-Path $coreReferenceDirectory $reference))) {
     $failures.Add("team-core is missing reference $reference")
   }
+}
+
+# Guard discovery routes and distribution; semantic readiness is checked by the Lead, not regexes.
+# Losing a direct routing link must fail even when a replacement Markdown link
+# resolves. This checks packaged discovery, not actual future spawn arguments.
+foreach ($skillName in @('team-core','team-dev','team-plan','team-debug','team-review','team-doc-check')) {
+  $target = if ($skillName -eq 'team-core') { 'references/role-routing.md' } else { '../team-core/references/role-routing.md' }
+  $file = Join-Path $root "skills/$skillName/SKILL.md"
+  if (-not (Test-Path -LiteralPath $file -PathType Leaf) -or -not (Get-Content -LiteralPath $file -Raw).Contains("]($target)")) {
+    $failures.Add("$skillName must link to role-routing.md")
+  }
+}
+foreach ($skillName in @('team-core','team-plan','team-dev','team-review','team-doc-check')) {
+  $target=if ($skillName -eq 'team-core') {'references/documentation-governance.md'} else {'../team-core/references/documentation-governance.md'}
+  $file=Join-Path $root "skills/$skillName/SKILL.md"
+  if (-not (Test-Path -LiteralPath $file) -or -not (Get-Content -LiteralPath $file -Raw).Contains("]($target)")) { $failures.Add("$skillName must link to documentation-governance.md") }
+}
+foreach ($resource in @('skills/team-doc-check/SKILL.md','skills/team-core/scripts/documentation.ps1','agents/team-docs-maintainer.toml')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing documentation resource: $resource") }
+}
+$docsAgent=Join-Path $root 'agents/team-docs-maintainer.toml'
+if (Test-Path -LiteralPath $docsAgent) {
+  if (-not (Get-Content -LiteralPath $docsAgent -Raw).Contains('team-doc-check')) { $failures.Add('Docs maintainer must route to team-doc-check') }
 }
 
 foreach ($skillName in 'team-dev', 'team-plan', 'team-review', 'frontend-engineering', 'testing-engineering', 'team-core') {

@@ -39,12 +39,33 @@ try {
   # Scenario: an intact package. Expected: validation succeeds before mutations.
   Assert-Condition (Invoke-CopiedValidator) 'Baseline validation failed in an isolated package copy.'
 
+  # Scenario: a required Team workflow replaces its role-routing link with an existing valid link.
+  # Expected: package validation rejects a missing named-role route, then accepts its restoration.
+  foreach ($skillName in 'team-dev', 'team-core', 'team-plan', 'team-debug', 'team-review', 'team-doc-check') {
+    $roleSkill = Join-Path $testRoot "skills/$skillName/SKILL.md"
+    $originalRoleSkill = Get-Content -LiteralPath $roleSkill -Raw
+    Assert-Condition ($originalRoleSkill.Contains('role-routing.md')) "Required role-routing route is absent in $skillName."
+    Set-Content -LiteralPath $roleSkill -Value ($originalRoleSkill.Replace('role-routing.md', 'execution-contract.md')) -Encoding utf8
+    Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted missing named-role routing in $skillName."
+    Copy-Item -LiteralPath (Join-Path $root "skills/$skillName/SKILL.md") -Destination $roleSkill -Force
+    Assert-Condition (Invoke-CopiedValidator) "Validation failed after restoring named-role routing in $skillName."
+  }
+
+  # Scenario: the shared handoff contract disappears from an otherwise complete package.
+  # Expected: validation rejects the missing contract and recovers after exact restoration.
+  $roleHandoff = Join-Path $testRoot 'skills/team-core/references/handoff-format.md'
+  Remove-Item -LiteralPath $roleHandoff -Force
+  Assert-Condition (-not (Invoke-CopiedValidator)) 'Validation accepted a missing shared handoff contract.'
+  Copy-Item -LiteralPath (Join-Path $root 'skills/team-core/references/handoff-format.md') -Destination $roleHandoff -Force
+  Assert-Condition (Invoke-CopiedValidator) 'Validation failed after restoring the shared handoff contract.'
+
   # Scenario: shipped roles use the approved GPT-6 allocation.
   # Expected: Architect uses 6.1 Sol/xhigh, Tester stays medium, and Explorer retains Luna/medium.
   $approvedProfiles = @{
     'team-architect' = @('gpt-6.1-sol', 'xhigh')
     'team-backend-engineer' = @('gpt-6.1-sol', 'medium')
     'team-database-specialist' = @('gpt-6.1-sol', 'high')
+    'team-docs-maintainer' = @('gpt-6-luna', 'high')
     'team-explorer' = @('gpt-6-luna', 'medium')
     'team-frontend-engineer' = @('gpt-6.1-sol', 'medium')
     'team-reviewer' = @('gpt-6.1-sol', 'high')
@@ -69,6 +90,23 @@ try {
     Copy-Item -LiteralPath (Join-Path $root "agents/$role.toml") -Destination $agentPath -Force
     Assert-Condition (Invoke-CopiedValidator) "Validation failed after restoring $role."
   }
+
+  # Scenario: a documentation entrypoint or route disappears. Expected: reject each omission, accept restoration.
+  foreach ($relative in @('skills/team-doc-check/SKILL.md','skills/team-core/scripts/documentation.ps1','agents/team-docs-maintainer.toml')) {
+    $file=Join-Path $testRoot $relative
+    Remove-Item -LiteralPath $file
+    Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted missing $relative."
+    Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $file
+    Assert-Condition (Invoke-CopiedValidator) "Validation failed after restoring $relative."
+  }
+  foreach ($name in @('team-core','team-dev','team-plan','team-review','team-doc-check')) {
+    $file=Join-Path $testRoot "skills/$name/SKILL.md"
+    $text=Get-Content -LiteralPath $file -Raw
+    Set-Content -LiteralPath $file -Value ($text.Replace('documentation-governance.md','execution-contract.md'))
+    Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted missing docs route in $name."
+    Copy-Item -LiteralPath (Join-Path $root "skills/$name/SKILL.md") -Destination $file -Force
+  }
+  Assert-Condition (Invoke-CopiedValidator) 'Restored documentation routes did not validate.'
 
   # Scenario: each UI workflow loses its contract route while links remain valid.
   # Expected: reject each mutation, and accept the restored package.

@@ -15,6 +15,8 @@ Do not use this workflow to create a task daemon, push branches, merge pull requ
 
 ## Establish the work
 
+Apply [documentation governance](../team-core/references/documentation-governance.md) before writers begin. Scan/adopt unchecked existing projects, classify new docs, and validate a Lead-reviewed assessment against the current task/scope. A marker alone is not a pass. Use team-docs-maintainer for substantial documentation work and Explorer for code facts; route technical judgments through the Lead. Respect applicable active PRDs and ask the user before resolving substantive ambiguity or disputed archival. Only explicitly independent work may proceed under a partial assessment. Recheck relevant inputs after material changes, and synchronize factual docs/PRD decisions at handoff. Do not require all document types.
+
 Check for `openspec/team-integration.json`. If present, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md): read the active change, use its sole task list, link all scenarios/tasks to stage packets, and run the adapter's Validate before implementation and CloseCheck before archive. Missing dependencies or stale evidence block affected spec-backed work; never silently fall back or run a competing OpenSpec apply workflow. Without the marker, keep the native kit path and do not initialize OpenSpec.
 
 For visible UI work, apply the [UI delivery contract](../team-core/references/ui-quality.md). Preserve the complete product/page goal in the UI brief before delegation, name one page/flow owner, and include necessary shared-style ownership. Small demos normally use one implementer rather than component-by-component delegation. Require the owner to use frontend-design alongside frontend-engineering; routine authorized polish needs no new design approval.
@@ -30,6 +32,8 @@ Read [role routing](../team-core/references/role-routing.md), [file ownership](.
 5. Fill and validate the packet before writers begin. Every material behavior is `test-first`, `test-after`, or `manual-or-environmental`; unexplained exceptions block an unqualified start.
 6. Delegate bounded work with expected output, relevant constraints, and verification. Run at most three child threads; child agents do not orchestrate further agents.
 
+Before step 6, apply role routing's named-role preflight against the active tool catalog and pass the exact named role in the supported selector (e.g. `agent_type`). A task name or prompt is not selection. Pause affected delegation and ask before any unavailable-role alternative; do not silently use generic agents. Keep Lead ownership explicit rather than using it to bypass required roles.
+
 ## Execute and integrate
 
 Wait for required discovery or contract decisions before dependent work begins. Communicate only at integration points: a shared contract is agreed, a dependency is ready, a handoff identifies a blocker, or verification changes the plan.
@@ -44,6 +48,8 @@ Apply the [code comment contract](../team-core/references/code-comments.md). Req
 
 Create a Verification record from actual checks. Record commands and outcomes, inspected behavior, and checks that could not run. Do not close the task until acceptance checks have evidence or the user-facing remaining risk is explicit.
 
+Reconcile planned roles against actual spawn arguments and returned handles under role routing. Distinguish source/tool profiles from confirmed runtime identity and leave unreported model data unknown.
+
 Reconcile every stage-packet row with actual evidence, including Red/Green/refactor evidence or documented alternatives. Run the packet validator before Handoff. Human checks remain `manual pending` until user evidence exists. Archive the packet only after manual verification or explicit user deferral; otherwise link the active packet in the Handoff.
 
 After the normal Handoff is prepared, create the local minimal feedback record described in [feedback recording](../team-core/references/feedback-recording.md). Include only redacted workflow evidence. A recording failure is a non-blocking remaining risk, never a reason to alter the task outcome.
@@ -57,3 +63,5 @@ After the normal Handoff is prepared, create the local minimal feedback record d
 ## Output contract
 
 Report changed files, acceptance checks, verification evidence, valid review findings addressed, and remaining risks. Only the Lead claims task completion.
+
+Always include the handoff format's actual child-agent roster: ID/task handle, selected role, task, final known status and identity limitations, including created failures/retries/interrupted agents. If none were used, state that explicitly; distinguish failed creation attempts with no ID.

@@ -30,6 +30,8 @@ For a small, clear task, the Lead may combine Context, Discover, and Contract in
 
 ## 3. Contract
 
+Apply [documentation governance](documentation-governance.md): assess task-specific sufficiency before implementation, adopt unchecked existing projects, classify changed docs and recheck stale evidence. Respect active applicable PRDs, preserve optional document categories, and ask the user before resolving substantive ambiguity. Lead owns readiness; only explicitly independent authorized work proceeds under a partial review.
+
 For new applications, multi-stage work or material boundary changes, apply the [Project Blueprint contract](project-blueprint.md) before the stage contract. Discover existing code before adopting a baseline. Existing-code structural refactoring requires explicit user approval; declining it preserves the baseline with recorded constraints. Map each stage to modules and file responsibilities, and review that mapping against the final diff.
 
 **Input:** task record and discovery evidence.
@@ -43,6 +45,8 @@ For new applications, multi-stage work or material boundary changes, apply the [
 - rollout, recovery, or compatibility considerations when material.
 
 **Exit:** each writer has bounded ownership and no two writers are assigned the same shared contract.
+
+Apply [role routing](role-routing.md) before delegation: verify needed named roles in the active tool catalog, select them explicitly, and record expected versus available profiles. Missing roles require a user decision before an alternative; task labels are not role selection.
 
 ## 4. Execute
 
@@ -64,6 +68,8 @@ Include the code comment contract's writer self-check and, when review is assign
 
 **Exit:** acceptance checks have evidence, or the remaining gap is explicitly recorded as a risk for the Lead to decide.
 
+Reconcile the invocation ledger against actual role-selector arguments, returned agent handles and available identity evidence. Disclose deviations and unknown models rather than inferring runtime identity from source configuration.
+
 ## 6. Handoff
 
 **Input:** completed and verified bounded work.
@@ -71,6 +77,8 @@ Include the code comment contract's writer self-check and, when review is assign
 **Output:** the shared [handoff format](handoff-format.md): Result, Evidence, Risks, and Next step. Writers add changed files and verification; reviewers rank material findings by impact.
 
 **Exit:** the Lead can integrate the result, request a focused follow-up, or close the task without reconstructing the child agent's reasoning.
+
+The Lead's final response must include the actual child-agent roster from the handoff format, including created failed/interrupted agents and retries, or explicitly state that no children were used. Separate failed creation attempts from created agents.
 
 ## Return paths
 

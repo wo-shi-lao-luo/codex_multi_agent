@@ -8,10 +8,11 @@ A small, user-level development team for Codex. It uses Codex native subagents a
 - `$team-plan <goal>` — produce a decision-ready plan without editing code.
 - `$team-review <scope>` — review a branch, diff, or change set in parallel.
 - `$team-debug <symptom>` — investigate an uncertain failure before changing code.
+- `$team-doc-check <task>` — adopt or recheck project documentation and produce a scoped readiness assessment.
 
 ## Team
 
-`team-explorer`, `team-architect`, `team-frontend-engineer`, `team-backend-engineer`, `team-database-specialist`, `team-tester`, and `team-reviewer` are Codex custom agents. The main Codex thread is the Lead and owns the task state, integration, and final answer.
+`team-explorer`, `team-architect`, `team-docs-maintainer`, `team-frontend-engineer`, `team-backend-engineer`, `team-database-specialist`, `team-tester`, and `team-reviewer` are Codex custom agents. The main Codex thread is the Lead and owns the task state, integration, and final answer.
 
 ## Model allocation
 
@@ -19,6 +20,7 @@ A small, user-level development team for Codex. It uses Codex native subagents a
 | --- | --- | --- |
 | Architect | `gpt-6.1-sol` | xhigh |
 | Explorer | `gpt-6-luna` | medium |
+| Docs maintainer | `gpt-6-luna` | high |
 | Frontend, Backend, Tester | `gpt-6.1-sol` | medium |
 | Database specialist, Reviewer | `gpt-6.1-sol` | high |
 
@@ -57,6 +59,7 @@ To verify the distributable package without touching your actual Codex or Skills
 .\tests\test-project-blueprint.ps1
 .\tests\test-install-user.ps1
 .\tests\test-deployment.ps1
+.\tests\test-documentation.ps1
 .\tests\test-feedback-runtime.ps1
 ```
 
@@ -68,13 +71,17 @@ The installer validates the kit before writing. Use `-WhatIf` to preview its act
 
 Agent names use the `team-` prefix to avoid collisions with personal agents. Historical components absent from the installation receipt are left untouched; inspect their ownership before removing them manually.
 
-Current release: `0.8.1` (review preview, not automatically stable). Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
+Current release: `0.9.0` (review preview, not automatically stable). Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
 
 Visible UI work uses [frontend-design](skills/frontend-design/SKILL.md) alongside frontend-engineering. The [UI delivery contract](skills/team-core/references/ui-quality.md) preserves page-level goals through delegation and requires rendered inspection separate from functional tests. No extra design agent, model change or per-page design document is required. Missing browser evidence must be reported as visually unverified, not release-ready.
 
 Restart Codex if a newly installed Skill is not immediately visible.
 
 ## Operating rules
+
+### Documentation readiness
+
+Team planning/development applies [documentation governance](skills/team-core/references/documentation-governance.md). Existing projects get scoped discovery/adoption; new/changed docs are classified and previous evidence is checked before reuse. The docs/governance marker tracks adoption, not a whole-project pass. Prefer docs/, active applicable PRDs in docs/PRD, and confirmed historical material in docs/legacy; no mandatory document set or empty category directories. Readiness depends on task information, not filenames. Ambiguous intent, conflicting authority or uncertain archive decisions are presented to the user before dependent changes; independent work may continue under an explicitly partial review. Runtime hashes detect changes but do not certify semantic sufficiency or approval. No background monitoring or automatic OpenSpec adoption occurs.
 
 ### Optional OpenSpec integration (review preview)
 
@@ -89,5 +96,6 @@ New applications, multi-stage initiatives and material structural changes use a 
 - One owner writes production code by default. The Lead uses worktrees only after assigning non-overlapping files or modules.
 - Read-heavy exploration, tests, and reviews are safe to parallelize; shared-contract changes are planned before any writer starts.
 - A role reports findings, touched files, verification, and blockers back to the Lead. Only the Lead claims completion.
+- Team workflows preflight needed named roles against the active tool catalog and explicitly select them; task labels or source TOMLs are not proof of role/model loading. Unavailable roles require a user decision before an alternative. Every final response lists the actually used child agents (ID, selected role, task and status), including created failures/retries, or explicitly states none; unconfirmed runtime identity/model stays unknown.
 
 See [architecture](docs/architecture.md), [role routing](skills/team-core/references/role-routing.md), and [source notes](docs/upstreams.md).

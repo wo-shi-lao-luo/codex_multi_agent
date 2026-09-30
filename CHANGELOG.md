@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0] - 2026-09-30
+
+- Add task-scoped documentation governance, existing-project adoption, document inventories and explicit review records with policy-version and input-change checks.
+- Add team-doc-check and a GPT-6 Luna / high docs maintainer, routed from team planning, development and review. Lead owns readiness and specialist escalation.
+- Prefer docs/ with PRDs in docs/PRD and confirmed superseded material in docs/legacy; categories remain task-dependent, substantive ambiguity requires a user decision, and historical/unread sources cannot silently become current authority.
+- Add isolated adoption/readiness and package-routing tests. No automatic model-quality claim, background monitor, legacy move, local install or stable promotion is introduced.
+- Require active-session named-role preflight, explicit role selection without silent generic fallback, invocation reconciliation and a final actual child-agent roster across Team workflows. Add isolated routing regressions; static package checks do not certify runtime calls or loaded models.
+
 ## [0.8.1] - 2026-09-30
 
 - Move Architect to GPT-6.1 Sol / xhigh; retain the separate Lead recommendation of GPT-6 Astra / high.

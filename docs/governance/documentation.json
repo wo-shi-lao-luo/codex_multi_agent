@@ -1,0 +1,97 @@
+{
+  "policyVersion": 1,
+  "additionalPaths": [],
+  "indexPath": "docs/governance/doc-index.md",
+  "initializedAt": "2026-09-30T02:47:13.8675955Z",
+  "indexSha256": "a1520f105a2d651709c2fd232089cf24682d6bd1c4b95ca2b2c42bb8711b2650",
+  "docsRoot": "docs",
+  "kitVersion": "0.9.0",
+  "inventory": [
+    {
+      "kind": "text",
+      "sha256": "239c4a4ee95e9555e8143e62f015972c3d893034a66a0ea4b8ef52d655b0921a",
+      "path": "docs/architecture.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "a3d55f0b071503844b3eff80462ee15c8226c97d1243145f59670d805c9e8294",
+      "path": "docs/release-versioning.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "08a30663808c799d21794a536438e8968e732d62c40142c8354ef97995c8ad2a",
+      "path": "docs/safe-deployment.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "1e20e19800706dd1554e6df0447798a113e8621c66bff15f95ef1d368733abdf",
+      "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "f649a8d2a16e4b542252845becafa606f102fb52da5e0a3572fe052b5487c95b",
+      "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "bee6c2516fc693b297d1c22128590f4fa7abadd17e3296132a126141e94263a4",
+      "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "e0efed3c43a2bba37ffe73923e2678ba870757c42380d5530a5fd38977d63e53",
+      "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "e2b88207b27a6d7c111ba2819253d79fd1c3de2992790bb11916ccd0d43d6d90",
+      "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "0bce4be17245a8028887538e8db5b94fd169e2668c809ef475aa288063ee9132",
+      "path": "docs/upstreams.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "571f904e4931d2790e75edf16d2f62e74a7612b2f74c1f1302e714520baff922",
+      "path": "docs/verification/active/documentation-governance.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "763d2ab2d966e92a86bb32bdc5bb13003937bea87fc2f481b70cd57306fc9e53",
+      "path": "docs/verification/active/openspec-integration.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "12e1df3eab1213f405509866414e2f9ae240600436e35cbeff1655c8a6376d04",
+      "path": "docs/verification/active/role-invocation.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "829cdedf24dc0663b0693f29d888fbcf956f0d3459be4fe0c8d35e4abc0aa809",
+      "path": "docs/verification/active/safe-deployment.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "862fad41e2db9c1c675e2c752c8eef36d0b88a1b7d843ca8b880748e46c1f98f",
+      "path": "README.md"
+    }
+  ],
+  "reviews": {
+    "documentation-governance": {
+      "reportSha256": "1a8918038da20da917d82909f4e5656ad51096e2e496a24253825c019e58872a",
+      "recordSha256": "c3ae2a6ee4a369884ad64c65908fee77efb998bbf0729e59cbecf5be6fa474b3",
+      "recordPath": "docs/governance/reviews/documentation-governance.json",
+      "reportPath": "docs/governance/reviews/documentation-governance.md"
+    },
+    "role-invocation": {
+      "recordSha256": "576868bb7ce66c7a7343890be7cd2f8dfa1c0460c2c936bd43e8e16b9f823e6b",
+      "reportPath": "docs/governance/reviews/role-invocation.md",
+      "recordPath": "docs/governance/reviews/role-invocation.json",
+      "reportSha256": "4f1661d06b4609c2cfb4a7df679d485c7c3a3bc836c6c9c85df500493e4e53a9"
+    }
+  },
+  "schemaVersion": 1,
+  "updatedAt": "2026-09-30T03:26:59.4014621Z"
+}
