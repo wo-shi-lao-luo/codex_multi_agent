@@ -1,3 +1,5 @@
+# Exercise packet initialization, schema2 compatibility and user-only archival authority
+# in disposable projects. These checks do not certify future agent test-plan semantics.
 [CmdletBinding()]
 param()
 
@@ -91,6 +93,37 @@ try {
   foreach ($requiredField in 'Packet schema version:', 'Final manual status:', '## Coverage-category decisions', '## TDD behavior matrix', 'Red evidence', 'Green evidence', 'Refactor verification') {
     Assert-Condition $initialized.Contains($requiredField) "Initialize omitted required TDD packet field: $requiredField"
   }
+
+  # Scenario: a new packet needs per-manual-case E2E and other-layer evidence fields.
+  # Expected: its emitted mapping has five ordered data columns and a fillable row,
+  # without pretending that table presence establishes semantic or executed coverage.
+  $mappingSection = [regex]::Match($initialized, '(?ms)^### Manual-to-automated coverage mapping\s*\r?\n(?<body>.*?)(?=^## |\z)')
+  $mappingRows = @($mappingSection.Groups['body'].Value -split "`r?`n" | Where-Object { $_.Trim().StartsWith('|') })
+  Assert-Condition ($mappingRows.Count -eq 3) 'Initialize did not emit a fillable manual-to-automated mapping table.'
+  $mappingColumns = @($mappingRows[0].Trim().Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+  $expectedColumns = @('Manual case / requirement ID', 'E2E scenario / test ID and checkpoints', 'Other test layers / test IDs or reasons', 'Status and evidence', 'Gap / user exception decision')
+  Assert-Condition (($mappingColumns -join ';') -eq ($expectedColumns -join ';')) 'Mapping data columns do not expose case identity, test layers, evidence and user exception decisions.'
+
+  # Scenario: mapped cases are filled and a user adds a case after initial planning.
+  # Expected: schema2 Validate preserves every authored mapping and pending result;
+  # even a listed automated test cannot authorize archive without user acceptance.
+  $syncPacket = Join-Path $testRoot 'docs/verification/active/coverage-sync-smoke.md'
+  Set-ValidPacket -Path $syncPacket -FinalManualStatus 'manual pending'
+  $filledMapping = $mappingSection.Value.Replace('| | | | | |', '| M01 | E01: valid packet accepted | contract: PacketValidationTests.AcceptsValidPacket | planned; no execution evidence | none |').TrimEnd()
+  $pendingMapping = '| M02 | E02: pending manual status blocks archive | regression: ArchiveRejectsPending | planned; no execution evidence | none |'
+  $filledMapping += "`n" + $pendingMapping + "`n"
+  $syncContent = (Get-Content -LiteralPath $syncPacket -Raw).Replace('Stage slug: tdd-smoke', 'Stage slug: coverage-sync-smoke').Replace('## Human verification script', $filledMapping + "`n## Human verification script")
+  $syncContent = $syncContent.Replace('1. Run validation.', '1. M01: run validation.').Replace('1. Set final manual status to manual pending.', '1. M02: set final manual status to manual pending.')
+  Set-Content -LiteralPath $syncPacket -Value $syncContent -Encoding utf8
+  & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'coverage-sync-smoke' | Out-Null
+  $newMapping = '| M03 | E03: new visual scenario retained; subjective observation unavailable | component/screenshot check conditional; user intent decision pending | manual pending; no passing evidence | user exception pending |'
+  $syncContent = $syncContent.Replace($pendingMapping, $pendingMapping + "`n" + $newMapping).Replace('### Recommended edge cases', "### Recommended edge cases`n1. M03: user-added subjective visual scenario; expected user review remains pending.")
+  Set-Content -LiteralPath $syncPacket -Value $syncContent -Encoding utf8
+  $syncHash = (Get-FileHash -LiteralPath $syncPacket -Algorithm SHA256).Hash
+  & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'coverage-sync-smoke' | Out-Null
+  Assert-Condition ((Get-FileHash -LiteralPath $syncPacket -Algorithm SHA256).Hash -eq $syncHash) 'Validate changed authored mappings or pending evidence.'
+  Invoke-ExpectFailure { & $scriptPath -Action Archive -ProjectRoot $testRoot -StageSlug 'coverage-sync-smoke' } 'Mapped plans bypassed pending user acceptance.'
+  Assert-Condition (Test-Path -LiteralPath $syncPacket) 'Rejected archive moved the mapped active packet.'
 
   Invoke-ExpectFailure { & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'tdd-smoke' } 'Validate accepted an incomplete initialized packet.'
 

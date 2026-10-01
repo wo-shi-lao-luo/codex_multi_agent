@@ -35,6 +35,8 @@ Read [role routing](../team-core/references/role-routing.md), [handoff format](.
 4. Audit behavior-to-test traceability where a stage packet exists: test-first rows need Red/Green/refactor evidence; non-test-first rows need a concrete reason and alternative evidence. Treat unsupported exceptions and material regression gaps as verification findings.
 5. De-duplicate findings. A finding needs impact, evidence, a precise file reference, and a concrete failure mode or missing verification.
 
+Audit the [manual scope and automated coverage contract](../team-core/references/test-acceptance-contract.md#manual-scope-and-automated-coverage): compare every manual case/requirement, including user additions, against actual E2E conditions/checkpoints/results and applicable other-layer assertions. Report unmapped cases, stale passes, lower-layer-only substitutes and unapproved automation exceptions. A complete plan table is not proof of executed coverage or user acceptance. Review recommends updates without editing tests or historical packets.
+
 ## Decision and return gates
 
 - No diff, baseline, or usable change scope → stop and request it rather than inventing review coverage.

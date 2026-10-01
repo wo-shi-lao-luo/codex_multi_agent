@@ -33,6 +33,8 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `tests/fixtures/` — controlled CLI doubles for transport and partial-failure regression tests; never production runtimes.
 - `docs/verification/active/` — implementation verification records awaiting maintainer review; not automated manual acceptance.
 - `docs/verification/active/role-invocation.md` — role-routing regression evidence, actual invocation roster and pending human checks for the bounded workflow correction.
+- `docs/verification/active/coverage-sync.md` — manual-to-E2E/other-layer synchronization contract evidence, isolated regressions and pending real-workflow acceptance.
+- `docs/verification/active/small-task-routing.md` — minimal named-team routing, Lead-only exception and complete-workflow evidence; isolated regressions and pending runtime acceptance.
 - `docs/governance/` — this project's documentation adoption marker, index and current scoped reviews, when initialized. Historical system-owned review records stay under `reviews/archive/`.
 - `docs/PRD/` — product requirements when needed; do not create an empty folder merely for template completeness.
 - `docs/legacy/` — confirmed superseded project documentation, preserving replacement/reason and references; no automatic age-based moves.

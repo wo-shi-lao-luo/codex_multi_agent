@@ -1,0 +1,377 @@
+{
+  "reportSha256": "14886f1342aa08e433fea809986dd3a2f3403f2abb755e788003c16f621c80ea",
+  "policyVersion": 1,
+  "fingerprints": {
+    "dependencies": "700964c41a5786cb320c1eaee13e8233b656e6356606c99bbcbda7815178cc76",
+    "task": "e13198e6d7cf9f72ebd7c2e8dff63dce32b99b424f932191497a231fc821c71b",
+    "classifications": "ee092db11eac32a082042b95c95bc0630a0c0c49ebf64a3e562caf85dad4a636",
+    "inventory": "753bba21f794a9d7cd58da3d1be2c07c47c46827f78c327cc615d925143eb5f3"
+  },
+  "createdAt": "2026-10-01T14:05:51.4117839Z",
+  "schemaVersion": 1,
+  "dependencies": [
+    {
+      "exists": true,
+      "path": "CHANGELOG.md",
+      "sha256": "4a49a9c21f6b6eb71027517934c481ab9988598889a21ff5f4bd328aa0f06d5b"
+    },
+    {
+      "exists": true,
+      "path": "FOLDER_STRUCTURE.md",
+      "sha256": "bc6069b4c151a1e8a679b85490e6e477460244e00d295b897698665c034ddb6d"
+    },
+    {
+      "exists": true,
+      "path": "README.md",
+      "sha256": "9e9ff1c99238cd9f4390cb1e7a3ba7e4571c0e3fb710b1b46b0b5079d7cfe7ca"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/tdd-protocol.md",
+      "sha256": "ef15100ee9a7085b7ae0ee4a3780e6d21700b6c7488c6d46ae6d8df05ea2045f"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/test-acceptance-contract.md",
+      "sha256": "c2a33abf388a234e3f06010e42f115306e11261805ebed29056088b11fa561e1"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/scripts/documentation.ps1",
+      "sha256": "bd18060ef4b9116446adab77a4d35aa26abb2ba52c3eb25e80a8ba9236409233"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/scripts/stage-verification.ps1",
+      "sha256": "9ab06cdccd291215cf33da874b6d665297cbf3be064e54225a3a685ecaecf617"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-dev/SKILL.md",
+      "sha256": "384c3b4912de67bb6d5976a6d3378ed4915e507657e1be032b08cee264e36c92"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-plan/SKILL.md",
+      "sha256": "1369be872370d132595d70341c3849f1898217feb6aed84ee4af642211c5f65e"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-review/SKILL.md",
+      "sha256": "c7e8d544567a9e1792056edd03c02177df371507466780e9b0d9a905e03c4717"
+    },
+    {
+      "exists": true,
+      "path": "skills/testing-engineering/SKILL.md",
+      "sha256": "29469e21ecf0bd45987b701c006352ce3ad8d036a72112ab7e0c6982acdeb363"
+    },
+    {
+      "exists": true,
+      "path": "tests/test-stage-verification.ps1",
+      "sha256": "155fe93c91b0e0635a5fd2b4888b2ffe965071d7b130812c6845e4c7e492bc9d"
+    },
+    {
+      "exists": true,
+      "path": "VERSION",
+      "sha256": "179a5390966e85c2071a87c1b31de13df67460665196f6529f8c4986842f81e5"
+    }
+  ],
+  "inventory": [
+    {
+      "kind": "text",
+      "path": "docs/architecture.md",
+      "sha256": "239c4a4ee95e9555e8143e62f015972c3d893034a66a0ea4b8ef52d655b0921a"
+    },
+    {
+      "kind": "text",
+      "path": "docs/release-versioning.md",
+      "sha256": "a3d55f0b071503844b3eff80462ee15c8226c97d1243145f59670d805c9e8294"
+    },
+    {
+      "kind": "text",
+      "path": "docs/safe-deployment.md",
+      "sha256": "08a30663808c799d21794a536438e8968e732d62c40142c8354ef97995c8ad2a"
+    },
+    {
+      "kind": "text",
+      "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+      "sha256": "1e20e19800706dd1554e6df0447798a113e8621c66bff15f95ef1d368733abdf"
+    },
+    {
+      "kind": "text",
+      "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+      "sha256": "f649a8d2a16e4b542252845becafa606f102fb52da5e0a3572fe052b5487c95b"
+    },
+    {
+      "kind": "text",
+      "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+      "sha256": "bee6c2516fc693b297d1c22128590f4fa7abadd17e3296132a126141e94263a4"
+    },
+    {
+      "kind": "text",
+      "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+      "sha256": "e0efed3c43a2bba37ffe73923e2678ba870757c42380d5530a5fd38977d63e53"
+    },
+    {
+      "kind": "text",
+      "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+      "sha256": "e2b88207b27a6d7c111ba2819253d79fd1c3de2992790bb11916ccd0d43d6d90"
+    },
+    {
+      "kind": "text",
+      "path": "docs/upstreams.md",
+      "sha256": "0bce4be17245a8028887538e8db5b94fd169e2668c809ef475aa288063ee9132"
+    },
+    {
+      "kind": "text",
+      "path": "docs/verification/active/coverage-sync.md",
+      "sha256": "68a20b8084f9bc030cd3a29651da799b723952b0f72776b899bbd0bd7bb0d651"
+    },
+    {
+      "kind": "text",
+      "path": "docs/verification/active/documentation-governance.md",
+      "sha256": "571f904e4931d2790e75edf16d2f62e74a7612b2f74c1f1302e714520baff922"
+    },
+    {
+      "kind": "text",
+      "path": "docs/verification/active/openspec-integration.md",
+      "sha256": "763d2ab2d966e92a86bb32bdc5bb13003937bea87fc2f481b70cd57306fc9e53"
+    },
+    {
+      "kind": "text",
+      "path": "docs/verification/active/role-invocation.md",
+      "sha256": "12e1df3eab1213f405509866414e2f9ae240600436e35cbeff1655c8a6376d04"
+    },
+    {
+      "kind": "text",
+      "path": "docs/verification/active/safe-deployment.md",
+      "sha256": "829cdedf24dc0663b0693f29d888fbcf956f0d3459be4fe0c8d35e4abc0aa809"
+    },
+    {
+      "kind": "text",
+      "path": "README.md",
+      "sha256": "9e9ff1c99238cd9f4390cb1e7a3ba7e4571c0e3fb710b1b46b0b5079d7cfe7ca"
+    }
+  ],
+  "assessment": {
+    "schemaVersion": 1,
+    "scope": "coverage-sync",
+    "task": "Synchronize manual cases with E2E and applicable automated test layers",
+    "outcome": "ready",
+    "summary": "Approved focused test/acceptance extension; preserve schema2 and existing user-only acceptance, no orchestration or product refactor.",
+    "documents": [
+      {
+        "path": "docs/architecture.md",
+        "category": "architecture",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read current source boundaries, patch-release policy or release/operating guidance for this bounded extension."
+      },
+      {
+        "path": "docs/release-versioning.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "read",
+        "reason": "Read current source boundaries, patch-release policy or release/operating guidance for this bounded extension."
+      },
+      {
+        "path": "docs/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "docs/upstreams.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "docs/verification/active/documentation-governance.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "docs/verification/active/openspec-integration.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "docs/verification/active/role-invocation.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "docs/verification/active/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this manual/E2E rule change; retained in place without re-certification, authority changes or legacy decisions."
+      },
+      {
+        "path": "README.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read current source boundaries, patch-release policy or release/operating guidance for this bounded extension."
+      },
+      {
+        "path": "docs/verification/active/coverage-sync.md",
+        "category": "testing-acceptance",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Authored and reviewed this bounded stage's actual test plan, manual mapping, exceptions and pending acceptance."
+      }
+    ],
+    "dependencies": [
+      "skills/team-core/references/test-acceptance-contract.md",
+      "skills/team-core/scripts/stage-verification.ps1",
+      "skills/testing-engineering/SKILL.md",
+      "skills/team-dev/SKILL.md",
+      "skills/team-plan/SKILL.md",
+      "skills/team-review/SKILL.md",
+      "tests/test-stage-verification.ps1",
+      "skills/team-core/references/tdd-protocol.md",
+      "skills/team-core/scripts/documentation.ps1",
+      "README.md",
+      "FOLDER_STRUCTURE.md",
+      "VERSION",
+      "CHANGELOG.md"
+    ],
+    "evidence": [
+      "user: approved E2E list as superset with explicit unautomatable exceptions",
+      "user: new manual cases/requirements synchronize E2E and other applicable tests",
+      "source: reviewed existing schema2 template/parser and isolated stage suite"
+    ],
+    "findings": [],
+    "runnableWork": [
+      "coverage-sync"
+    ],
+    "coverage": [
+      {
+        "category": "requirements",
+        "decision": "required",
+        "reason": "User-approved scenario inclusion and later user additions are explicit.",
+        "evidence": [
+          "user: confirmed approved scope",
+          "skills/team-core/references/test-acceptance-contract.md"
+        ]
+      },
+      {
+        "category": "architecture",
+        "decision": "required",
+        "reason": "Extend existing contract/template and routing; no new module, role or refactor.",
+        "evidence": [
+          "user: confirmed approved scope",
+          "skills/team-core/references/test-acceptance-contract.md"
+        ]
+      },
+      {
+        "category": "interfaces-data",
+        "decision": "required",
+        "reason": "Add authoring fields inside existing section, preserve legacy schema2 parsing.",
+        "evidence": [
+          "user: confirmed approved scope",
+          "skills/team-core/references/test-acceptance-contract.md"
+        ]
+      },
+      {
+        "category": "ui-ux",
+        "decision": "not applicable",
+        "reason": "No rendered interface change; visual-only test exceptions remain honest.",
+        "evidence": [
+          "user: confirmed approved scope",
+          "skills/team-core/references/test-acceptance-contract.md"
+        ]
+      },
+      {
+        "category": "runtime",
+        "decision": "required",
+        "reason": "PowerShell7 isolated fixtures; no real install, config or external systems.",
+        "evidence": [
+          "user: confirmed approved scope",
+          "skills/team-core/references/test-acceptance-contract.md"
+        ]
+      },
+      {
+        "category": "testing-acceptance",
+        "decision": "required",
+        "reason": "Test-first initializer artifact, legacy compatibility, user acceptance remains pending.",
+        "evidence": [
+          "user: confirmed approved scope",
+          "skills/team-core/references/test-acceptance-contract.md"
+        ]
+      },
+      {
+        "category": "security-migration",
+        "decision": "required",
+        "reason": "No home paths, secret scans, schema migration or silent exception acceptance.",
+        "evidence": [
+          "user: confirmed approved scope",
+          "skills/team-core/references/test-acceptance-contract.md"
+        ]
+      }
+    ],
+    "report": "# Coverage synchronization: scoped readiness\n\nThe user approved including every manual scenario in the E2E plan, with explicit user decisions for unautomatable exceptions, and subsequently required that user-added manual samples/requirements propagate to E2E and other applicable test layers. Existing shared acceptance/TDD contracts, stage initializer/parser and isolated tests were inspected. This bounded extension reuses existing ownership and schema2; no new runtime validator, orchestration, product behavior or structural refactor is approved. Lead directly owns this small shared-contract/template change and tests; no children are needed.\n\nUse actual scenario conditions and expected results, not test counts. Preserve user wording, ask on substantive ambiguity or scope expansion, and refresh affected evidence without rewriting archived acceptance. The new mapping is authoring guidance; existing structural validation cannot certify semantic completeness or future agent behavior. User-only acceptance and unavailable automation remain pending.\n\nRead current architecture, release policy and README guidance relevant to the task. Other inventory documents remain outside this bounded assessment and are neither obsolete nor re-certified. No applicable PRD or OpenSpec adoption is introduced. A 0.9.1 patch extends an existing capability without stable promotion. Regression tests run in disposable fixtures with cleanup; no commit, push or actual installation is authorized this turn.\n\nImplemented the shared manual-scope and user-added-case rules, routed them from testing-engineering/team-dev/team-plan/team-review and TDD, and added a five-column mapping plus manual case IDs to new packets. The existing schema2 parser/archival semantics remain unchanged; no mechanical semantic coverage gate is claimed. Focused initializer/lifecycle tests observed actual Red before the template change, then Green and a final rerun. Isolated package, documentation and fake-home installation suites passed with confirmed fixture cleanup. The native Skill/package validator passed; supplementary Python quick_validate was unavailable because Python is not on PATH. No dependency was installed to bypass that limitation.\n\nReviewed new test comments against artifact-field, read-only preservation and pending archival assertions; source file overviews document boundaries. Semantic self-review considered late user cases, equivalent E2E expectations, applicable lower layers, visual-only observations, ambiguous/expanded scope and new follow-up stages instead of changing historical acceptance. No independent agent evaluation was performed and future real-agent cases remain manual pending in docs/verification/active/coverage-sync.md. No children, commit, push or actual installation occurred. New scoped review evidence reflects changed source/current packet; other scoped reviews remain subject to their own freshness checks, not re-certified by this assessment.\n"
+  },
+  "scope": "coverage-sync",
+  "kitVersion": "0.9.1"
+}

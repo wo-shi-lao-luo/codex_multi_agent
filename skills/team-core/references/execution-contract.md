@@ -12,6 +12,18 @@ Context → Discover → Contract → Execute → Verify → Handoff
 
 For a small, clear task, the Lead may combine Context, Discover, and Contract in one short pass. It must still establish the intended outcome, relevant repository facts, acceptance checks, and verification approach before claiming completion.
 
+## Minimum team and complete obligations
+
+For code-changing `$team-dev` work, use one named domain implementation owner and `team-tester` by default, including small bounded tasks. The Tester prepares a concise coverage and verification plan before implementation, then verifies the completed change; keep test-file ownership separate from production-code ownership. Every material implementation also receives an independent `team-reviewer` review after the writer's complete pass, regardless of task size. Risk, unfamiliar boundaries and materiality determine whether additional Explorer, Architect or domain roles are needed; do not force them when the task does not require them.
+
+Task size may shorten the record and reduce the number of roles, but does not remove applicable lifecycle checks. The Lead still establishes task-doc sufficiency and active PRD authority; applies Blueprint only when its contract's conditions are met; creates or reuses the required stage packet and obtains TDD/coverage decisions; checks applicable manual, E2E and other test layers; applies code-comment and relevant domain/UI requirements; verifies actual outcomes; and reports remaining gaps. Do not require every document category or test layer when the applicable contract marks it conditional or unnecessary.
+
+This implementation-role minimum does not require an implementer or Tester for pure consultation, read-only investigation, planning or review workflows. Team workflows still follow this contract proportionately. A `$team-debug` investigation may use bounded diagnostic reproduction and controlled experiments under its current contract, but that does not authorize a production repair; any authorized code repair enters the `$team-dev` implementation path. Ordinary application scripts and configuration follow their domain; behavior-changing Skills, policies or agent-routing/configuration that govern the harness are implementation work, not trivial prose. Truly nonbehavior typo/format corrections may remain Lead-owned.
+
+Lead-only implementation requires either the user's explicit request that the Lead personally implement the change or the user's approval of a specific proposed Lead-only exception. A general request to make a change does not choose its owner. Only this approved exception replaces the separate Tester assignment: the Lead performs Tester planning and execution duties as self-check, not independent Tester evidence. A material implementation still requires independent `team-reviewer` review. If the user's no-delegation instruction conflicts with that review requirement, explain the conflict and ask for scoped direction; do not self-certify or treat an empty roster as an acceptable review. Lead-only does not waive stage evidence. If a required named role has no legitimate fit in the active catalog, pause and ask about an explicit alternative; never silently substitute a generic role or the Lead.
+
+At start, briefly record task type/risk, applicable standards, intended named roles/ownership and planned checks. At close, reconcile them with actual role-selector/handle evidence, completed checks, outcomes and gaps in the existing Work/Verification record or stage packet. These are inspectable workflow obligations, not an unbypassable runtime gate.
+
 ## 1. Context
 
 **Input:** user request and applicable project instructions.

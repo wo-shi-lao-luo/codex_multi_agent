@@ -17,7 +17,7 @@ Do not use to impose a generic coverage target, create tests solely to increase 
 
 1. Find the repository's test commands, test layers, fixtures, and nearby behavioral examples.
 2. Read the Task record and Work contract. Identify changed behavior, failure paths, boundaries, integration points, and the regression that should be prevented.
-3. Choose the narrowest test layer that can observe the risk. Escalate to integration or end-to-end coverage only when lower layers cannot establish the needed behavior.
+3. Choose the narrowest test layer for each focused risk, while retaining required end-to-end scenario coverage under the acceptance contract. Practical lower-layer assertions complement, rather than replace, required E2E flows; do not force every other layer without a material risk.
 
 ## Build a test contract
 
@@ -37,6 +37,8 @@ State any important risk that cannot be tested in the available environment and 
 For team development, assess unit, integration, contract/API, E2E, regression, and manual coverage as `required`, `conditional`, or `not applicable`; assess component/UI, accessibility, visual regression, performance/load, security, compatibility, data migration/rollback, resilience/recovery, and exploratory/usability when material. Record every reason; never use a line-coverage target as a substitute for behavior coverage.
 
 For every material behavior, choose `test-first`, `test-after`, or `manual-or-environmental`. Prefer the narrowest observable layer. A completed `test-first` row records named test identity plus actual Red, Green, and post-refactor evidence; another track records a concrete reason and smallest credible alternative.
+
+Apply [manual scope and automated coverage](../team-core/references/test-acceptance-contract.md#manual-scope-and-automated-coverage): the E2E plan includes every manual scenario/requirement by stable ID, equivalent conditions/results and explicit checkpoints, not counts. Lower-layer coverage does not replace an E2E flow. Keep unautomatable observations and pending user exception decisions visible; plan inclusion is not executed/passing coverage. When users add/change manual samples or requirements, preserve their input and update the manual/E2E mapping, E2E tests where feasible and applicable other test layers/assertions; reuse proven existing tests with exact evidence. Reassess tracks/results and rerun affected checks. Ask on ambiguity, expanded scope or automation exceptions; do not rewrite archived acceptance or implement during review-only work.
 
 ## Execute and verify
 

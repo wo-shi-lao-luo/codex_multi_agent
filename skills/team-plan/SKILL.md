@@ -34,6 +34,8 @@ Read [role routing](../team-core/references/role-routing.md), [file ownership](.
 5. Self-check the plan: every acceptance check has a task and verification; no task assumes facts that discovery did not establish.
 6. Include use cases, coverage-category decisions, a preliminary behavior-to-test mapping, likely TDD tracks, known test entrypoints and environment gaps, automated/E2E plan, and human verification requirements. `$team-dev` turns this into the tracked, validated stage packet before implementation.
 
+Under the [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md#manual-scope-and-automated-coverage), the E2E scenario plan includes every manual case/requirement with equivalent conditions/results and checkpoints, including later user additions encountered during planning. Assess applicable other test layers and proposed assertion updates; disclose gaps and ask before automation exceptions or ambiguous scope decisions. Planning proposes test changes but does not implement them or rewrite archived acceptance.
+
 ## Decision and return gates
 
 - Missing repository facts, conflicting findings, or an unknown test entrypoint → return to Discover.

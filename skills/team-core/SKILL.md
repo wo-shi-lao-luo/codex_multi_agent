@@ -17,7 +17,7 @@ For code implementation or review, read the [code comment contract](references/c
 
 For project and multi-stage work, read the [Project Blueprint contract](references/project-blueprint.md). `scripts/project-blueprint.ps1` initializes and validates the architecture document; it never reorganizes source code. Existing-project discovery, explicit refactor approval, and continued work after refusal are part of this contract.
 
-This is a supporting Skill, not a user-facing workflow entrypoint. Team workflow Skills read the files in `references/` so their shared operating contracts ship with the installed kit. Use `references/execution-contract.md` as the common lifecycle; use the other references for routing, ownership, and child-agent handoffs.
+This is a supporting Skill, not a user-facing workflow entrypoint. Team workflow Skills read the files in `references/` so their shared operating contracts ship with the installed kit. Use `references/execution-contract.md` as the common lifecycle and its minimum-team/complete-obligations rules for code-changing `$team-dev`; use `references/role-routing.md` for named-role routing, approved Lead-only exceptions, ownership, and handoffs. The implementation-agent minimum does not apply to pure consultation or read-only workflows.
 
 For an explicit `team-*` workflow close, read [feedback recording](references/feedback-recording.md). It defines the minimal, local acceptance record and the conditions under which the installed runtime may be called. The runtime lives at `scripts/feedback-runtime.ps1`; it does not write inside a business repository or make any external request.
 

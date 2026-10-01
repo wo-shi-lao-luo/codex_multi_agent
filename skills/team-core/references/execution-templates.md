@@ -6,16 +6,22 @@ Use these concise templates when a team workflow needs a shared artifact. Keep t
 
 ```text
 Outcome:
+Task type and risk:
 Constraints:
+Applicable standards and conditional checks:
 Acceptance checks:
 Open questions:
+Brief start declaration: named roles/ownership and planned checks
 ```
 
 ## Work contract
 
 ```text
 Owner:
+Task type, risk rationale and applicable obligations:
 Planned roles and active tool catalog availability evidence:
+Named implementation owner; Tester packet/test ownership; Reviewer when material:
+Lead-only authority/approved exception evidence, if applicable:
 Source versus active tool profile expectations and unavailable-role user decisions:
 Blueprint applicability and evidence:
 Blueprint path/revision and module IDs (when applicable):
@@ -49,6 +55,7 @@ Target viewports, states and core interactions:
 
 ```text
 Check performed:
+Close reconciliation: start/Work contract obligations versus actual roles, checks, outcomes and gaps:
 Invocation reconciliation: planned roles, actual selector arguments, returned handles/observed identity, deviations and user decisions
 Documentation alignment and changed-evidence reassessment:
 Result:

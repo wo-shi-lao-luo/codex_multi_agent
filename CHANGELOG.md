@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1] - 2026-10-02
+
+- Require E2E scenario plans to include every manual case/requirement with equivalent conditions/results and explicit checkpoints; distinguish listed, implemented, executed and passing evidence and require user decisions for automation exceptions.
+- Synchronize encountered user-added/changed manual samples and requirements into E2E and applicable other-layer test plans/assertions/results. Preserve ambiguity, product-scope authority and archived acceptance; no background watcher or new packet schema is introduced.
+- Add a manual-to-automated mapping to new schema2 packets and isolated initializer/lifecycle regressions. Existing packet structure and user-only archival rules remain compatible; no automatic semantic coverage, stable promotion, local installation or push is claimed.
+- Route small code-changing Team development tasks to a named implementer plus Tester; preserve independent review for material work and escalate by risk rather than file count. Lead-only code work requires specific user authorization and retains applicable engineering responsibilities.
+- Separate team size from required lifecycle checks and add concise start/close reconciliation of roles, applicable standards and evidence. Nonbehavior typo/formatting work may remain Lead-only; no global activation, automatic fallback, new runtime gate or loaded-identity guarantee is introduced.
+
 ## [0.9.0] - 2026-09-30
 
 - Add task-scoped documentation governance, existing-project adoption, document inventories and explicit review records with policy-version and input-change checks.

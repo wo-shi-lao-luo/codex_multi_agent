@@ -1,3 +1,5 @@
+# Create and validate schema2 acceptance packets and archive only after user acceptance
+# or deferral. Authoring prompts aid coverage review; structural checks cannot prove it.
 [CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)][ValidateSet('Initialize', 'Validate', 'Archive')][string]$Action,
@@ -270,15 +272,22 @@ Assess unit, integration, contract/API, E2E, regression, manual, component/UI, a
 
 ## Automated test and E2E plan
 - Commands, fixtures, environment, cleanup, and TDD exceptions:
+- Include every manual scenario/requirement in the E2E plan with equivalent conditions, expected results and explicit checkpoints; list gaps without treating plans/exceptions as passing.
+- On encountered user-added/changed manual cases, update E2E and applicable other-layer tests/assertions, reopen affected evidence and rerun; ask on ambiguity, expanded scope or automation exceptions. Preserve archived acceptance with a follow-up stage.
+
+### Manual-to-automated coverage mapping
+| Manual case / requirement ID | E2E scenario / test ID and checkpoints | Other test layers / test IDs or reasons | Status and evidence | Gap / user exception decision |
+| --- | --- | --- | --- | --- |
+| | | | | |
 
 ## Human verification script
 ### Preparation
 1. Prepare environment, account, and test data:
 ### Happy path
-1. Action:
+1. Case / requirement ID and action:
    Expected result:
 ### Recommended edge cases
-1. Action or condition:
+1. Case / requirement ID and action or condition:
    Expected result:
 ### Result
 - Observations and cleanup:

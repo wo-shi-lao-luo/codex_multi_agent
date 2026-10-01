@@ -15,6 +15,8 @@ Children also report their own returned ID/task handle and any actually availabl
 
 Every Team workflow's final user-facing response includes the actual child roster, following [role routing](role-routing.md):
 
+For `$team-dev`, the Lead's handoff briefly reconciles the start declaration and Work contract against the actual roles, applicable lifecycle checks, verification evidence and remaining gaps. The roster shows actual calls; it does not by itself prove the workflow checks passed. Report Lead self-check separately from independent Tester/Reviewer evidence. For a material change, a user request for no delegation that conflicts with the required independent Reviewer must be returned for scoped direction, not reported as a completed review.
+
 ```text
 Agent ID/task handle | role selector sent | scoped task | final known status
 Host-reported identity/model (only when confirmed; otherwise unknown):
