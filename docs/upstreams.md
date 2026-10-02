@@ -7,6 +7,7 @@ This repository is its own source of truth. The following projects informed its 
 | ECC | Separate reusable Skills from role instructions; use focused frontend, backend, security, and testing guidance. | None |
 | wshobson/agents | Keep capabilities modular, validate distributable artifacts, and map command-like workflows to Codex Skills. | None |
 | OpenAI Codex documentation | Use `~/.codex/agents` for personal TOML agents and `~/.agents/skills` for personal Skills. | Codex itself |
+| [OpenSpec 1.13.2](https://github.com/Fission-AI/OpenSpec/tree/v1.13.2) | Native current/delta specifications and archive lifecycle, consumed through a pinned CLI. Adapter and configuration template are independently authored; no upstream code or Skills are bundled. | Optional, explicitly installed OpenSpec CLI (MIT upstream) |
 | [Anthropic frontend-design](https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md) | Use a subject-appropriate visual baseline and inspect rendered results rather than rely on generic templates. | None |
 | [Vercel Web Interface Guidelines](https://vercel.com/design/guidelines) | Treat layout, feedback, keyboard access and responsive behavior as concrete interface checks. | None |
 

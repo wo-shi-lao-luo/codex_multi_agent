@@ -8,29 +8,33 @@ A small, user-level development team for Codex. It uses Codex native subagents a
 - `$team-plan <goal>` — produce a decision-ready plan without editing code.
 - `$team-review <scope>` — review a branch, diff, or change set in parallel.
 - `$team-debug <symptom>` — investigate an uncertain failure before changing code.
+- `$team-doc-check <task>` — adopt or recheck project documentation and produce a scoped readiness assessment.
 
 ## Team
 
-`team-explorer`, `team-architect`, `team-frontend-engineer`, `team-backend-engineer`, `team-database-specialist`, `team-tester`, and `team-reviewer` are Codex custom agents. The main Codex thread is the Lead and owns the task state, integration, and final answer.
+`team-explorer`, `team-architect`, `team-docs-maintainer`, `team-frontend-engineer`, `team-backend-engineer`, `team-database-specialist`, `team-tester`, and `team-reviewer` are Codex custom agents. The main Codex thread is the Lead and owns the task state, integration, and final answer.
 
 ## Model allocation
 
 | Role | Model | Reasoning effort |
 | --- | --- | --- |
-| Architect | `gpt-6-astra` | high |
+| Architect | `gpt-6.1-sol` | xhigh |
 | Explorer | `gpt-6-luna` | medium |
-| Frontend, Backend, Tester | `gpt-6-sol` | medium |
-| Database specialist, Reviewer | `gpt-6-sol` | high |
+| Docs maintainer | `gpt-6-luna` | high |
+| Frontend, Backend, Tester | `gpt-6.1-sol` | medium |
+| Database specialist, Reviewer | `gpt-6.1-sol` | high |
 
-For the Lead, select GPT-6 Astra / high in the main session. This is a recommendation, not an installed agent setting. The optional configuration fragment sets generic subagents to GPT-6 Sol / medium; named team roles retain their explicit profiles. Existing users who merged the old fragment must update its two `default_subagent_*` values explicitly; the installer does not merge global configuration.
+For the Lead, select GPT-6 Astra / high in the main session. This is a recommendation, not an installed agent setting. The optional configuration fragment sets generic subagents to GPT-6.1 Sol / medium; named team roles retain their explicit profiles. Existing users who merged the old fragment must update its two `default_subagent_*` values explicitly; the installer does not merge global configuration.
 
 These are workload choices, not measured quality guarantees. See the official [subagent model guidance](https://learn.chatgpt.com/docs/agent-configuration/subagents). Confirm availability in the target account/client before use.
+
+Architect uses GPT-6.1 Sol / xhigh to budget more reasoning for architecture tradeoffs; the Astra Lead checks material decisions before implementation. Higher effort is not evidence of equivalence to Astra. See the [official model guidance](https://developers.openai.com/api/docs/models/gpt-6.1-sol); evaluate omissions, rework and completion time on representative projects.
 
 The kit does not implement automatic model fallback. Keep previous model assignments in Git history as a manual recovery reference, not a second active profile. If a model is unavailable or shows a reproducible regression, first identify the cause and confirm a replacement is available; make an explicit, scoped configuration change with matching validator updates and verification. Do not silently switch models or assume a legacy model bypasses service outages or account limits.
 
 ## Install for one user
 
-Run PowerShell from this repository:
+Run PowerShell 7 from this repository:
 
 ```powershell
 .\scripts\validate.ps1
@@ -45,6 +49,8 @@ To safely update an existing installation after pulling a newer kit version, run
 
 `update-user.ps1` uses the same receipt, `-WhatIf`, conflict protection, and `-Force` backup behavior as the installer. It does not modify `~/.codex/config.toml`.
 
+Install, upgrade and downgrade share one deployment manager. Receipt-owned components absent from the target are removed, including obsolete files inside retained Skills. Unknown or modified contents block replacement unless explicitly backed up with `-Force`. See [safe deployment and reusable rollback](docs/safe-deployment.md) to pin a tested stable snapshot before trying a new version, restore offline, or deploy a local Git commit without changing the checkout. Backups and the recovery manager intentionally remain outside agent/Skill discovery; project data is not rolled back.
+
 To verify the distributable package without touching your actual Codex or Skills directories, run:
 
 ```powershell
@@ -52,6 +58,8 @@ To verify the distributable package without touching your actual Codex or Skills
 .\tests\test-stage-verification.ps1
 .\tests\test-project-blueprint.ps1
 .\tests\test-install-user.ps1
+.\tests\test-deployment.ps1
+.\tests\test-documentation.ps1
 .\tests\test-feedback-runtime.ps1
 ```
 
@@ -61,15 +69,29 @@ The installer copies agents to `~/.codex/agents` and Skills (including the inter
 
 The installer validates the kit before writing. Use `-WhatIf` to preview its actions. It stops on an existing file or Skill directory unless it is an unchanged installation recorded by the kit; use `-Force` only when you want conflicting destinations backed up and replaced. The installation receipt and backups are stored under `~/.agents/codex-multi-agent/` by default.
 
-Agent names use the `team-` prefix to avoid collisions with personal agents. If an earlier kit version installed generic names such as `architect.toml`, they are left untouched; remove them manually only after confirming the `team-*` agents work for you.
+Agent names use the `team-` prefix to avoid collisions with personal agents. Historical components absent from the installation receipt are left untouched; inspect their ownership before removing them manually.
 
-Current release: `0.6.1`. Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Earlier installed Skill directories are left untouched; remove them manually only after confirming the renamed Skills work for you.
+Current release: `0.9.2` (review preview, not automatically stable). Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
 
 Visible UI work uses [frontend-design](skills/frontend-design/SKILL.md) alongside frontend-engineering. The [UI delivery contract](skills/team-core/references/ui-quality.md) preserves page-level goals through delegation and requires rendered inspection separate from functional tests. No extra design agent, model change or per-page design document is required. Missing browser evidence must be reported as visually unverified, not release-ready.
 
 Restart Codex if a newly installed Skill is not immediately visible.
 
 ## Operating rules
+
+Explicit `$team-dev` code changes, including small fixes and behavior-changing scripts/configuration/Skill instructions, default to a named implementer plus `team-tester`. Risk and material impact, not file or line count, determine independent review and specialist needs. Small tasks may shorten records but retain every applicable engineering check. Lead-only code execution requires a specific user request/approved exception; ordinary "just fix it" is not that approval, and missing roles never permit silent fallback. See [role routing](skills/team-core/references/role-routing.md) and the [minimum complete path](skills/team-core/references/execution-contract.md). Pure nonbehavior spelling/formatting edits may remain Lead-only. Start and close declarations reconcile intended roles/checks with actual evidence. These internal rules do not automatically activate Team workflows outside their explicit entrypoints.
+
+Stage test plans use [manual-to-automated coverage](skills/team-core/references/test-acceptance-contract.md#manual-scope-and-automated-coverage): E2E plans include every manual scenario/requirement with equivalent conditions/results and checkpoints. Encountered user additions synchronize E2E and applicable other-layer tests, mappings and affected evidence. Unautomatable observations stay visible pending a user exception decision; plan inclusion is not passing coverage. No background watcher or automatic modification of archived acceptance is introduced.
+
+### Documentation readiness
+
+Team planning/development applies [documentation governance](skills/team-core/references/documentation-governance.md). Existing projects get scoped discovery/adoption; new/changed docs are classified and previous evidence is checked before reuse. The docs/governance marker tracks adoption, not a whole-project pass. Prefer docs/, active applicable PRDs in docs/PRD, and confirmed historical material in docs/legacy; no mandatory document set or empty category directories. Readiness depends on task information, not filenames. Ambiguous intent, conflicting authority or uncertain archive decisions are presented to the user before dependent changes; independent work may continue under an explicitly partial review. Runtime hashes detect changes but do not certify semantic sufficiency or approval. No background monitoring or automatic OpenSpec adoption occurs.
+
+### Optional OpenSpec integration (review preview)
+
+The kit can optionally use OpenSpec **1.13.2** as an external specification manager while keeping its own Lead, TDD and acceptance flow. It is not installed or enabled by the kit installer. The adapter requires PowerShell 7 and upstream Node.js 20.19+; see [setup, supported profile and recovery](skills/team-core/references/openspec-integration.md). Existing projects without an opt-in marker are unchanged. Custom schemas/stores are not adapted in this first profile.
+
+Run `tests/test-openspec.ps1` for isolated contract tests. Pass `-OpenSpecEntry <trusted-installation>/bin/openspec.js` to add the real pinned-CLI lifecycle; no dependency downloads occur in tests. This capability is versioned as 0.7.0; assigning a version does not mark it as maintainer-approved stable or update the local installation.
 
 
 New applications, multi-stage initiatives and material structural changes use a [Project Blueprint](skills/team-core/references/project-blueprint.md). Discover an existing repository before documenting its modules and file responsibilities. Structural refactoring requires explicit user approval; if declined or deferred, preserve the current structure and record its constraints. Stage packets reference the blueprint revision, module IDs, file scope and entrypoint exceptions. Blueprint validation checks document structure; code review checks the actual architecture.
@@ -78,5 +100,6 @@ New applications, multi-stage initiatives and material structural changes use a 
 - One owner writes production code by default. The Lead uses worktrees only after assigning non-overlapping files or modules.
 - Read-heavy exploration, tests, and reviews are safe to parallelize; shared-contract changes are planned before any writer starts.
 - A role reports findings, touched files, verification, and blockers back to the Lead. Only the Lead claims completion.
+- Team workflows preflight needed named roles against the active tool catalog and explicitly select them; task labels or source TOMLs are not proof of role/model loading. Unavailable roles require a user decision before an alternative. Every final response lists the actually used child agents (ID, selected role, task and status), including created failures/retries, or explicitly states none; unconfirmed runtime identity/model stays unknown.
 
 See [architecture](docs/architecture.md), [role routing](skills/team-core/references/role-routing.md), and [source notes](docs/upstreams.md).

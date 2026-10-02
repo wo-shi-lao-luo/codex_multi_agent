@@ -1,10 +1,34 @@
 # Test & Acceptance Contract
 
-Before any `$team-dev` writer starts, create one Git-tracked stage packet in the target repository. Reuse an existing repository QA convention; otherwise initialize `docs/verification/active/<stage-slug>.md` with `scripts/stage-verification.ps1`. Apply the companion [TDD protocol](tdd-protocol.md) to decide the evidence track for every material behavior.
+For an explicitly enabled OpenSpec project, also apply [spec lifecycle](spec-lifecycle.md). Keep this packet as the only test-result authority, with stable CASE IDs referenced from the change's association index. Spec changes invalidate affected observations until reassessed. The optional adapter may validate active or archived canonical packets; existing projects without the integration retain this contract unchanged.
+
+Before any `$team-dev` writer starts, create or reuse one Git-tracked stage packet in the target repository, including for a small change or an approved Lead-only implementation. Reuse an existing repository QA convention; otherwise initialize `docs/verification/active/<stage-slug>.md` with `scripts/stage-verification.ps1`. For the default small-task team, `team-tester` prepares the concise coverage/TDD plan before implementation and post-verifies; keep Tester-owned test files separate from the production writer's files. Under an approved Lead-only exception, the Lead performs the planning and execution duties as self-check, which is not independent Tester evidence. Apply the companion [TDD protocol](tdd-protocol.md) to decide the evidence track for every material behavior.
 
 The packet must contain stage context, use cases with happy and edge paths, test data and cleanup, coverage matrix, automated test/E2E plan, and numbered human verification steps. Assess unit, integration, contract/API, E2E, regression, and manual coverage for every stage; assess component/UI, accessibility, visual regression, performance/load, security, compatibility, data migration/rollback, resilience/recovery, and exploratory/usability when material. Every category is `required`, `conditional`, or `not applicable` with a reason.
 
 For deterministic behavior, write a failing practical automated test before implementation and use red-green-refactor. Otherwise record why strict TDD is not practical and define the smallest reliable alternative. Do not invent line-coverage targets.
+
+## Manual scope and automated coverage
+
+The **E2E scenario plan must include every manual test scenario or acceptance requirement**, and may cover more. Compare behavior, preconditions, happy/edge/failure paths and observable expected results, not test counts or similar names. Preparation/cleanup instructions are not extra scenarios unless they test behavior. Preserve a stable case/requirement ID for every manual scenario and map it to E2E scenario/test IDs and explicit checkpoints/assertions in the existing packet. Several manual cases may share one E2E flow only when each case's conditions and expected results are actually checked. Unit/integration tests alone do not establish end-to-end coverage.
+
+Use a manual-to-automated mapping in the existing Automated test and E2E plan: manual case/requirement ID; E2E scenario/test and checkpoints; other applicable test layers/test IDs or concrete reasons; status/evidence; gaps and user exception decisions. Keep planned, implemented, executed and passing coverage distinct. A listed test, snapshot or passing unrelated run is not evidence for an unchecked requirement. At close inspect the actual assertions/results, not just the table; the structural packet validator cannot prove semantic completeness or future agent behavior. Existing schema2 packets remain structurally compatible; reassess their mappings when continuing affected work, not by bulk-rewriting historical packets.
+
+If a manual scenario cannot be fully automated because of subjective visual/usability judgment, safety, external ownership or missing environment, **keep it in the E2E plan** with the blocked/manual-only observation, reason, substitute evidence and remaining risk. Ask the user before accepting an automation exception; pending or accepted exceptions are not executed/passing E2E coverage. Never claim achieved E2E coverage is a superset while such gaps remain. Automated results cannot replace the user's manual acceptance.
+
+## User-added cases and changed requirements
+
+When the Agent encounters a new or changed user-authored manual sample/requirement, whether in conversation, a PRD or the test packet:
+
+1. Preserve the user's scenario and expected result, source/decision evidence and stable ID; merge genuine duplicates by explicit references without discarding distinct conditions. Ask before resolving ambiguous intent or conflicting requirements. Return scope/product changes to Contract; a new test does not authorize an unapproved product change or an external operation.
+2. Update the manual script and E2E plan together, including relevant fixtures, checkpoints/assertions, dependencies, environment and cleanup. Implement/update the E2E tests when feasible within authorized scope; otherwise record the concrete gap and request the needed decision/authority. Do not silently exclude a late case or weaken its expectation to fit an existing test.
+3. Assess **other applicable layers** such as unit, component, integration, contract/API, regression, security or accessibility; add/update practical tests and assertions for the newly exposed risks. Reuse adequate existing tests with exact scenario/assertion evidence. Explain unavailable/not-applicable coverage instead of forcing every layer or merely renaming tests.
+4. Update case-to-test mappings, coverage/TDD decisions and affected readiness/specification evidence. Reopen affected result statuses and rerun changed E2E/other tests; unrelated valid results may stay intact. Do not reuse an earlier pass as proof of new conditions or retrospectively invent Red evidence.
+5. Keep immutable historical acceptance intact. If the affected stage is already archived, record the added requirement in a new follow-up stage/active packet referencing the baseline; do not edit an archived pass into acceptance of new work. Report remaining gaps to the user before claiming completion.
+
+This is task-time synchronization when new input is encountered, not a background file watcher or permission to modify tests during a read-only review. Review-only tasks report required updates without implementing them.
+
+## Verification and closure
 
 For visible UI work, apply the [UI delivery contract](ui-quality.md). Include rendered-page inspection in the existing packet and record functional and visual results separately; aesthetic inspection normally uses the manual-or-environmental track, while deterministic UI behavior retains practical automated tests. Agent visual evidence never changes the user-only final manual status. Existing packet schema and archival rules remain unchanged.
 

@@ -1,0 +1,335 @@
+{
+  "reportSha256": "a6b64ecfe969256475973a56a09f6b6b0567f408c930661f937b30cc5b5a014b",
+  "kitVersion": "0.9.1",
+  "schemaVersion": 1,
+  "dependencies": [
+    {
+      "path": "skills/team-core/references/execution-contract.md",
+      "sha256": "77071356f6376d5cb13eb544e4cf60214614f41f383748b4649d68fcacbf4b56",
+      "exists": true
+    },
+    {
+      "path": "skills/team-core/references/execution-templates.md",
+      "sha256": "e216995c38a643d1231c216f575290be0118ae2654e9911c53a9106d8b1a495c",
+      "exists": true
+    },
+    {
+      "path": "skills/team-core/references/handoff-format.md",
+      "sha256": "b179b1ff84bf12294677d08ca4955f1647d5e449e5869a88b03b82fd74ff7f60",
+      "exists": true
+    },
+    {
+      "path": "skills/team-core/references/role-routing.md",
+      "sha256": "3fe9bb25fb6cb2403ab8a55a97a775e44416d291342ed534369cf6156481dee9",
+      "exists": true
+    },
+    {
+      "path": "skills/team-core/references/test-acceptance-contract.md",
+      "sha256": "c2a33abf388a234e3f06010e42f115306e11261805ebed29056088b11fa561e1",
+      "exists": true
+    },
+    {
+      "path": "skills/team-dev/SKILL.md",
+      "sha256": "384c3b4912de67bb6d5976a6d3378ed4915e507657e1be032b08cee264e36c92",
+      "exists": true
+    }
+  ],
+  "policyVersion": 1,
+  "scope": "small-task-routing",
+  "assessment": {
+    "schemaVersion": 1,
+    "scope": "small-task-routing",
+    "task": "Preserve complete workflow obligations and named-role routing for small development tasks",
+    "outcome": "ready",
+    "summary": "User-approved bounded routing correction; source contracts and task-specific architecture reviewed. This is not whole-project certification.",
+    "documents": [
+      {
+        "path": "docs/architecture.md",
+        "category": "architecture",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Reviewed for current execution boundaries, activation, and patch release conventions."
+      },
+      {
+        "path": "docs/release-versioning.md",
+        "category": "runtime",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Reviewed for current execution boundaries, activation, and patch release conventions."
+      },
+      {
+        "path": "docs/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/upstreams.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/verification/active/coverage-sync.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/verification/active/documentation-governance.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/verification/active/openspec-integration.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/verification/active/role-invocation.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "docs/verification/active/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded routing assessment; retained without declaring obsolete, read, or re-certified."
+      },
+      {
+        "path": "README.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Reviewed for current execution boundaries, activation, and patch release conventions."
+      }
+    ],
+    "dependencies": [
+      "skills/team-dev/SKILL.md",
+      "skills/team-core/references/role-routing.md",
+      "skills/team-core/references/execution-contract.md",
+      "skills/team-core/references/execution-templates.md",
+      "skills/team-core/references/handoff-format.md",
+      "skills/team-core/references/test-acceptance-contract.md"
+    ],
+    "evidence": [
+      "user: approved small-code named implementer plus Tester, preserved applicable lifecycle, explicit Lead-only exceptions",
+      "skills/team-dev/SKILL.md: current small-task Lead-only permission and unconditional Tester packet ownership inspected",
+      "skills/team-core/references/role-routing.md: current role preflight and fallback authority inspected"
+    ],
+    "findings": [],
+    "runnableWork": [
+      "small-task-routing"
+    ],
+    "coverage": [
+      {
+        "category": "requirements",
+        "decision": "required",
+        "reason": "User approved bounded routing/lifecycle correction, not global activation or runtime orchestrator.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current kit boundaries"
+        ]
+      },
+      {
+        "category": "architecture",
+        "decision": "required",
+        "reason": "Retain existing Lead/custom-agent/Skill layers; existing reference/module placement adequate; no source restructure or new blueprint required.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current kit boundaries"
+        ]
+      },
+      {
+        "category": "interfaces-data",
+        "decision": "not applicable",
+        "reason": "No application API, data schema or stage parser changes are planned.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current kit boundaries"
+        ]
+      },
+      {
+        "category": "ui-ux",
+        "decision": "not applicable",
+        "reason": "No rendered UI work; retain applicable UI requirements in routing.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current kit boundaries"
+        ]
+      },
+      {
+        "category": "runtime",
+        "decision": "required",
+        "reason": "Current role catalog exposes team-docs-maintainer, team-tester and team-reviewer with source-matching definitions; inference identity not confirmed. Test only isolated local fixtures.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current kit boundaries"
+        ]
+      },
+      {
+        "category": "testing-acceptance",
+        "decision": "required",
+        "reason": "Tester prepares existing canonical packet; native package/install regressions plus independent semantic review. Actual future small-task spawning stays pending.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current kit boundaries"
+        ]
+      },
+      {
+        "category": "security-migration",
+        "decision": "conditional",
+        "reason": "No external writes/config/install; preserved named-role failure authority and per-task applicability; no global opt-in change.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current kit boundaries"
+        ]
+      }
+    ],
+    "report": "# Small-task routing: scoped readiness\n\nThe user approved default named implementer plus Tester for small code tasks, risk-based Reviewer escalation, task-size-independent applicable workflow obligations, and explicit Lead-only exceptions. Pure consultation/read-only work does not become implementation; trivial nonbehavior typo/format changes may retain Lead ownership. Missing roles never authorize fallback. Team entrypoints remain explicit; no global implicit activation or project AGENTS creation is approved.\n\nCurrent source role-routing, team-dev, shared execution/handoff templates and acceptance contracts were inspected alongside current architecture, README and release policy. This extends an existing capability within unreleased 0.9.1; no new runtime orchestrator, schema, blueprint, refactor or model change is needed. Docs Maintainer owns instruction edits; Tester owns the packet and isolated regression evidence; Lead owns readiness/index/release coordination; Reviewer will inspect completed diff. Role-selector and task handle evidence are recorded in the packet; tool definitions are not confirmation of resolved inference identity.\n\nOther inventoried documentation is unrelated to this scoped assessment and is not re-certified or declared obsolete. Real future-agent invocation remains pending user testing; package structure validation cannot establish semantic compliance or force runtime routing. No commit, push or actual installation is authorized. Existing uncommitted coverage-sync work remains preserved.\n"
+  },
+  "fingerprints": {
+    "task": "91ccc95fae782c88a848a11cf3ca9e92eac237e04adf9883c9b4b39102c15a33",
+    "inventory": "753bba21f794a9d7cd58da3d1be2c07c47c46827f78c327cc615d925143eb5f3",
+    "dependencies": "bc6a6d0618ce379e4ff3d4eff703274be3dbb60e7026ac18a5c5f60f81dd810d",
+    "classifications": "a391fbf3bda38c49fb3a797b19acdc2060dbd6812f7a9c1464e4459eb137eee5"
+  },
+  "createdAt": "2026-10-01T16:07:10.8559316Z",
+  "inventory": [
+    {
+      "path": "docs/architecture.md",
+      "sha256": "239c4a4ee95e9555e8143e62f015972c3d893034a66a0ea4b8ef52d655b0921a",
+      "kind": "text"
+    },
+    {
+      "path": "docs/release-versioning.md",
+      "sha256": "a3d55f0b071503844b3eff80462ee15c8226c97d1243145f59670d805c9e8294",
+      "kind": "text"
+    },
+    {
+      "path": "docs/safe-deployment.md",
+      "sha256": "08a30663808c799d21794a536438e8968e732d62c40142c8354ef97995c8ad2a",
+      "kind": "text"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+      "sha256": "1e20e19800706dd1554e6df0447798a113e8621c66bff15f95ef1d368733abdf",
+      "kind": "text"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+      "sha256": "f649a8d2a16e4b542252845becafa606f102fb52da5e0a3572fe052b5487c95b",
+      "kind": "text"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+      "sha256": "bee6c2516fc693b297d1c22128590f4fa7abadd17e3296132a126141e94263a4",
+      "kind": "text"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+      "sha256": "e0efed3c43a2bba37ffe73923e2678ba870757c42380d5530a5fd38977d63e53",
+      "kind": "text"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+      "sha256": "e2b88207b27a6d7c111ba2819253d79fd1c3de2992790bb11916ccd0d43d6d90",
+      "kind": "text"
+    },
+    {
+      "path": "docs/upstreams.md",
+      "sha256": "0bce4be17245a8028887538e8db5b94fd169e2668c809ef475aa288063ee9132",
+      "kind": "text"
+    },
+    {
+      "path": "docs/verification/active/coverage-sync.md",
+      "sha256": "68a20b8084f9bc030cd3a29651da799b723952b0f72776b899bbd0bd7bb0d651",
+      "kind": "text"
+    },
+    {
+      "path": "docs/verification/active/documentation-governance.md",
+      "sha256": "571f904e4931d2790e75edf16d2f62e74a7612b2f74c1f1302e714520baff922",
+      "kind": "text"
+    },
+    {
+      "path": "docs/verification/active/openspec-integration.md",
+      "sha256": "763d2ab2d966e92a86bb32bdc5bb13003937bea87fc2f481b70cd57306fc9e53",
+      "kind": "text"
+    },
+    {
+      "path": "docs/verification/active/role-invocation.md",
+      "sha256": "12e1df3eab1213f405509866414e2f9ae240600436e35cbeff1655c8a6376d04",
+      "kind": "text"
+    },
+    {
+      "path": "docs/verification/active/safe-deployment.md",
+      "sha256": "829cdedf24dc0663b0693f29d888fbcf956f0d3459be4fe0c8d35e4abc0aa809",
+      "kind": "text"
+    },
+    {
+      "path": "README.md",
+      "sha256": "9e9ff1c99238cd9f4390cb1e7a3ba7e4571c0e3fb710b1b46b0b5079d7cfe7ca",
+      "kind": "text"
+    }
+  ]
+}

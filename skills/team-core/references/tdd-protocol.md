@@ -12,6 +12,8 @@ Use this protocol with the [Test & Acceptance Contract](test-acceptance-contract
 
 Never claim a Red result retrospectively. Record the named test, command, and observed failure before production implementation for every completed `test-first` behavior. After Green, rerun relevant tests following refactoring. Do not use a line-coverage percentage as a substitute for behavior evidence.
 
+Apply the [manual scope and automated coverage contract](test-acceptance-contract.md#manual-scope-and-automated-coverage) when users add/change test cases or requirements. Reassess affected behavior-to-test mappings and tracks, update E2E plus applicable other-layer assertions and rerun affected checks. New planned scenarios do not inherit an earlier Green; a requirement received after implementation does not justify fabricated pre-implementation Red evidence. Keep automation gaps, user decisions and archived baselines explicit.
+
 ## Stage packet requirements
 
 Use the target repository's equivalent QA convention when one exists; otherwise use `scripts/stage-verification.ps1` to create `docs/verification/active/<stage-slug>.md`. Its TDD behavior matrix maps each material behavior to risk, test layer, track, test identity, Red/Green/refactor evidence, exception rationale, owner, status, and manual evidence.

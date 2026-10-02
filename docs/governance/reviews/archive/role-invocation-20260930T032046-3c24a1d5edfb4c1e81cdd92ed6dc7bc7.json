@@ -1,0 +1,348 @@
+{
+  "kitVersion": "0.9.0",
+  "dependencies": [
+    {
+      "exists": true,
+      "path": "scripts/validate.ps1",
+      "sha256": "5f64c8e8ae7a5d828f812310436143c75e4beeb108deaa82795a2c0d1796f8c7"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/execution-contract.md",
+      "sha256": "326dfcab5fde00cf0e31faa249f1ec65a84449dd95ae50e9895d5932f384a7c2"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/execution-templates.md",
+      "sha256": "ee47df6a3efb0deded41abc7007f0dcd630b1da0b6f8884ad1a7a1b6cb66d17e"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/handoff-format.md",
+      "sha256": "2044b18c8152e57f4c4d53ba0bf2e427be4feffd591506f1a1b438e450bbf21d"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/role-routing.md",
+      "sha256": "71c347a1182e6ca7037ee76b3d6b72d9f4310468c5ceec06d181104b6bf08c2f"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-debug/SKILL.md",
+      "sha256": "7fac664c5c96cccba5deabfd80a511db0cba387977e107c4b3594716457ccce2"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-dev/SKILL.md",
+      "sha256": "9c3d2f74f96763b8e6c54b2574f6990dcba887456ec75177c6416d662fa8c8a1"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-doc-check/SKILL.md",
+      "sha256": "76d04620069e9838d2f63357dec870979e54c7e05ab0f391adeb6101bb28e502"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-plan/SKILL.md",
+      "sha256": "d63539faa9d3a3e3ead62044ba4de0ac6db537e5fdf1e29d4cd6a295f00e6cbb"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-review/SKILL.md",
+      "sha256": "1b3054da5beb42599926e8a28f4feb1cd1e4583bcade291983062eefe9f10867"
+    },
+    {
+      "exists": true,
+      "path": "tests/test-validate.ps1",
+      "sha256": "a56e41df2a995d123153200d8f6e87e7e07b2efb076492aabdef13e0d8e72928"
+    }
+  ],
+  "reportSha256": "effff66ffb43c8cb1d5c32d51ee457c495e1ac620a9f04c0299ec0335beffca1",
+  "assessment": {
+    "schemaVersion": 1,
+    "scope": "role-invocation",
+    "task": "Correct named Team role invocation and report actual subagents",
+    "outcome": "ready",
+    "summary": "Bounded approved workflow correction; existing architecture and role/ownership contracts are sufficient. No model/configuration changes or runtime interception.",
+    "documents": [
+      {
+        "path": "docs/architecture.md",
+        "category": "architecture",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read existing three-layer design and default execution; extend established shared role routing without structural refactor."
+      },
+      {
+        "path": "docs/release-versioning.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "docs/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "docs/upstreams.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "docs/verification/active/documentation-governance.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "docs/verification/active/openspec-integration.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "docs/verification/active/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      },
+      {
+        "path": "README.md",
+        "category": "reference",
+        "lifecycle": "reference",
+        "authority": "reference",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded role-selection assessment; retained untouched, not declared obsolete or fully reread. Existing capability acceptance does not certify this task."
+      }
+    ],
+    "dependencies": [
+      "skills/team-core/references/role-routing.md",
+      "skills/team-core/references/execution-contract.md",
+      "skills/team-core/references/execution-templates.md",
+      "skills/team-core/references/handoff-format.md",
+      "skills/team-dev/SKILL.md",
+      "skills/team-plan/SKILL.md",
+      "skills/team-review/SKILL.md",
+      "skills/team-debug/SKILL.md",
+      "skills/team-doc-check/SKILL.md",
+      "scripts/validate.ps1",
+      "tests/test-validate.ps1"
+    ],
+    "evidence": [
+      "user: approved preflight, explicit named selection, no silent fallback, invocation audit",
+      "user: additionally required final actual subagent list for trace-back",
+      "docs/architecture.md: three layers and default execution",
+      "skills/team-core/references/role-routing.md: current role map",
+      "official OpenAI Subagents documentation: custom roles are spawned configuration layers"
+    ],
+    "findings": [],
+    "runnableWork": [
+      "role-invocation"
+    ],
+    "coverage": [
+      {
+        "category": "requirements",
+        "decision": "required",
+        "reason": "User-approved correction and actual roster output are explicit.",
+        "evidence": [
+          "user: approved scoped correction",
+          "skills/team-core/references/role-routing.md",
+          "docs/architecture.md"
+        ]
+      },
+      {
+        "category": "architecture",
+        "decision": "required",
+        "reason": "Reuse shared references and existing team entrypoints; no new runtime or refactor.",
+        "evidence": [
+          "user: approved scoped correction",
+          "skills/team-core/references/role-routing.md",
+          "docs/architecture.md"
+        ]
+      },
+      {
+        "category": "interfaces-data",
+        "decision": "required",
+        "reason": "Existing Work/Verification/Handoff records capture selected versus observed identity and evidence.",
+        "evidence": [
+          "user: approved scoped correction",
+          "skills/team-core/references/role-routing.md",
+          "docs/architecture.md"
+        ]
+      },
+      {
+        "category": "ui-ux",
+        "decision": "not applicable",
+        "reason": "No rendered UI change.",
+        "evidence": [
+          "user: approved scoped correction",
+          "skills/team-core/references/role-routing.md",
+          "docs/architecture.md"
+        ]
+      },
+      {
+        "category": "runtime",
+        "decision": "required",
+        "reason": "Active-session role availability, failures and model evidence must be distinguished from source TOMLs.",
+        "evidence": [
+          "user: approved scoped correction",
+          "skills/team-core/references/role-routing.md",
+          "docs/architecture.md"
+        ]
+      },
+      {
+        "category": "testing-acceptance",
+        "decision": "required",
+        "reason": "Isolated package mutations plus independent workflow scenario review and manual pending checks.",
+        "evidence": [
+          "user: approved scoped correction",
+          "skills/team-core/references/role-routing.md",
+          "docs/architecture.md"
+        ]
+      },
+      {
+        "category": "security-migration",
+        "decision": "required",
+        "reason": "No silent downgrade, external configuration changes, raw logs or public local paths; no schema migration.",
+        "evidence": [
+          "user: approved scoped correction",
+          "skills/team-core/references/role-routing.md",
+          "docs/architecture.md"
+        ]
+      }
+    ],
+    "report": "# Role invocation: scoped development readiness\n\nThe user approved explicit named-role selection, availability checks, no silent generic fallback, and traceable actual subagent output. Existing role-routing, execution/ownership templates and architecture were inspected; no structural refactor, new orchestration runtime, PRD or OpenSpec adoption is required. Lead owns shared Skill/validator edits; a explicitly selected named Tester owns isolated tests and stage packet. A named Reviewer will assess the completed instructions.\n\nThis review addresses this bounded correction, not whole-project sufficiency or user acceptance. Other capability docs remain in place and are not declared re-certified or obsolete. No new requirement ambiguity blocks this scope.\n\nThe current session exposes named Tester/Reviewer role definitions with older GPT-6 Sol profiles than the source's GPT-6.1 Sol profiles. This is disclosed environment evidence, not an authorized replacement or a model upgrade. The role-selection checks can use those currently exposed named roles without altering configuration; resolved inference model identity may be unknown. Verifying the source model allocation requires a separate authorized installation/fresh-session check and remains unverified.\n\nBefore main implementation, the Tester prepares/validates the stage packet and observes an actual package-route regression Red. At close, review changed sources and new packet information, record a fresh assessment, preserve prior system-owned records and leave user-only acceptance pending. Skill constraints and authored records are reviewable workflow requirements, not an unbypassable runtime gate or proof of identity/approval.\n"
+  },
+  "createdAt": "2026-09-30T03:11:59.1769703Z",
+  "schemaVersion": 1,
+  "inventory": [
+    {
+      "path": "docs/architecture.md",
+      "sha256": "239c4a4ee95e9555e8143e62f015972c3d893034a66a0ea4b8ef52d655b0921a",
+      "kind": "text"
+    },
+    {
+      "path": "docs/release-versioning.md",
+      "sha256": "a3d55f0b071503844b3eff80462ee15c8226c97d1243145f59670d805c9e8294",
+      "kind": "text"
+    },
+    {
+      "path": "docs/safe-deployment.md",
+      "sha256": "08a30663808c799d21794a536438e8968e732d62c40142c8354ef97995c8ad2a",
+      "kind": "text"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+      "sha256": "1e20e19800706dd1554e6df0447798a113e8621c66bff15f95ef1d368733abdf",
+      "kind": "text"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+      "sha256": "f649a8d2a16e4b542252845becafa606f102fb52da5e0a3572fe052b5487c95b",
+      "kind": "text"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+      "sha256": "bee6c2516fc693b297d1c22128590f4fa7abadd17e3296132a126141e94263a4",
+      "kind": "text"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+      "sha256": "e0efed3c43a2bba37ffe73923e2678ba870757c42380d5530a5fd38977d63e53",
+      "kind": "text"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+      "sha256": "e2b88207b27a6d7c111ba2819253d79fd1c3de2992790bb11916ccd0d43d6d90",
+      "kind": "text"
+    },
+    {
+      "path": "docs/upstreams.md",
+      "sha256": "0bce4be17245a8028887538e8db5b94fd169e2668c809ef475aa288063ee9132",
+      "kind": "text"
+    },
+    {
+      "path": "docs/verification/active/documentation-governance.md",
+      "sha256": "571f904e4931d2790e75edf16d2f62e74a7612b2f74c1f1302e714520baff922",
+      "kind": "text"
+    },
+    {
+      "path": "docs/verification/active/openspec-integration.md",
+      "sha256": "763d2ab2d966e92a86bb32bdc5bb13003937bea87fc2f481b70cd57306fc9e53",
+      "kind": "text"
+    },
+    {
+      "path": "docs/verification/active/safe-deployment.md",
+      "sha256": "829cdedf24dc0663b0693f29d888fbcf956f0d3459be4fe0c8d35e4abc0aa809",
+      "kind": "text"
+    },
+    {
+      "path": "README.md",
+      "sha256": "978ae04de37e5e9dc97d0c2740924a880eb816d4b83f1a42a8ddb8f68077dcef",
+      "kind": "text"
+    }
+  ],
+  "scope": "role-invocation",
+  "fingerprints": {
+    "task": "b550f2952c6d84f4259393bd9657a0b111825bd6235436f0f06e1d50024f19bb",
+    "classifications": "78ba2a79e2537ef54cb770c657bd2fc644fbacfd8fcd3ab34c147a2540cb635d",
+    "dependencies": "c504f791895d970b697b7f01c07f4551a4b7df6ed625f71a9497ee74019bc969",
+    "inventory": "a5a73b1a4fa5c4db7d82da7b6d00e6802e4890eb21526e3f8b7e3e5c88302ab9"
+  },
+  "policyVersion": 1
+}

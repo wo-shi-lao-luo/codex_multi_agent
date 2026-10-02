@@ -10,7 +10,7 @@ The main Codex thread is the Lead. It reads project instructions, decides whethe
 
 ## Default execution
 
-`$team-dev` starts with scope analysis. For medium and large tasks it normally uses `team-explorer` plus either `team-architect` or a targeted specialist. It then appoints one production-code writer. After implementation, `team-tester` and `team-reviewer` work independently; the Lead handles any fixes and runs the final verification.
+`$team-dev` starts with a brief task/risk declaration and scope analysis. Code-changing work, including small bounded tasks, defaults to one named domain implementer plus `team-tester`; the Tester plans the concise packet coverage before implementation and verifies afterward, with test-file ownership separate from production files. Every material implementation also receives independent `team-reviewer` review, with relevant specialists added when risk or boundaries warrant them. Medium and large tasks normally add `team-explorer` plus `team-architect` or a targeted specialist when discovery or cross-module design requires it. Small tasks keep the same applicable documentation, stage-packet, TDD, coverage, comments, domain and verification obligations in a shorter record. Pure consultation and read-only investigation do not inherit the implementation-agent minimum; debug repairs enter the implementation path. Only an explicit request for the Lead personally to implement, or approval of a specific Lead-only exception, changes the default ownership. Such an exception does not waive stage evidence or material-change independent review; unresolved conflicts are returned for direction. At close, the Lead reconciles intended roles/checks with actual invocation and verification evidence.
 
 ## UI work
 
@@ -21,6 +21,38 @@ Functional tests and rendered visual inspection are separate evidence. The Lead 
 ## Data work
 
 `team-database-specialist` owns SQL safety, schema design, migrations, indexing, query plans, transaction boundaries, and data-change rollback. It is invoked only when data-layer changes are material.
+
+## Optional specification boundary
+
+OpenSpec integration adds an optional external CLI boundary, not a fourth executor or a second Lead. The existing workflow stays unchanged without a project opt-in marker. See the [spec lifecycle](../skills/team-core/references/spec-lifecycle.md) and [integration contract](../skills/team-core/references/openspec-integration.md).
+
+| Module | Owner files and responsibility | Dependencies |
+| --- | --- | --- |
+| Specification adapter | team-core/scripts/openspec-adapter.ps1: versioned CLI transport, explicit adoption, native archive with recovery | Trusted external CLI, traceability, common helpers |
+| Traceability | team-core/scripts/spec-traceability.ps1: stable links, stale-input detection and close gates | Existing stage validation, common helpers |
+| Shared spec IO | team-core/scripts/openspec-common.ps1: contained paths and fingerprints; no orchestration | Local filesystem |
+| Stage verification | Existing stage-verification.ps1: packet authority; optional read-only archived-packet validation | Existing blueprint validation; safe path helper for explicit PacketPath |
+
+Production files remain grouped by these responsibilities rather than implementation stage. No existing-code structural refactor was required or performed. Specs and task wording are fingerprinted; stage packets own results. The adapter cannot establish semantic correctness or authenticate approvals. Its archive lock coordinates kit archives only; external writers must be stopped.
+
+## Documentation governance boundary
+
+Task-scoped documentation review runs before planning/implementation and is refreshed when relevant evidence changes. The Lead owns readiness decisions; team-docs-maintainer (Luna/high) inventories and maintains assigned docs; Explorer supplies code facts, Architect judges architectural questions and Tester checks acceptance sufficiency. Existing adequate docs remain authoritative in their original locations. This kit has no OpenSpec opt-in marker in its own repository, so its native workflow is retained.
+
+| Module | Responsibility and owned files | Dependencies |
+| --- | --- | --- |
+| Documentation runtime (DOC-RUNTIME) | team-core/scripts/documentation.ps1: contained discovery, adoption, review validation, fingerprints and current-record pointers | PowerShell 7 and local repository files only |
+| Shared contract (DOC-CONTRACT) | team-core/references/documentation-governance.md: PRD authority, ambiguity, optional information requirements and legacy decisions | Existing Blueprint, OpenSpec and stage acceptance contracts |
+| Routing (DOC-ROUTING) | team-doc-check Skill, docs maintainer agent and existing team workflow routes | Shared contract; one Lead, bounded doc ownership |
+| Verification (DOC-TEST) | tests/test-documentation.ps1 and canonical stage packet | Disposable project copies and existing package/installer suites |
+
+Default project metadata lives in docs/governance, PRDs in docs/PRD and confirmed historical docs in docs/legacy. The runtime never resolves semantic conflicts, moves original documents or rewrites source. Policy version is separate from Kit version; a record of adoption is not a readiness decision. Reviews bind task wording, document inventory/classification and declared code dependencies. Hashes do not establish approval authenticity or semantic sufficiency. Existing project layout is preserved; no code refactor is part of this capability.
+
+## Installation management boundary
+
+The deployment manager is independent of the Kit's agent/Skill payload. `scripts/deploy-user.ps1` owns manifests, receipt migration, exact unit reconciliation, staging, before-images, recovery journals, stable selection and pruning. The existing install/update entrypoints route to it. Its content-addressed installed copy survives source checkout changes and payload downgrade. No Skill or agent can silently opt a project into rollback.
+
+This approved installer refactor preserves global config and unrelated personal components; it changes the old per-unit restore into whole-operation recovery. No business source layout is reorganized. Snapshot/data compatibility and recovery limits are documented in [safe deployment](safe-deployment.md).
 
 ## Deliberate limits
 

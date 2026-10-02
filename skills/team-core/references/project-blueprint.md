@@ -2,6 +2,8 @@
 
 ## Activation and scope
 
+Use [documentation governance](documentation-governance.md) to establish applicable PRD/architecture sources and scoped sufficiency before implementation. Blueprint is the architecture authority, not a substitute for product-intent review; do not create duplicate documents merely because a category folder is absent.
+
 Before implementing a new application, a multi-stage initiative, or a material structural change, establish a persistent project blueprint. Reuse the repository's architecture document when equivalent; otherwise use `docs/architecture/project-blueprint.md`. A small change in an established module may cite existing structure in its Work contract instead. Assess applicability explicitly; absence of a document is not itself evidence of bad architecture.
 
 Plan module responsibilities and dependencies for the known project scope, then assign stages to those modules. Do not invent speculative abstractions, create empty future directories, or organize production modules by stage number. A stage is a delivery slice, not the whole application.

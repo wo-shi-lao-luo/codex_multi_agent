@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.9.2] - 2026-10-02
+
+- Clarify document content ownership: README remains a stable project entrypoint; development journals, detailed test procedures, stage results and readiness records reuse their existing authoritative documents.
+- Require prompt, evidence-backed correction of related documentation defects encountered during authorized edits, with bounded ownership, preserved history and references, user decisions for substantive ambiguity, and read-only tasks remaining non-mutating.
+- Add Lead/writer assignment and semantic close checks for document placement and duplicate or stale facts; no automatic cleanup, new required document set, runtime/schema change or installation is introduced.
+
+## [0.9.1] - 2026-10-02
+
+- Require E2E scenario plans to include every manual case/requirement with equivalent conditions/results and explicit checkpoints; distinguish listed, implemented, executed and passing evidence and require user decisions for automation exceptions.
+- Synchronize encountered user-added/changed manual samples and requirements into E2E and applicable other-layer test plans/assertions/results. Preserve ambiguity, product-scope authority and archived acceptance; no background watcher or new packet schema is introduced.
+- Add a manual-to-automated mapping to new schema2 packets and isolated initializer/lifecycle regressions. Existing packet structure and user-only archival rules remain compatible; no automatic semantic coverage, stable promotion, local installation or push is claimed.
+- Route small code-changing Team development tasks to a named implementer plus Tester; preserve independent review for material work and escalate by risk rather than file count. Lead-only code work requires specific user authorization and retains applicable engineering responsibilities.
+- Separate team size from required lifecycle checks and add concise start/close reconciliation of roles, applicable standards and evidence. Nonbehavior typo/formatting work may remain Lead-only; no global activation, automatic fallback, new runtime gate or loaded-identity guarantee is introduced.
+
+## [0.9.0] - 2026-09-30
+
+- Add task-scoped documentation governance, existing-project adoption, document inventories and explicit review records with policy-version and input-change checks.
+- Add team-doc-check and a GPT-6 Luna / high docs maintainer, routed from team planning, development and review. Lead owns readiness and specialist escalation.
+- Prefer docs/ with PRDs in docs/PRD and confirmed superseded material in docs/legacy; categories remain task-dependent, substantive ambiguity requires a user decision, and historical/unread sources cannot silently become current authority.
+- Add isolated adoption/readiness and package-routing tests. No automatic model-quality claim, background monitor, legacy move, local install or stable promotion is introduced.
+- Require active-session named-role preflight, explicit role selection without silent generic fallback, invocation reconciliation and a final actual child-agent roster across Team workflows. Add isolated routing regressions; static package checks do not certify runtime calls or loaded models.
+
+## [0.8.1] - 2026-09-30
+
+- Move Architect to GPT-6.1 Sol / xhigh; retain the separate Lead recommendation of GPT-6 Astra / high.
+- Move frontend, backend, testing, database and review roles and the optional generic subagent default to GPT-6.1 Sol, preserving their reasoning efforts. Explorer remains GPT-6 Luna / medium.
+- Update profile validation and isolated regression checks. This configuration update does not establish measured model-quality improvements or change existing local installations automatically.
+
+## [0.8.0] - 2026-09-29
+
+- Replace per-component installation with receipt-based deployment, exact downgrade reconciliation and whole-operation recovery.
+- Add explicit stable snapshots, an independent persistent rollback entrypoint, local Git-ref deployment, conflict protection and explicit snapshot pruning.
+- Add isolated upgrade/downgrade and fault-injection tests; do not install or declare this preview stable automatically.
+
+## [0.7.0] - 2026-09-29
+
+- Add an opt-in, externally installed OpenSpec 1.13.2 adapter; retain one Lead and native kit behavior for non-adopters.
+- Link stable requirement/scenario/task IDs to existing stage packets, detect stale specification inputs, and gate archive on actual evidence and user acceptance/deferral.
+- Preserve recovery snapshots on uncertain upstream archive failure; add isolated fault-injection and optional real-CLI lifecycle tests.
+- Version this new specification-management capability as 0.7.0; this does not mark it as maintainer-approved stable or install it locally.
+
 All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions use [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.6.1] - 2026-09-29

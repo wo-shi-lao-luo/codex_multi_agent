@@ -5,6 +5,10 @@ param()
 $root = Split-Path -Parent $PSScriptRoot
 $failures = New-Object System.Collections.Generic.List[string]
 
+foreach ($resource in @('scripts/deploy-user.ps1')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing deployment resource: $resource") }
+}
+
 $versionPath = Join-Path $root 'VERSION'
 $kitVersion = $null
 if (-not (Test-Path -LiteralPath $versionPath)) {
@@ -21,13 +25,14 @@ if (-not (Test-Path -LiteralPath $changelogPath)) {
 }
 
 $expectedAgentProfiles = @{
-  'team-architect' = @{ model = 'gpt-6-astra'; reasoning = 'high' }
-  'team-backend-engineer' = @{ model = 'gpt-6-sol'; reasoning = 'medium' }
-  'team-database-specialist' = @{ model = 'gpt-6-sol'; reasoning = 'high' }
+  'team-architect' = @{ model = 'gpt-6.1-sol'; reasoning = 'xhigh' }
+  'team-backend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-database-specialist' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
+  'team-docs-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
   'team-explorer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
-  'team-frontend-engineer' = @{ model = 'gpt-6-sol'; reasoning = 'medium' }
-  'team-reviewer' = @{ model = 'gpt-6-sol'; reasoning = 'high' }
-  'team-tester' = @{ model = 'gpt-6-sol'; reasoning = 'medium' }
+  'team-frontend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-reviewer' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
+  'team-tester' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
 }
 
 Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-Object {
@@ -135,10 +140,34 @@ $coreReferenceDirectory = Join-Path $root 'skills\team-core\references'
 $coreReferences += 'project-blueprint.md'
 $coreReferences += 'code-comments.md'
 $coreReferences += 'ui-quality.md'
+$coreReferences += 'documentation-governance.md'
 foreach ($reference in $coreReferences) {
   if (-not (Test-Path -LiteralPath (Join-Path $coreReferenceDirectory $reference))) {
     $failures.Add("team-core is missing reference $reference")
   }
+}
+
+# Guard discovery routes and distribution; semantic readiness is checked by the Lead, not regexes.
+# Losing a direct routing link must fail even when a replacement Markdown link
+# resolves. This checks packaged discovery, not actual future spawn arguments.
+foreach ($skillName in @('team-core','team-dev','team-plan','team-debug','team-review','team-doc-check')) {
+  $target = if ($skillName -eq 'team-core') { 'references/role-routing.md' } else { '../team-core/references/role-routing.md' }
+  $file = Join-Path $root "skills/$skillName/SKILL.md"
+  if (-not (Test-Path -LiteralPath $file -PathType Leaf) -or -not (Get-Content -LiteralPath $file -Raw).Contains("]($target)")) {
+    $failures.Add("$skillName must link to role-routing.md")
+  }
+}
+foreach ($skillName in @('team-core','team-plan','team-dev','team-review','team-doc-check')) {
+  $target=if ($skillName -eq 'team-core') {'references/documentation-governance.md'} else {'../team-core/references/documentation-governance.md'}
+  $file=Join-Path $root "skills/$skillName/SKILL.md"
+  if (-not (Test-Path -LiteralPath $file) -or -not (Get-Content -LiteralPath $file -Raw).Contains("]($target)")) { $failures.Add("$skillName must link to documentation-governance.md") }
+}
+foreach ($resource in @('skills/team-doc-check/SKILL.md','skills/team-core/scripts/documentation.ps1','agents/team-docs-maintainer.toml')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing documentation resource: $resource") }
+}
+$docsAgent=Join-Path $root 'agents/team-docs-maintainer.toml'
+if (Test-Path -LiteralPath $docsAgent) {
+  if (-not (Get-Content -LiteralPath $docsAgent -Raw).Contains('team-doc-check')) { $failures.Add('Docs maintainer must route to team-doc-check') }
 }
 
 foreach ($skillName in 'team-dev', 'team-plan', 'team-review', 'frontend-engineering', 'testing-engineering', 'team-core') {
@@ -190,6 +219,14 @@ if (-not (Test-Path -LiteralPath $stageVerification)) {
 }
 
 $feedbackRuntime = Join-Path $root 'skills\team-core\scripts\feedback-runtime.ps1'
+# Guard optional integration distribution and discoverable routing; runtime tests check behavior.
+foreach ($relative in @('references/spec-lifecycle.md','references/openspec-integration.md','scripts/openspec-adapter.ps1','scripts/openspec-common.ps1','scripts/spec-traceability.ps1','templates/openspec/config.yaml')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root "skills/team-core/$relative") -PathType Leaf)) { $failures.Add("Missing optional OpenSpec resource: $relative") }
+}
+foreach ($skillName in @('team-core','team-plan','team-dev','team-review','testing-engineering','code-review')) {
+  $target = if ($skillName -eq 'team-core') { 'references/spec-lifecycle.md' } else { '../team-core/references/spec-lifecycle.md' }
+  if ((Get-Content -LiteralPath (Join-Path $root "skills/$skillName/SKILL.md") -Raw) -notmatch ('\]\(' + [regex]::Escape($target) + '\)')) { $failures.Add("$skillName must link to spec-lifecycle.md") }
+}
 if (-not (Test-Path -LiteralPath $feedbackRuntime)) {
   $failures.Add('team-core is missing scripts/feedback-runtime.ps1')
 } else {

@@ -5,6 +5,8 @@ description: Review a branch, diff, pull request, or change set with independent
 
 # Team review
 
+Read [documentation governance](../team-core/references/documentation-governance.md) when reviewing development readiness or document alignment. Inspect the current review's scope/freshness, applicable PRD decisions, actual read evidence and unresolved findings. A marker/hash alone cannot prove sufficiency. Check implemented changes against confirmed intent and factual documentation; do not rewrite or archive disputed material during review.
+
 Act as the Lead. This workflow owns **Discover → Verify → Handoff** from the shared [execution contract](../team-core/references/execution-contract.md). It reviews existing work and does not edit code unless the user explicitly starts a follow-up implementation task.
 
 ## When to activate
@@ -14,6 +16,10 @@ Use for a branch, diff, pull request, staged change, or specified change set tha
 Do not use without a reviewable scope. Do not convert a review into a refactor, a style pass, or an implementation task.
 
 ## Establish coverage
+
+Apply [role routing](../team-core/references/role-routing.md) before delegation: check needed named roles in the active tool catalog, explicitly select them, and ask before any unavailable-role alternative. Task labels and source profiles do not prove runtime identity. Reconcile actual calls and include the [handoff format](../team-core/references/handoff-format.md)'s actual child roster in the final response, including failures/retries or explicit none. Audit recorded selection against call evidence; an authored ledger is not independent proof.
+
+For a project with `openspec/team-integration.json`, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md). Review requirement/scenario/task/packet links, changed and removed behavior, stale evidence, and real assertions; IDs and checked tasks alone do not prove correctness. Inspect CloseCheck results without archiving or changing reviewer/user acceptance. Do not enable an absent integration during review.
 
 For UI changes, use the [UI delivery contract](../team-core/references/ui-quality.md) to review the assembled page against its brief and rendered evidence. Separate functional and visual conclusions; missing browser evidence is an uncovered visual check, not a pass. Report concrete hierarchy, consistency, layout or interaction defects without imposing personal taste.
 
@@ -28,6 +34,8 @@ Read [role routing](../team-core/references/role-routing.md), [handoff format](.
 3. Give each reviewer a bounded question, requested evidence, and file scope. Use at most three child threads.
 4. Audit behavior-to-test traceability where a stage packet exists: test-first rows need Red/Green/refactor evidence; non-test-first rows need a concrete reason and alternative evidence. Treat unsupported exceptions and material regression gaps as verification findings.
 5. De-duplicate findings. A finding needs impact, evidence, a precise file reference, and a concrete failure mode or missing verification.
+
+Audit the [manual scope and automated coverage contract](../team-core/references/test-acceptance-contract.md#manual-scope-and-automated-coverage): compare every manual case/requirement, including user additions, against actual E2E conditions/checkpoints/results and applicable other-layer assertions. Report unmapped cases, stale passes, lower-layer-only substitutes and unapproved automation exceptions. A complete plan table is not proof of executed coverage or user acceptance. Review recommends updates without editing tests or historical packets.
 
 ## Decision and return gates
 
