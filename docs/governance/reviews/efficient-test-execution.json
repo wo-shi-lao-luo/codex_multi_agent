@@ -1,0 +1,455 @@
+{
+  "dependencies": [
+    {
+      "exists": true,
+      "sha256": "99f1c0e47f2a92671faedc1c2904bdc7e647cc307b33d5f44e998c4e5bdfe004",
+      "path": "CHANGELOG.md"
+    },
+    {
+      "exists": true,
+      "sha256": "20adf0764f2594b05ed7cf1240b4d8f9d5c543d8ae50cc9fdb526cfc9c8ea72b",
+      "path": "skills/team-core/references/execution-templates.md"
+    },
+    {
+      "exists": true,
+      "sha256": "ef15100ee9a7085b7ae0ee4a3780e6d21700b6c7488c6d46ae6d8df05ea2045f",
+      "path": "skills/team-core/references/tdd-protocol.md"
+    },
+    {
+      "exists": true,
+      "sha256": "cd411b4e4e862c8dc435e8b958f9dc2472861d13c84b22aac127b39ba0e66fb9",
+      "path": "skills/team-core/references/test-acceptance-contract.md"
+    },
+    {
+      "exists": true,
+      "sha256": "756aa149e4216376e47b83cbad4e03ac4e1aca1df749899b1edb23469bb9eac9",
+      "path": "skills/team-core/references/ui-quality.md"
+    },
+    {
+      "exists": true,
+      "sha256": "2604d4649e9a58221e4dba59bdd5b82c3b925e35fa25d64cbc1b5ebf3c6fd1d4",
+      "path": "skills/team-core/scripts/documentation.ps1"
+    },
+    {
+      "exists": true,
+      "sha256": "ec907b627bb2847f8a34f9b523fdf4a4b1f83109c5da34b6f27f8cafe6b2a863",
+      "path": "skills/team-core/scripts/stage-verification.ps1"
+    },
+    {
+      "exists": true,
+      "sha256": "c872d7902f72e077d7b5f00a2917311d54e5f604ee27833106f3a382dcb3a653",
+      "path": "skills/team-core/SKILL.md"
+    },
+    {
+      "exists": true,
+      "sha256": "722fc085b55cd9d642745b27a56cfd0e8fbdaffd014055dd5e5be195e488f84c",
+      "path": "skills/team-dev/SKILL.md"
+    },
+    {
+      "exists": true,
+      "sha256": "d8280567f61e3954d467428f63098d7820a08ea002c72c0fee0e7ab2ba9aeddc",
+      "path": "skills/team-plan/SKILL.md"
+    },
+    {
+      "exists": true,
+      "sha256": "256ea4426056bb2e8b3284de8813afd4920827029aa6f2357d13a8ef8706b9b4",
+      "path": "skills/team-review/SKILL.md"
+    },
+    {
+      "exists": true,
+      "sha256": "6c995c89421a90247a5ab943521dcc187dbf3d1ae89c848a8a627fb236df5a7f",
+      "path": "skills/testing-engineering/SKILL.md"
+    },
+    {
+      "exists": true,
+      "sha256": "f434603e1cf7ebbec91f8c9f393e8213344d56453a9decbaed88579b393b8b11",
+      "path": "tests/test-stage-verification.ps1"
+    },
+    {
+      "exists": true,
+      "sha256": "38ecaa1e4c36c6691944c83df7671fca8b86f5cbf2d4e22c0012aa52df14b149",
+      "path": "VERSION"
+    }
+  ],
+  "fingerprints": {
+    "classifications": "dae73ea7a3de85db3a508ca11e6b472911345ec0ff6d03b329d015be741af1f3",
+    "inventory": "7affc80c4835c8dd8b2fae57a310dc59daedabf82dd62e7d733bbf342267dcb8",
+    "task": "7c337337b4d2848f639142e8f26a917a01fb72dcdcac6b4055b44bcbef8d3bea",
+    "dependencies": "fd367b40a971b6e0aa6849323cb59e3b135ef63a61f8839fda6024aa6bc75cb6"
+  },
+  "inventory": [
+    {
+      "kind": "text",
+      "sha256": "d4ba9774de8c4e51bccdbb18019ade3fce83cbfbe095db47e48c7e847d3ca795",
+      "path": "docs/architecture.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "a3d55f0b071503844b3eff80462ee15c8226c97d1243145f59670d805c9e8294",
+      "path": "docs/release-versioning.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "08a30663808c799d21794a536438e8968e732d62c40142c8354ef97995c8ad2a",
+      "path": "docs/safe-deployment.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "1e20e19800706dd1554e6df0447798a113e8621c66bff15f95ef1d368733abdf",
+      "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "f649a8d2a16e4b542252845becafa606f102fb52da5e0a3572fe052b5487c95b",
+      "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "bee6c2516fc693b297d1c22128590f4fa7abadd17e3296132a126141e94263a4",
+      "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "e0efed3c43a2bba37ffe73923e2678ba870757c42380d5530a5fd38977d63e53",
+      "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "e2b88207b27a6d7c111ba2819253d79fd1c3de2992790bb11916ccd0d43d6d90",
+      "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "0bce4be17245a8028887538e8db5b94fd169e2668c809ef475aa288063ee9132",
+      "path": "docs/upstreams.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "68a20b8084f9bc030cd3a29651da799b723952b0f72776b899bbd0bd7bb0d651",
+      "path": "docs/verification/active/coverage-sync.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "cfc84f4949a829d88c2f31cf2cd3f0c8eb403a47b1467ff3019d6b56c229612d",
+      "path": "docs/verification/active/doc-content-placement.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "571f904e4931d2790e75edf16d2f62e74a7612b2f74c1f1302e714520baff922",
+      "path": "docs/verification/active/documentation-governance.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "66a585a2cdcfad98c8322399ef0bd7be00f1c3f2fa54173e35a4da08964733a8",
+      "path": "docs/verification/active/efficient-test-execution.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "763d2ab2d966e92a86bb32bdc5bb13003937bea87fc2f481b70cd57306fc9e53",
+      "path": "docs/verification/active/openspec-integration.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "12e1df3eab1213f405509866414e2f9ae240600436e35cbeff1655c8a6376d04",
+      "path": "docs/verification/active/role-invocation.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "829cdedf24dc0663b0693f29d888fbcf956f0d3459be4fe0c8d35e4abc0aa809",
+      "path": "docs/verification/active/safe-deployment.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "f67691e42d1c3ddc4584f50633b50834f09aceb661c429597e40f67a4d40fa9f",
+      "path": "docs/verification/active/small-task-routing.md"
+    },
+    {
+      "kind": "text",
+      "sha256": "a24b3041d4f0d48e841e88aef7a5b08d3a064d0c32b0fa443ea9c33326110f4b",
+      "path": "README.md"
+    }
+  ],
+  "reportSha256": "c422fa1f3a5f56a88b645e92dbf7c04403569a12531785bb5eeed21cbe330b33",
+  "schemaVersion": 1,
+  "assessment": {
+    "schemaVersion": 1,
+    "scope": "efficient-test-execution",
+    "task": "Add default efficient programmatic test execution without reducing coverage",
+    "outcome": "ready",
+    "summary": "Default efficient Codex test execution and0.9.3 metadata reviewed; actual template Red/Green, native validation and five isolated regressions passed, independent review found no material defects. Runtime usage/acceptance and token savings remain unobserved.",
+    "documents": [
+      {
+        "path": "docs/architecture.md",
+        "category": "architecture",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "applicability": "applicable",
+        "reason": "Lead read current module boundaries; contract routing and packet-template additions fit existing structure without refactoring."
+      },
+      {
+        "path": "docs/release-versioning.md",
+        "category": "runtime",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "applicability": "applicable",
+        "reason": "Lead read patch/minor/stable policy; this focused extension is approved as0.9.3 without stable promotion."
+      },
+      {
+        "path": "docs/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/upstreams.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/verification/active/coverage-sync.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/verification/active/doc-content-placement.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/verification/active/documentation-governance.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/verification/active/efficient-test-execution.md",
+        "category": "testing-acceptance",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "applicability": "applicable",
+        "reason": "Lead read initial plan and actual Red before writing, final isolated evidence/source walkthrough and invocation reconciliation; real workflow/manual acceptance remains pending."
+      },
+      {
+        "path": "docs/verification/active/openspec-integration.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/verification/active/role-invocation.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/verification/active/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "docs/verification/active/small-task-routing.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "applicability": "unrelated",
+        "reason": "Outside this bounded test-execution extension; preserved unchanged and not recertified."
+      },
+      {
+        "path": "README.md",
+        "category": "runtime",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "applicability": "applicable",
+        "reason": "Lead read setup, verification entrypoints, explicit activation and current release reference; stable summary only, no per-run ledger."
+      }
+    ],
+    "dependencies": [
+      "skills/team-core/references/test-acceptance-contract.md",
+      "skills/team-core/references/tdd-protocol.md",
+      "skills/team-core/references/ui-quality.md",
+      "skills/team-core/references/execution-templates.md",
+      "skills/team-core/SKILL.md",
+      "skills/testing-engineering/SKILL.md",
+      "skills/team-plan/SKILL.md",
+      "skills/team-dev/SKILL.md",
+      "skills/team-review/SKILL.md",
+      "skills/team-core/scripts/stage-verification.ps1",
+      "tests/test-stage-verification.ps1",
+      "VERSION",
+      "skills/team-core/scripts/documentation.ps1",
+      "CHANGELOG.md"
+    ],
+    "evidence": [
+      "user: approved default for Codex-run development/testing of all products, not restricted to products containing AI",
+      "Lead: read actual shared acceptance/TDD/UI/ownership/routing contracts, Skill entrypoints, existing architecture, packet template, release policy and README",
+      "Lead: exact named Docs Maintainer and Tester selected; independent Reviewer is available in active catalog and planned after coherent draft",
+      "Lead: baseline native package validation and diff whitespace check passed; no runtime E2E/token savings or manual acceptance claimed",
+      "Tester: initial packet Validate exit0 before writer release; actual new Initialize table regression exit1 with missing-table error before implementation, disposable fixture removed",
+      "user: additionally requests broader API/integration business combinations and reduced redundant browser permutations, differentiated by assertion/risk while retaining UI and client-only checkpoints",
+      "Docs Maintainer: canonical Efficient test execution section, five short Skill routes, concise execution fields and Initialize literal table written; parser/schema unchanged",
+      "Tester: actual template Green and all five isolated stage/validation/documentation/fake-home installation/deployment suites exit0 with owned fixture cleanup; semantic ET-01 through ET-07 source review supported",
+      "Reviewer: independent coherent-diff review found no material defects; native package/packet Validate and whitespace check passed; public paths contain no machine-specific directories",
+      "Lead: actual diff/final packet/metadata reviewed; stale ET-07 isolated-result label corrected; exact three selected-role handles reconciled, loaded runtime identities unreported",
+      "Lead: optional Python Skill helper unavailable because yaml dependency absent; no packages installed; native metadata/resource validation passed instead"
+    ],
+    "findings": [],
+    "runnableWork": [
+      "efficient-test-execution"
+    ],
+    "coverage": [
+      {
+        "category": "requirements",
+        "decision": "required",
+        "reason": "User decisions establish scope/default applicability; no active applicable PRD or OpenSpec marker in this Kit repository.",
+        "evidence": [
+          "user: approved bounded task",
+          "skills/team-core/references/test-acceptance-contract.md: coverage/manual authority",
+          "docs/architecture.md: existing module boundaries"
+        ]
+      },
+      {
+        "category": "architecture",
+        "decision": "required",
+        "reason": "Existing shared references/Skill routing and packet template are adequate; no blueprint amendment or approved structural refactor needed.",
+        "evidence": [
+          "user: approved bounded task",
+          "skills/team-core/references/test-acceptance-contract.md: coverage/manual authority",
+          "docs/architecture.md: existing module boundaries"
+        ]
+      },
+      {
+        "category": "interfaces-data",
+        "decision": "conditional",
+        "reason": "Add authoring fields inside existing stage plan without schema/parser changes; existing schema2 records remain compatible.",
+        "evidence": [
+          "user: approved bounded task",
+          "skills/team-core/references/test-acceptance-contract.md: coverage/manual authority",
+          "docs/architecture.md: existing module boundaries"
+        ]
+      },
+      {
+        "category": "ui-ux",
+        "decision": "conditional",
+        "reason": "No product UI change; preserve rendered-page requirements in the shared test strategy.",
+        "evidence": [
+          "user: approved bounded task",
+          "skills/team-core/references/test-acceptance-contract.md: coverage/manual authority",
+          "docs/architecture.md: existing module boundaries"
+        ]
+      },
+      {
+        "category": "runtime",
+        "decision": "required",
+        "reason": "Template-only source change and Kit provenance/version metadata; no installer, routing model or runtime validation algorithm change.",
+        "evidence": [
+          "user: approved bounded task",
+          "skills/team-core/references/test-acceptance-contract.md: coverage/manual authority",
+          "docs/architecture.md: existing module boundaries"
+        ]
+      },
+      {
+        "category": "testing-acceptance",
+        "decision": "required",
+        "reason": "Tester plans before writer, captures actual Red for template invariant, verifies regressions; independent Reviewer checks semantics and evidence. Actual future Agent behavior/manual acceptance and token savings are unmeasured.",
+        "evidence": [
+          "user: approved bounded task",
+          "skills/team-core/references/test-acceptance-contract.md: coverage/manual authority",
+          "docs/architecture.md: existing module boundaries"
+        ]
+      },
+      {
+        "category": "security-migration",
+        "decision": "conditional",
+        "reason": "Do not force/expose new API, bypass tools/authorization, trigger live side effects or leak traces; isolated fixtures cleaned and no real installation authorized.",
+        "evidence": [
+          "user: approved bounded task",
+          "skills/team-core/references/test-acceptance-contract.md: coverage/manual authority",
+          "docs/architecture.md: existing module boundaries"
+        ]
+      }
+    ],
+    "report": "# Efficient test execution: final scoped assessment (0.9.3)\n\n## Reviewed scope and implementation\n\nThe approved default applies to Codex-run development/testing of all products, not only products containing AI. The shared test contract selects an adequate low-observation-cost entrypoint, lets repeatable runners execute actions/assertions/fixtures/cleanup, and makes Agent observation summary-first with required failure, ambiguous, unexpected and material/safety evidence drill-down. Full trustworthy, redacted results remain available; unchecked, skipped, timed-out or failed work cannot inherit a pass. No measured saving claim is made.\n\nAPI/integration carries broad business-rule, authentication, data/state and failure permutations; browser testing retains representative complete user journeys and distinct UI/client/front-to-backend risks. Equivalent conditions/assertions/results and per-case evidence justify avoiding duplicate proposed browser permutations, not a test-count ratio or universal API superset. Client-only/duplicated rules and rendered visual requirements retain their own evidence. Only a declared complete real application boundary can establish API E2E; narrow endpoints, mocks and direct model calls are not substitutes. Manual-to-E2E mapping, TDD and user-only acceptance/archival remain intact. No API, production seam, simulator, platform or architectural refactor is imposed.\n\nThe canonical rule lives in test-acceptance-contract; five Skill entrypoints reference it, execution templates expose planning/outcome fields, and Initialize emits the six-field planning table before the existing coverage mapping. No runtime parser/schema/policyVersion, model profile or installed payload changed. VERSION, CHANGELOG, README current-release reference and documentation.ps1 Kit provenance agree on0.9.3 as a patch extension, without stable promotion. README contains only stable summary/navigation; this scope's canonical packet owns actual results and pending human verification. Architecture is adequate as-is; no applicable PRD or OpenSpec marker was found. Unrelated inventoried documents remain unchanged and are not recertified.\n\n## Actual evidence and limitations\n\nLead read the original contracts, source/template/tests, architecture, README and version policy; scoped readiness and initial Tester packet Validate passed before writer release. Tester observed the new table invariant fail exit1 before implementation with fixture cleanup, then pass exit0 on the completed draft. Native validation and five isolated stage, validation, documentation, fake-home install and deployment suites all passed and removed owned fixtures. New tests check emitted fields and read-only byte preservation/legacy compatibility/manual-pending archive rejection, not normative wording. Tester inspected comments against assertions and semantically walked ET-01 through ET-07. Reviewer independently inspected the actual coherent diff and packet, found no material defects and independently passed native/packet validation and whitespace checks. Lead inspected final evidence and corrected an outdated isolated-result label without changing real-workflow/manual status.\n\nActual selected-role roster: /root/efficient_test_tester (team-tester), /root/efficient_test_writer (team-docs-maintainer), /root/efficient_test_reviewer (team-reviewer), all complete. Exact roles were available in the active tool catalog before selection; no retries, failed creations, generic substitutes or child recursion. Returned handles do not independently confirm loaded identity/model/effort, which remain unknown. Source/tool expectations were not substituted for inference evidence.\n\nThe optional skill-creator Python quick helper could not start because yaml was unavailable. No dependency installation or Skill failure is inferred; native package frontmatter/naming/resource validation is the available substitute. Actual Codex target-workflow E2E, user manual acceptance and matched token savings remain unobserved/pending in docs/verification/active/efficient-test-execution.md. Source interpretation and script validation are not those passes. No real install, product edit, external service call, commit, push or stable selection occurred. This review certifies sufficient inspected inputs for the bounded task, not whole-project correctness or future Agent adherence."
+  },
+  "policyVersion": 1,
+  "kitVersion": "0.9.3",
+  "createdAt": "2026-10-02T09:11:34.1583206Z",
+  "scope": "efficient-test-execution"
+}

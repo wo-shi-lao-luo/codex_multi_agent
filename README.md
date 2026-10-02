@@ -1,5 +1,7 @@
 # Codex Multi-Agent Kit
 
+English | [简体中文](README.zh-CN.md)
+
 A small, user-level development team for Codex. It uses Codex native subagents and Skills; it does not require ECC, OMX, a task daemon, or another agent harness at runtime.
 
 ## Entry points
@@ -65,13 +67,20 @@ To verify the distributable package without touching your actual Codex or Skills
 
 These tests run only in unique system-temporary directories. They verify invalid metadata and missing local references, TDD stage-packet initialization and safe state transitions, the complete package and update behavior, and the feedback runtime's validation, aggregation, archive, deletion-confirmation, and cleanup behavior; each directory is removed before its test exits.
 
-The installer copies agents to `~/.codex/agents` and Skills (including the internal `team-core` policy bundle and feedback runtime) to `~/.agents/skills`. It does not overwrite `~/.codex/config.toml`. If you want the recommended three-subagent cap, merge [`config/recommended-config.toml`](config/recommended-config.toml) into that file once.
+To validate public documentation structure and synchronization separately from package validation, run:
+
+```powershell
+.\scripts\validate-docs.ps1 -ProjectRoot .
+.\tests\test-bilingual-docs.ps1
+```
+
+The installer copies agents to `~/.codex/agents` and Skills (including the internal `team-core` policy bundle and feedback runtime) to `~/.agents/skills`. It does not overwrite or merge `~/.codex/config.toml`. The optional [`config/recommended-config.toml`](config/recommended-config.toml) recommends a ceiling of six concurrently open child threads per session, excluding the Lead. If you already merged an older fragment, explicitly update `max_concurrent_threads_per_session` from `3` to `6`. The active Codex session may enforce a lower limit; a config value does not prove the setting is loaded or that six threads are available.
 
 The installer validates the kit before writing. Use `-WhatIf` to preview its actions. It stops on an existing file or Skill directory unless it is an unchanged installation recorded by the kit; use `-Force` only when you want conflicting destinations backed up and replaced. The installation receipt and backups are stored under `~/.agents/codex-multi-agent/` by default.
 
 Agent names use the `team-` prefix to avoid collisions with personal agents. Historical components absent from the installation receipt are left untouched; inspect their ownership before removing them manually.
 
-Current release: `0.9.2` (review preview, not automatically stable). Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
+Current release: `0.9.3` (review preview, not automatically stable). Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. See [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
 
 Visible UI work uses [frontend-design](skills/frontend-design/SKILL.md) alongside frontend-engineering. The [UI delivery contract](skills/team-core/references/ui-quality.md) preserves page-level goals through delegation and requires rendered inspection separate from functional tests. No extra design agent, model change or per-page design document is required. Missing browser evidence must be reported as visually unverified, not release-ready.
 
@@ -82,6 +91,8 @@ Restart Codex if a newly installed Skill is not immediately visible.
 Explicit `$team-dev` code changes, including small fixes and behavior-changing scripts/configuration/Skill instructions, default to a named implementer plus `team-tester`. Risk and material impact, not file or line count, determine independent review and specialist needs. Small tasks may shorten records but retain every applicable engineering check. Lead-only code execution requires a specific user request/approved exception; ordinary "just fix it" is not that approval, and missing roles never permit silent fallback. See [role routing](skills/team-core/references/role-routing.md) and the [minimum complete path](skills/team-core/references/execution-contract.md). Pure nonbehavior spelling/formatting edits may remain Lead-only. Start and close declarations reconcile intended roles/checks with actual evidence. These internal rules do not automatically activate Team workflows outside their explicit entrypoints.
 
 Stage test plans use [manual-to-automated coverage](skills/team-core/references/test-acceptance-contract.md#manual-scope-and-automated-coverage): E2E plans include every manual scenario/requirement with equivalent conditions/results and checkpoints. Encountered user additions synchronize E2E and applicable other-layer tests, mappings and affected evidence. Unautomatable observations stay visible pending a user exception decision; plan inclusion is not passing coverage. No background watcher or automatic modification of archived acceptance is introduced.
+
+[Efficient test execution](skills/team-core/references/test-acceptance-contract.md#efficient-test-execution) is the default for Codex-run testing of any product. Prefer repeatable programmatic runners and structured result summaries; cover business-rule combinations broadly through adequate API/integration entrypoints, while retaining complete browser journeys and distinct UI/client risks. Avoid duplicate assertions only with equivalent conditions and evidence; preserve rendered visual checks and manual acceptance. No API, new test seam, screenshot-every-step workflow or measured token-saving claim is imposed.
 
 ### Documentation readiness
 
@@ -96,9 +107,9 @@ Run `tests/test-openspec.ps1` for isolated contract tests. Pass `-OpenSpecEntry 
 
 New applications, multi-stage initiatives and material structural changes use a [Project Blueprint](skills/team-core/references/project-blueprint.md). Discover an existing repository before documenting its modules and file responsibilities. Structural refactoring requires explicit user approval; if declined or deferred, preserve the current structure and record its constraints. Stage packets reference the blueprint revision, module IDs, file scope and entrypoint exceptions. Blueprint validation checks document structure; code review checks the actual architecture.
 
-- The Lead starts at most three child threads at once.
+- The recommended ceiling is six concurrently open child threads across the Lead's session, subject to lower host capacity. Usually 2–3 is enough; add more only for ready, independent work. Before exceeding three, explain the reason and record distinct outputs, dependencies, write boundaries and integration in the existing work record. See [adaptive concurrency](skills/team-core/references/role-routing.md#adaptive-child-thread-concurrency).
 - One owner writes production code by default. The Lead uses worktrees only after assigning non-overlapping files or modules.
-- Read-heavy exploration, tests, and reviews are safe to parallelize; shared-contract changes are planned before any writer starts.
+- Parallelize only work with ready inputs and independent outputs, such as read-only checks, disjoint files or isolated fixtures. Keep shared mutable test state and dependent work sequential; plan shared-contract changes before a writer starts.
 - A role reports findings, touched files, verification, and blockers back to the Lead. Only the Lead claims completion.
 - Team workflows preflight needed named roles against the active tool catalog and explicitly select them; task labels or source TOMLs are not proof of role/model loading. Unavailable roles require a user decision before an alternative. Every final response lists the actually used child agents (ID, selected role, task and status), including created failures/retries, or explicitly states none; unconfirmed runtime identity/model stays unknown.
 

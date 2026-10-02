@@ -8,6 +8,23 @@ The packet must contain stage context, use cases with happy and edge paths, test
 
 For deterministic behavior, write a failing practical automated test before implementation and use red-green-refactor. Otherwise record why strict TDD is not practical and define the smallest reliable alternative. Do not invent line-coverage targets.
 
+## Efficient test execution
+
+Codex development workflows assume an AI Agent may run the tests. By default, plan each check around the lowest Agent-interaction and observation-cost entrypoint that still gives reliable evidence for its risk. The optimization concerns the testing Agent's repeated actions and evidence-reading; it does not imply fewer application/model calls. Choose the execution boundary, runner, and observation method before implementation; run fast deterministic checks before costly browser interaction when practical and when dependencies allow. This is a prioritization, not a mandatory serial gate for every test.
+
+Use scripts or the repository's test harness for repeatable actions, waits, assertions, fixture setup, and cleanup. Let the runner perform repeated steps and return a concise result summary. Retain the complete trusted result artifacts needed to reproduce and audit the run; let the Agent read summaries first and open relevant evidence when a check fails, is ambiguous or unexpected, or carries material risk. Redact secrets from retained evidence. A green result does not excuse inspection of safety-sensitive effects. Report planned, skipped, timed-out, failed, executed, and passing checks distinctly; a summary is not evidence for a case the runner did not check.
+
+Choose layers by what they can observe and the risk they cover:
+
+- Unit tests should precisely exercise pure rules and boundaries.
+- Integration/API scenarios should generally cover broader combinations of business rules, authentication, state, data, and error conditions when they can exercise the real integrated application boundary.
+- Browser tests should retain representative complete user journeys and cover distinct UI behavior, client-side rules, rendered errors/states, and front-end/back-end linkage. When API/integration evidence proves the same business preconditions, rules, and results, duplicate browser permutations may be reduced; record the per-case basis in the packet. Do not remove existing tests merely to reduce execution cost without authorization. Frontend-only or duplicated client rules still need their own component/browser assertions.
+- Rendered-page inspection remains required for visual requirements and states that cannot be judged reliably from structured evidence. Preserve all distinct UI checkpoints and the full user journey where those are acceptance risks.
+
+API E2E coverage requires a declared complete, real application boundary. Mocks, direct model calls, and narrow endpoint checks do not prove a user journey. Map every manual scenario to complementary API/integration and browser evidence as applicable; API coverage cannot observe UI behavior, and lower-layer tests alone do not establish E2E coverage. Do not impose a fixed count ratio or claim that API checks replace the browser: compare case conditions, rules, results, and risks. If no suitable API boundary exists, use the browser and other available layers. Do not create an API, production seam, or architectural change solely for testing without authorization.
+
+Token or cost reporting is optional when reliable telemetry is already available. If reported, distinguish the testing Agent's usage from the product's AI/model calls and any simulator/scorer usage; label unavailable measurements unknown. Do not claim savings without comparable measured evidence. Do not make AI-simulated users or a new evaluation platform a default requirement.
+
 ## Manual scope and automated coverage
 
 The **E2E scenario plan must include every manual test scenario or acceptance requirement**, and may cover more. Compare behavior, preconditions, happy/edge/failure paths and observable expected results, not test counts or similar names. Preparation/cleanup instructions are not extra scenarios unless they test behavior. Preserve a stable case/requirement ID for every manual scenario and map it to E2E scenario/test IDs and explicit checkpoints/assertions in the existing packet. Several manual cases may share one E2E flow only when each case's conditions and expected results are actually checked. Unit/integration tests alone do not establish end-to-end coverage.

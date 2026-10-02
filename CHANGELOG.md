@@ -1,5 +1,15 @@
 # Changelog
 
+English | [简体中文](CHANGELOG.zh-CN.md)
+
+## [0.9.3] - 2026-10-02
+
+- Default Codex-run testing of all products to adequate low-observation-cost entrypoints, repeatable programmatic execution and structured summaries with evidence drill-down; this is not restricted to products containing AI.
+- Give API/integration tests broad business-rule coverage and browsers complete user journeys plus distinct UI/client and front-to-backend risks. Remove redundant business permutations from proposed browser plans only with equivalent conditions/assertions and evidence; preserve manual-to-E2E mapping and rendered inspection.
+- Add execution/observation planning fields to new stage packets and workflow templates, with isolated generator/nonmutation regressions. Existing schema2 packets, TDD tracks and user-only acceptance/archival remain compatible; no forced API, new production seam, real installation, global activation or measured token savings is introduced.
+- Add a complete Simplified Chinese README and changelog, reciprocal language navigation, same-change maintenance rules, and a separate repository-only structural validator with isolated tests. Semantic translation still needs human review; the 0.9.3 version line is retained.
+- Recommend a per-session ceiling of six concurrently open child threads, excluding the Lead, with adaptive use based on ready independent work and actual host capacity. Explain and record expansion beyond three; preserve role obligations and avoid parallel work with shared mutable state or dependencies. Existing installations must update the setting explicitly; source config does not establish loaded runtime capacity.
+
 ## [0.9.2] - 2026-10-02
 
 - Clarify document content ownership: README remains a stable project entrypoint; development journals, detailed test procedures, stage results and readiness records reuse their existing authoritative documents.

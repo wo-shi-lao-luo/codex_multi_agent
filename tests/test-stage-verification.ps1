@@ -94,6 +94,18 @@ try {
     Assert-Condition $initialized.Contains($requiredField) "Initialize omitted required TDD packet field: $requiredField"
   }
 
+  # Scenario: a generated packet lets authors choose execution boundaries and
+  # observation evidence without confusing cheaper execution with weaker coverage.
+  # Expected: six ordered planning fields and one fillable row are emitted.
+  $executionSection = [regex]::Match($initialized, '(?ms)^### Execution and observation choices\s*\r?\n(?<body>.*?)(?=^### |^## |\z)')
+  $executionRows = @($executionSection.Groups['body'].Value -split "`r?`n" | Where-Object { $_.Trim().StartsWith('|') })
+  Assert-Condition ($executionRows.Count -eq 3) 'Initialize did not emit a fillable execution and observation table.'
+  $executionColumns = @($executionRows[0].Trim().Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+  $expectedExecutionColumns = @('Case / test ID', 'Execution entrypoint and real boundary', 'Runner / command', 'Observation mode and rationale', 'Retained browser / visual checkpoints', 'Evidence / drill-down / gaps')
+  Assert-Condition (($executionColumns -join ';') -eq ($expectedExecutionColumns -join ';')) 'Execution planning fields omit boundary, runner, observation, retained checkpoints or evidence.'
+  $fillableExecutionCells = @($executionRows[2].Trim().Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+  Assert-Condition ($fillableExecutionCells.Count -eq 6 -and @($fillableExecutionCells | Where-Object { $_ }).Count -eq 0) 'Execution planning row is not empty and fillable.'
+
   # Scenario: a new packet needs per-manual-case E2E and other-layer evidence fields.
   # Expected: its emitted mapping has five ordered data columns and a fillable row,
   # without pretending that table presence establishes semantic or executed coverage.
@@ -129,6 +141,21 @@ try {
 
   Set-ValidPacket -Path $packet -FinalManualStatus 'manual pending'
   & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'tdd-smoke' | Out-Null
+
+  # Scenario: an existing schema2 packet has no new subsection; an author then
+  # adds concrete programmatic and rendered-observation choices for a future run.
+  # Expected: both forms validate, byte-for-byte authored choices stay unchanged,
+  # and planning metadata cannot turn manual pending into archive permission.
+  $legacyHash = (Get-FileHash -LiteralPath $packet -Algorithm SHA256).Hash
+  & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'tdd-smoke' | Out-Null
+  Assert-Condition ((Get-FileHash -LiteralPath $packet -Algorithm SHA256).Hash -eq $legacyHash) 'Validate mutated the legacy schema2 packet.'
+  $filledExecution = $executionSection.Value.Replace('| | | | | | |', '| CRUD-01 | real application HTTP and persistence boundary | isolated scenario runner | structured summary; drill into failed assertions | browser submit and rendered error check remain pending | trace reference; token telemetry unknown |').TrimEnd()
+  $executionContent = (Get-Content -LiteralPath $packet -Raw).Replace('## Human verification script', $filledExecution + "`n`n## Human verification script")
+  Set-Content -LiteralPath $packet -Value $executionContent -Encoding utf8
+  $executionHash = (Get-FileHash -LiteralPath $packet -Algorithm SHA256).Hash
+  & $scriptPath -Action Validate -ProjectRoot $testRoot -StageSlug 'tdd-smoke' | Out-Null
+  Assert-Condition ((Get-FileHash -LiteralPath $packet -Algorithm SHA256).Hash -eq $executionHash) 'Validate changed authored execution choices or pending observations.'
+  Invoke-ExpectFailure { & $scriptPath -Action Archive -ProjectRoot $testRoot -StageSlug 'tdd-smoke' } 'Execution choices bypassed pending user acceptance.'
 
   $blueprintScript = Join-Path (Split-Path -Parent $scriptPath) 'project-blueprint.ps1'
   & $blueprintScript -Action Initialize -ProjectRoot $testRoot | Out-Null

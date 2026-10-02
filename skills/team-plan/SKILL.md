@@ -27,6 +27,8 @@ Apply the [Project Blueprint contract](../team-core/references/project-blueprint
 
 Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [test and acceptance contract](../team-core/references/test-acceptance-contract.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
+Apply the test contract's [efficient test execution](../team-core/references/test-acceptance-contract.md#efficient-test-execution) rule when proposing test layers and commands. Record the proposed entrypoint, real boundary, runner, observation mode and rationale in the Work contract or stage plan; preserve full manual-scenario coverage and explain any duplicate browser business permutations represented by equivalent API/integration evidence.
+
 1. Create a Task record: outcome, constraints, acceptance checks, and open questions.
 2. Discover repository facts. Use `team-explorer` for unfamiliar scope and `team-architect` for cross-module contracts; request bounded findings with evidence.
 3. Turn evidence into a Work contract. Define affected boundaries, ownership, compatibility, verification, and rollout or recovery needs when material.

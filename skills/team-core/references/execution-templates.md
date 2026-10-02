@@ -36,6 +36,7 @@ Unresolved documentation findings and permitted independent work:
 Expected result:
 Shared contract or compatibility concern:
 Verification:
+Test execution choices (before implementation): entrypoint and real boundary, runner/command, observation mode and rationale, browser/visual checkpoints, and any API/integration evidence used to reduce duplicate browser permutations (see [efficient test execution](test-acceptance-contract.md#efficient-test-execution)):
 Recovery or rollout consideration:
 ```
 
@@ -56,6 +57,7 @@ Target viewports, states and core interactions:
 
 ```text
 Check performed:
+Test execution outcome: planned/skipped/timed out/failed/executed/passing distinctions, summary, retained result-artifact reference, drill-down performed or needed, and remaining gaps (see [efficient test execution](test-acceptance-contract.md#efficient-test-execution)):
 Close reconciliation: start/Work contract obligations versus actual roles, checks, outcomes and gaps:
 Invocation reconciliation: planned roles, actual selector arguments, returned handles/observed identity, deviations and user decisions
 Documentation semantic check: assigned purpose/placement, factual alignment, duplication, affected links/indexes, bounded repairs and escalations:

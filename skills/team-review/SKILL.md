@@ -31,11 +31,13 @@ Read [role routing](../team-core/references/role-routing.md), [handoff format](.
 
 1. Record the exact review scope, baseline, and stated intent. Inspect the actual diff and enough surrounding code to understand behavior.
 2. Build a Review coverage record. Choose independent read-only roles only where they add distinct coverage: `team-reviewer` for correctness and maintainability, `team-tester` for verification gaps, `team-database-specialist` for material data changes, and `team-explorer` for unfamiliar areas.
-3. Give each reviewer a bounded question, requested evidence, and file scope. Use at most three child threads.
+3. Give each reviewer a bounded question, requested evidence, and file scope. Follow [adaptive child-thread concurrency](../team-core/references/role-routing.md#adaptive-child-thread-concurrency); review tasks may use fewer roles when that gives sufficient independent coverage.
 4. Audit behavior-to-test traceability where a stage packet exists: test-first rows need Red/Green/refactor evidence; non-test-first rows need a concrete reason and alternative evidence. Treat unsupported exceptions and material regression gaps as verification findings.
 5. De-duplicate findings. A finding needs impact, evidence, a precise file reference, and a concrete failure mode or missing verification.
 
 Audit the [manual scope and automated coverage contract](../team-core/references/test-acceptance-contract.md#manual-scope-and-automated-coverage): compare every manual case/requirement, including user additions, against actual E2E conditions/checkpoints/results and applicable other-layer assertions. Report unmapped cases, stale passes, lower-layer-only substitutes and unapproved automation exceptions. A complete plan table is not proof of executed coverage or user acceptance. Review recommends updates without editing tests or historical packets.
+
+Also audit the test contract's [efficient test execution](../team-core/references/test-acceptance-contract.md#efficient-test-execution) choices: confirm that API/integration evidence exercises its declared real boundary, that browser checks retain complete representative journeys and distinct UI/client/linkage risks, and that any reduced duplicate browser permutations are supported by equivalent per-case evidence. Check retained artifacts and status distinctions; summaries alone do not establish a pass, and missing safety-sensitive inspection remains a gap.
 
 ## Decision and return gates
 

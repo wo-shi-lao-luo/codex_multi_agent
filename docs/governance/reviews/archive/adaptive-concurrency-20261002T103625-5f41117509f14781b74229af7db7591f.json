@@ -1,0 +1,493 @@
+{
+  "inventory": [
+    {
+      "sha256": "1fb41704bc00c4a077ffc58b0a9b828183324e7db26e5e933d7d36779146099b",
+      "path": "AGENTS.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "d4ba9774de8c4e51bccdbb18019ade3fce83cbfbe095db47e48c7e847d3ca795",
+      "path": "docs/architecture.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "d4ebf113c2ba616b719efcb4cdfb89842c4143cd053051758672439c0f5275c7",
+      "path": "docs/release-versioning.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "08a30663808c799d21794a536438e8968e732d62c40142c8354ef97995c8ad2a",
+      "path": "docs/safe-deployment.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "1e20e19800706dd1554e6df0447798a113e8621c66bff15f95ef1d368733abdf",
+      "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "f649a8d2a16e4b542252845becafa606f102fb52da5e0a3572fe052b5487c95b",
+      "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "bee6c2516fc693b297d1c22128590f4fa7abadd17e3296132a126141e94263a4",
+      "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "e0efed3c43a2bba37ffe73923e2678ba870757c42380d5530a5fd38977d63e53",
+      "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "e2b88207b27a6d7c111ba2819253d79fd1c3de2992790bb11916ccd0d43d6d90",
+      "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "0bce4be17245a8028887538e8db5b94fd169e2668c809ef475aa288063ee9132",
+      "path": "docs/upstreams.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "cf5519acdc1f23cf42ca5436b00ef46155924ad2bd67dad65514e891ec119e54",
+      "path": "docs/verification/active/adaptive-concurrency.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "2626ac01bfc3dfe4c0a1f2b4f0bb9d8a5baf7b2550213889909881ce03c785ec",
+      "path": "docs/verification/active/bilingual-docs.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "68a20b8084f9bc030cd3a29651da799b723952b0f72776b899bbd0bd7bb0d651",
+      "path": "docs/verification/active/coverage-sync.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "cfc84f4949a829d88c2f31cf2cd3f0c8eb403a47b1467ff3019d6b56c229612d",
+      "path": "docs/verification/active/doc-content-placement.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "571f904e4931d2790e75edf16d2f62e74a7612b2f74c1f1302e714520baff922",
+      "path": "docs/verification/active/documentation-governance.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "66a585a2cdcfad98c8322399ef0bd7be00f1c3f2fa54173e35a4da08964733a8",
+      "path": "docs/verification/active/efficient-test-execution.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "763d2ab2d966e92a86bb32bdc5bb13003937bea87fc2f481b70cd57306fc9e53",
+      "path": "docs/verification/active/openspec-integration.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "12e1df3eab1213f405509866414e2f9ae240600436e35cbeff1655c8a6376d04",
+      "path": "docs/verification/active/role-invocation.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "829cdedf24dc0663b0693f29d888fbcf956f0d3459be4fe0c8d35e4abc0aa809",
+      "path": "docs/verification/active/safe-deployment.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "f67691e42d1c3ddc4584f50633b50834f09aceb661c429597e40f67a4d40fa9f",
+      "path": "docs/verification/active/small-task-routing.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "72ed32a8171912dbae24337530222010f113ad06a7f6e30e71585a141885d919",
+      "path": "README.md",
+      "kind": "text"
+    }
+  ],
+  "createdAt": "2026-10-02T10:35:45.9716990Z",
+  "scope": "adaptive-concurrency",
+  "assessment": {
+    "schemaVersion": 1,
+    "scope": "adaptive-concurrency",
+    "task": "Allow up to six child agents with bounded adaptive concurrency",
+    "outcome": "ready",
+    "summary": "Approved bounded change has explicit cap, adaptive guidance, host-capacity limits, ownership and verification; runtime six-agent acceptance remains unobserved.",
+    "documents": [
+      {
+        "path": "AGENTS.md",
+        "category": "runtime",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Repository instructions require same-change bilingual maintenance and public path privacy."
+      },
+      {
+        "path": "docs/architecture.md",
+        "category": "architecture",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read existing role, runtime, instruction and installation boundaries; no structural refactor is needed."
+      },
+      {
+        "path": "docs/release-versioning.md",
+        "category": "runtime",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read release-number policy and paired-doc checks; retain current uncommitted 0.9.3 line."
+      },
+      {
+        "path": "docs/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/upstreams.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/verification/active/bilingual-docs.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/verification/active/coverage-sync.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/verification/active/doc-content-placement.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/verification/active/documentation-governance.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/verification/active/efficient-test-execution.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/verification/active/openspec-integration.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/verification/active/role-invocation.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/verification/active/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "docs/verification/active/small-task-routing.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded concurrency scope; existing task results, design or unrelated deployment/upstream detail are preserved and not semantically re-certified."
+      },
+      {
+        "path": "README.md",
+        "category": "runtime",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read complete current public setup and operating summaries, including fixed-three concurrency and manual config merge."
+      },
+      {
+        "path": "docs/verification/active/adaptive-concurrency.md",
+        "category": "testing-acceptance",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read complete Tester-authored schema2 packet with AC-01 through AC-06, test-first config observation and pending real-agent/manual mappings."
+      }
+    ],
+    "dependencies": [
+      "config/recommended-config.toml",
+      "skills/team-core/references/role-routing.md",
+      "skills/team-dev/SKILL.md",
+      "skills/team-review/SKILL.md",
+      "skills/team-core/references/execution-contract.md",
+      "skills/team-core/references/file-ownership.md",
+      "skills/team-core/references/test-acceptance-contract.md",
+      "skills/team-core/references/tdd-protocol.md",
+      "skills/team-core/references/code-comments.md",
+      "README.zh-CN.md",
+      "CHANGELOG.md",
+      "CHANGELOG.zh-CN.md",
+      "VERSION",
+      "scripts/validate.ps1",
+      "scripts/validate-docs.ps1",
+      "tests/test-agent-concurrency.ps1",
+      "tests/test-validate.ps1",
+      "tests/test-bilingual-docs.ps1",
+      "docs/verification/active/adaptive-concurrency.md"
+    ],
+    "evidence": [
+      "user: approved recommendation cap6 excluding Lead; usual2–3 and expanded independentwork with explicit boundaries",
+      "config/recommended-config.toml: current cap3; installer does not merge global config",
+      "skills/team-core/references/role-routing.md: named writers, independent Tester/Reviewer and ownership limits",
+      "official configuration reference: cap counts open spawned threads, excludes primary; unset default client-selected",
+      "tool: two named children created; third creation attempted with team-backend-engineer rejected for thread capacity without ID",
+      "docs/verification/active/adaptive-concurrency.md: concise coverage and isolated cleanup contract; real-agent checks pending"
+    ],
+    "findings": [],
+    "runnableWork": [
+      "concurrency-instructions",
+      "recommended-config",
+      "concurrency-tests"
+    ],
+    "coverage": [
+      {
+        "category": "requirements",
+        "decision": "required",
+        "reason": "User approved six-child ceiling and adaptive independent-work sizing; no forced agent quota.",
+        "evidence": [
+          "user: 可以，修改吧"
+        ]
+      },
+      {
+        "category": "architecture",
+        "decision": "required",
+        "reason": "Canonical shared routing reference with short entrypoint routes; configfragment remains manual and no runtime scheduler/refactor introduced.",
+        "evidence": [
+          "docs/architecture.md",
+          "skills/team-core/references/role-routing.md"
+        ]
+      },
+      {
+        "category": "interfaces-data",
+        "decision": "not applicable",
+        "reason": "No application API/data/schema changes; existing config key semantics retained.",
+        "evidence": [
+          "config/recommended-config.toml"
+        ]
+      },
+      {
+        "category": "ui-ux",
+        "decision": "not applicable",
+        "reason": "No rendered product UI change.",
+        "evidence": [
+          "Approved file scope is harnessinstructions and recommendedconfig"
+        ]
+      },
+      {
+        "category": "runtime",
+        "decision": "required",
+        "reason": "Actual enforced hostcapacity governs; config value is not loaded-runtime proof and installer keeps globalsettings untouched.",
+        "evidence": [
+          "official configuration reference",
+          "Observed creation capacity rejection"
+        ]
+      },
+      {
+        "category": "testing-acceptance",
+        "decision": "required",
+        "reason": "Deterministic config test-first, isolated package/docs/install checks, semantic independent review and explicit pending real-agent scenarios.",
+        "evidence": [
+          "skills/team-core/references/test-acceptance-contract.md",
+          "Tester-owned stage packet"
+        ]
+      },
+      {
+        "category": "security-migration",
+        "decision": "required",
+        "reason": "No privacy leaks, new permissions, global mutation or config schema migration; retain role/file ownership safeguards.",
+        "evidence": [
+          "AGENTS.md",
+          "skills/team-core/references/file-ownership.md"
+        ]
+      }
+    ],
+    "report": "# Adaptive concurrency readiness\n\nBounded scope: raise the optional recommended child-thread ceiling from three to six, excluding Lead; normal two-to-three guidance is not a minimum. Medium and large work may increase concurrency only for ready independent tasks with distinct outputs, explicit write boundaries and integration. Respect actual enforced capacity even below source recommendation; no recursive delegation, forced quota, premature dependent work, weakened role/review obligations, global configuration edit or model change is authorized.\n\nThe Lead read repository instructions, complete README pair, architecture/release rules and shared role, ownership, execution, testing, TDD and comment contracts. Default inventory boundaries remain unchanged; out-of-scope designs/results remain preserved and are not re-certified. Chinese README/changelog, config, Skills and focused tests outside default inventory are explicit dependencies. No applicable product PRD or OpenSpec opt-in governs this repository maintenance task. Existing structure is adequate; no Blueprint amendment or source reorganization is needed.\n\nOwnership: docs maintainer owns canonical role routing, team-dev/team-review step routes and paired public summaries/release item; backend owns only optional recommended config; Tester owns focused isolated config tests and the canonical packet; independent Reviewer inspects the coherent final implementation. These exact roles exist in the active tool catalog. Initial two child creation calls used team-tester and team-docs-maintainer; backend creation was rejected by capacity with no ID. Queue the same named role when available, without generic fallback. Tool-selected role and handle are not independently resolved model identity.\n\nThe official configuration guide confirms open spawned-child-thread semantics and primary exclusion. Source cap6 does not prove host availability or immediate activation. Test runs use repeatable programmatic entrypoints and summary-first results, with fixture cleanup; real-agent six-thread behavior and user acceptance remain pending. No exact personal paths are published. This readiness review binds inspected facts and sufficient approved scope, not global correctness, execution guarantees or manual acceptance.\n\nThe Lead inspected the complete Tester-created packet and narrow configuration test before writer authorization. AC-01 is an observable source-fragment test-first check, not a resolved Codex configuration test. AC-02 through AC-06 include explicit runtime checkpoints/manual mapping; semantic walkthroughs do not become E2E passes."
+  },
+  "kitVersion": "0.9.3",
+  "fingerprints": {
+    "inventory": "b4732cc94e78bf01477c34e2767c1e7565766b1c995886791db055b8c652ee63",
+    "task": "afc9e0ecfb90b6ec792526100cc90c91bce8ce9481bf744def7b9b838f8fd7b1",
+    "dependencies": "2369c7ad099df0b3752a61c8ba2953fd9720c450bbbe6ae785800f78625b3c91",
+    "classifications": "ea89faef9cb073214e7561710c0a7e6a5ff8be0140a23f22341063a5f9265304"
+  },
+  "policyVersion": 1,
+  "schemaVersion": 1,
+  "dependencies": [
+    {
+      "exists": true,
+      "path": "CHANGELOG.md",
+      "sha256": "73cf570bc3155debf0613142b0b1625a59f896dc26e4f22c886999666240949a"
+    },
+    {
+      "exists": true,
+      "path": "CHANGELOG.zh-CN.md",
+      "sha256": "265444abfe96893536cac44aa4d4f6741855e76487b811508808941ee3f44c83"
+    },
+    {
+      "exists": true,
+      "path": "config/recommended-config.toml",
+      "sha256": "7826f3b639b7dbb1ae97c3dd9a00fc68687c9c670cf3a46d2a3be8064982dcd6"
+    },
+    {
+      "exists": true,
+      "path": "docs/verification/active/adaptive-concurrency.md",
+      "sha256": "cf5519acdc1f23cf42ca5436b00ef46155924ad2bd67dad65514e891ec119e54"
+    },
+    {
+      "exists": true,
+      "path": "README.zh-CN.md",
+      "sha256": "d7426e8e5f1d24d3f15ac84640e7e9869b85539faa3e8cb73736a3ee292a1f1d"
+    },
+    {
+      "exists": true,
+      "path": "scripts/validate-docs.ps1",
+      "sha256": "af931899ca9f8f1b77930d061f724273571aa55399bcc9a759a486da8c0244aa"
+    },
+    {
+      "exists": true,
+      "path": "scripts/validate.ps1",
+      "sha256": "23b3b0cb2ec2eeabbe85d967ea734bbc62dba4bfde679ccb198019bd186abd42"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/code-comments.md",
+      "sha256": "7fb1018ded209d65fb995ea2b7b29444bfca1f7bc1cae42708eb409d92457c15"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/execution-contract.md",
+      "sha256": "dcc17c7b9b7d83da7a0ae4a041cce9af3a1035fa0c7dae80752d94c14c6f25fa"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/file-ownership.md",
+      "sha256": "c645e24ab260dc1bd4b365e5416424dc7b97a9a20355d86c69419701dbf10648"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/role-routing.md",
+      "sha256": "eb3b4f6f8c16bd85839475b7f29e0ab386308482cd9bfee67ff780b7bd19ac1f"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/tdd-protocol.md",
+      "sha256": "ef15100ee9a7085b7ae0ee4a3780e6d21700b6c7488c6d46ae6d8df05ea2045f"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/test-acceptance-contract.md",
+      "sha256": "cd411b4e4e862c8dc435e8b958f9dc2472861d13c84b22aac127b39ba0e66fb9"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-dev/SKILL.md",
+      "sha256": "722fc085b55cd9d642745b27a56cfd0e8fbdaffd014055dd5e5be195e488f84c"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-review/SKILL.md",
+      "sha256": "256ea4426056bb2e8b3284de8813afd4920827029aa6f2357d13a8ef8706b9b4"
+    },
+    {
+      "exists": true,
+      "path": "tests/test-agent-concurrency.ps1",
+      "sha256": "8c37416c9b697e57efcc7c0e909b210e093520904c88618d8f3459404ebb775b"
+    },
+    {
+      "exists": true,
+      "path": "tests/test-bilingual-docs.ps1",
+      "sha256": "139765e52944edba8113d4ecc43a662e51fdf3dea6493449e24ba616a120cdba"
+    },
+    {
+      "exists": true,
+      "path": "tests/test-validate.ps1",
+      "sha256": "11cc47e2f800bc60a35155d1ac3f1a01b8d754431362df9c3e6f2cc0f76a10fa"
+    },
+    {
+      "exists": true,
+      "path": "VERSION",
+      "sha256": "38ecaa1e4c36c6691944c83df7671fca8b86f5cbf2d4e22c0012aa52df14b149"
+    }
+  ],
+  "reportSha256": "63577483e9f00474abf64567841b13c5ad7821bf85aae59432298046c8d5d962"
+}

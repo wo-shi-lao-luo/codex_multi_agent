@@ -42,8 +42,12 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `docs/superpowers/specs/` — dated, approved architectural designs that await an implementation plan.
 - `docs/superpowers/plans/` — dated, approved implementation plans for architectural designs.
 - `docs/release-versioning.md` — release-numbering policy for maintainers.
+- `scripts/validate-docs.ps1` — repository-only structural checks for the English/Simplified Chinese public documentation pairs; separate from package validation and installation.
+- `tests/test-bilingual-docs.ps1` — isolated regression tests for paired public-document structure, technical-value drift and read-only behavior.
 - `backlog/` — Confirmed engineering improvements deferred for later work.
 - `CHANGELOG.md` — public release history for this distributable kit.
+- `CHANGELOG.zh-CN.md` — complete Simplified Chinese release history paired with `CHANGELOG.md`.
+- `README.md` and `README.zh-CN.md` — default English and Simplified Chinese public entrypoints.
 - `VERSION` — the distributable kit version recorded by the installer.
 
 ## Conventions
@@ -52,4 +56,4 @@ Keep this repository as the source of truth. Do not edit installed copies under 
 
 ## Archive policy
 
-No archive exists yet. Move superseded generated artifacts to `待删除/<date>_<reason>/`; preserve source, installed configuration, and user-created project files.
+System-owned historical documentation-governance reviews are kept under `docs/governance/reviews/archive/`. Move superseded generated artifacts to `待删除/<date>_<reason>/`; preserve source, installed configuration, and user-created project files.
