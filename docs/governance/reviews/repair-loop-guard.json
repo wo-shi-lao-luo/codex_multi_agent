@@ -1,0 +1,549 @@
+{
+  "scope": "repair-loop-guard",
+  "kitVersion": "0.9.4",
+  "policyVersion": 1,
+  "reportSha256": "37c8c067281b096fdb3cb6c22d0d445f2964498d0f26b7721ba6cfba586c722c",
+  "fingerprints": {
+    "classifications": "76ab1f18554175485dde0ad7dd539e0c8753b9ddeb8cbe7a56ee94c30ddda586",
+    "dependencies": "c0c2c3905456d9f4d90e9549f13796e40eea1ea327bf4358a02df085202e12e1",
+    "task": "1a1924c37c1c9ca4f3b6bdc2583c3f529b6a634557b67b2629daebe09bdf27c8",
+    "inventory": "8e183165f26c5dc15d8c475a35f27703628796b54d6f9f75b40b0d6ef5d3f221"
+  },
+  "assessment": {
+    "schemaVersion": 1,
+    "scope": "repair-loop-guard",
+    "task": "Add evidence-led repair/debug pause and bounded human-resume rules",
+    "outcome": "ready",
+    "summary": "Source 0.9.4 implements the approved instruction-only repair/debug guard; independent source review and isolated package/document/install suites pass. Runtime Agent adherence and human acceptance remain pending.",
+    "documents": [
+      {
+        "path": "AGENTS.md",
+        "category": "runtime",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Repository public-language pairing and documentation-placement rules read."
+      },
+      {
+        "path": "docs/architecture.md",
+        "category": "architecture",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Existing executor/Skill/role boundaries inspected; this bounded policy extension requires no refactor or new Blueprint."
+      },
+      {
+        "path": "docs/release-versioning.md",
+        "category": "runtime",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Patch extension policy and coordinated English/Chinese release checks read; planned version 0.9.4."
+      },
+      {
+        "path": "docs/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/upstreams.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/verification/active/adaptive-concurrency.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/verification/active/bilingual-docs.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/verification/active/coverage-sync.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/verification/active/doc-content-placement.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/verification/active/documentation-governance.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/verification/active/efficient-test-execution.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/verification/active/openspec-integration.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/verification/active/repair-loop-guard.md",
+        "category": "testing-acceptance",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Final packet inspected: RG-01–RG-14 source semantic review and isolated results recorded, completed-round stall unit aligned, exact Skill traceability and invocation evidence present; runtime/manual pending."
+      },
+      {
+        "path": "docs/verification/active/role-invocation.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/verification/active/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "docs/verification/active/small-task-routing.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Outside this bounded repair/debug-loop policy change; preserved without re-certifying historical task outcomes, upstream studies or deployment/design detail."
+      },
+      {
+        "path": "README.md",
+        "category": "runtime",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Complete public pairs and actual diffs reviewed; English/Chinese 0.9.4 orientation, caveats and release facts aligned, history preserved; detailed results remain in packet."
+      }
+    ],
+    "dependencies": [
+      "skills/team-core/SKILL.md",
+      "skills/team-core/references/repair-loop-guard.md",
+      "skills/team-core/references/execution-contract.md",
+      "skills/team-core/references/execution-templates.md",
+      "skills/team-core/references/handoff-format.md",
+      "skills/team-core/references/test-acceptance-contract.md",
+      "skills/team-core/references/tdd-protocol.md",
+      "skills/team-core/references/role-routing.md",
+      "skills/team-core/references/code-comments.md",
+      "skills/team-dev/SKILL.md",
+      "skills/team-debug/SKILL.md",
+      "skills/team-review/SKILL.md",
+      "skills/team-plan/SKILL.md",
+      "skills/testing-engineering/SKILL.md",
+      "skills/code-review/SKILL.md",
+      "skills/team-core/scripts/documentation.ps1",
+      "VERSION",
+      "README.zh-CN.md",
+      "CHANGELOG.md",
+      "CHANGELOG.zh-CN.md"
+    ],
+    "evidence": [
+      "user: approved ordinary repair 2/3, explicit requested/approved debug 3/6, completed diagnostic no-progress pause, useful escalation and acceptance-based issue identity; no universal time cutoff",
+      "user: implement latest design; no installation, commit or push requested this turn",
+      "skills/team-core/references/repair-loop-guard.md: final canonical instruction contract read; issue history, counting, authority, progress and six-part human report written",
+      "docs/verification/active/repair-loop-guard.md: independent source review and RG-01–RG-14 semantic walkthrough complete; real runtime/manual pending",
+      "Tester: native package/docs and isolated bilingual, validation, fake-home install, documentation and stage suites exit 0; fixtures cleaned; new reference hash/receipt covered, version 0.9.4",
+      "Reviewer: premature mid-review pause and command-versus-completed-round ambiguity corrected and rechecked; no remaining material source findings",
+      "Lead: skill-creator optional quick_validate unavailable before validation due missing PyYAML; no dependency installation or substitute shim; native discovery/resource checks pass",
+      "actual calls: writer team-docs-maintainer /root/repair_guard_writer_v2, reused original team-tester /root/concurrency_tester and team-reviewer /root/concurrency_reviewer; loaded role/model unknown"
+    ],
+    "findings": [
+      {
+        "id": "RG-REVIEW-01",
+        "kind": "missing",
+        "severity": "nonblocking",
+        "affectedWork": [
+          "repair-loop-guard"
+        ],
+        "evidence": [
+          "skills/team-debug/SKILL.md: Investigate step 2 formerly conflated mid-review with human pause"
+        ],
+        "question": "No user intent decision required: factual consistency with approved canonical mid-review rule.",
+        "recommendation": "Complete required mid-review; pause only at stall, exhausted-budget or immediate-decision gates.",
+        "resolution": {
+          "state": "resolved",
+          "evidence": "Writer actual step-2 edit and Reviewer recheck; productive authorized continuation within remaining allocation retained."
+        }
+      },
+      {
+        "id": "RG-REVIEW-02",
+        "kind": "missing",
+        "severity": "nonblocking",
+        "affectedWork": [
+          "repair-loop-guard"
+        ],
+        "evidence": [
+          "Canonical diagnostic stall formerly used checks while a round could group same-hypothesis repeated commands"
+        ],
+        "question": "No user intent decision required: clarify completed diagnostic experiment as the counting unit.",
+        "recommendation": "Count consecutive completed diagnostic rounds, not commands within one predeclared experiment; align paired release/template/packet wording.",
+        "resolution": {
+          "state": "resolved",
+          "evidence": "Writer canonical, Debug ledger and bilingual release edits; Reviewer recheck; Tester aligned RG-03/RG-04/RG-10 with grouped-experiment example."
+        }
+      }
+    ],
+    "runnableWork": [
+      "repair-loop-guard"
+    ],
+    "coverage": [
+      {
+        "category": "requirements",
+        "decision": "required",
+        "reason": "User-approved conversation is current task authority; pause/report/budget/identity semantics defined, not inferred from code.",
+        "evidence": [
+          "user: latest approved design",
+          "docs/verification/active/repair-loop-guard.md"
+        ]
+      },
+      {
+        "category": "architecture",
+        "decision": "required",
+        "reason": "One shared reference and workflow pointers fit the existing Skill/reference layout; no structural changes.",
+        "evidence": [
+          "docs/architecture.md",
+          "skills/team-core/SKILL.md"
+        ]
+      },
+      {
+        "category": "interfaces-data",
+        "decision": "conditional",
+        "reason": "Existing issue ledger and handoff template fields extended; no new executable API, data schema or migration.",
+        "evidence": [
+          "skills/team-core/references/execution-templates.md",
+          "skills/team-core/references/handoff-format.md"
+        ]
+      },
+      {
+        "category": "ui-ux",
+        "decision": "not applicable",
+        "reason": "No application interface or rendered visual change.",
+        "evidence": [
+          "user: workflow guard scope"
+        ]
+      },
+      {
+        "category": "runtime",
+        "decision": "required",
+        "reason": "Only inspectable instructions and declarative version provenance changed; no enforced timer/counter, model/global setting or real installation changes.",
+        "evidence": [
+          "docs/architecture.md",
+          "skills/team-core/references/execution-contract.md"
+        ]
+      },
+      {
+        "category": "testing-acceptance",
+        "decision": "required",
+        "reason": "Independent source review and real package/doc/fake-home/stage compatibility suites completed; all fourteen manual cases retain planned E2E checkpoints with runtime and user acceptance pending.",
+        "evidence": [
+          "docs/verification/active/repair-loop-guard.md",
+          "skills/team-core/references/tdd-protocol.md"
+        ]
+      },
+      {
+        "category": "security-migration",
+        "decision": "required",
+        "reason": "Preserve code/process/results, separate repair authority, immediate safety/scope decisions; public paths redacted; no migration or destructive operations.",
+        "evidence": [
+          "user: approved safe-pause design",
+          "AGENTS.md"
+        ]
+      }
+    ],
+    "report": "# Repair-loop guard close assessment\n\nSource 0.9.4 now contains the approved bounded instruction contract. Ordinary repair requires an evidence retrospective after two completed failures and human pause after three. Explicit user-requested or approved debugging allows six purposeful diagnostic rounds with a mid-review after three and an earlier pause after three consecutive completed rounds without useful evidence/narrowing. Repeated commands within one predeclared same-hypothesis experiment count once on completion; independent hypotheses cannot be bundled or available results kept open. Evidence narrows only the stall streak, not total budgets or prior repair history.\n\nThe Lead inspected the canonical contract, changed Skill routes, shared records/handoffs and actual public-language diffs. Pause reports distinguish observations from ranked causes and identify precise minimal human inputs, causal mechanisms/confidence, bounded options and preserved state. Identity follows acceptance behavior/conditions/deviation; recurrences and missing history do not reset counts. Debug permission is separate from repair permission. Healthy long work uses observable task checkpoints, not universal elapsed limits. Both review findings are factual consistency corrections, resolved in actual files and independently rechecked; no new user design choice was inferred.\n\nThe existing source layout remains adequate: one canonical shared reference, workflow pointers and minimal fields in existing records. No new Blueprint, restructuring, PRD authority, OpenSpec enablement, runtime evaluator or model setting is introduced. Patch version 0.9.4 extends existing execution behavior, not a stable promotion. Complete public pairs and their changed facts/caveats were reviewed; historical release content is preserved and private absolute paths are absent from changed publishable records. Other inventoried documents and prior tasks are preserved, not re-certified. This fresh assessment follows final source/packet impact review; it does not refresh unrelated scopes to make them green.\n\nTester recorded passing native/docs checks plus isolated bilingual, package, fake-home installation, documentation and stage suites with owned fixture cleanup. Actual installer all-file SHA256/receipt assertions include the new reference at version 0.9.4. Independent Reviewer found no remaining material source issue after two corrections. These checks do not prove future Agent stopping, real E2E or user acceptance; RG-01–RG-14 remain manual pending. The optional skill-creator quick validator failed before validation because PyYAML is unavailable; no dependency was installed, and existing native resource/discovery checks provide actual compatibility evidence rather than claiming optional-check success. The only script edit is its declarative Kit version stamp, not runtime behavior; existing overview is adequate and recording regressions pass.\n\nActual selected implementation writer is team-docs-maintainer /root/repair_guard_writer_v2; original named Tester and Reviewer were reused at /root/concurrency_tester and /root/concurrency_reviewer. Earlier unknown-selector preflight children were read-only, not reclassified as writers; rejected capacity attempts returned no ID. Loaded role/model/effort metadata are unconfirmed. Invocation and exact written Skill section evidence are in the active packet. No children recursively delegated, real installation/global setting changed, Git write occurred, external service called, or ECC content accessed. Current task source/readiness work is complete subject to explicitly pending live-workflow acceptance."
+  },
+  "dependencies": [
+    {
+      "exists": true,
+      "path": "CHANGELOG.md",
+      "sha256": "b0a929e553e2d5d01c8ff7d9c27086cb6b7d6ece5979d4808a32cbdaea7c6aa2"
+    },
+    {
+      "exists": true,
+      "path": "CHANGELOG.zh-CN.md",
+      "sha256": "315eafe29339ee0f0e48dd536a3aeaaa04efdc4f95a68cebf77131e985aed719"
+    },
+    {
+      "exists": true,
+      "path": "README.zh-CN.md",
+      "sha256": "f32fce042d105322afa9fe2d5262eb5520ca511d9a7cc2a4414a5ce2e23f2074"
+    },
+    {
+      "exists": true,
+      "path": "skills/code-review/SKILL.md",
+      "sha256": "c1a1a5cd7db3845e359e4f9d52f820729c181491412ebdcaaee8cf25fc774c9c"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/code-comments.md",
+      "sha256": "7fb1018ded209d65fb995ea2b7b29444bfca1f7bc1cae42708eb409d92457c15"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/execution-contract.md",
+      "sha256": "3493d6a3506dfb9079b0e15613bffecaa9ff3d9c062799e58858794e2fd16150"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/execution-templates.md",
+      "sha256": "740c171070b6f7d5c14b98eba1f695578a0694a9e96eb517b72081324884d3b3"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/handoff-format.md",
+      "sha256": "e2b6a9d61273e2b622d4881db81f402617ad11ca2d237161ed46471512d66865"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/repair-loop-guard.md",
+      "sha256": "9a1c5c5be27891e3a165521d578787fe3c35001b56f3dafe296689979897aa69"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/role-routing.md",
+      "sha256": "5cf3ac5d1f4e5c8a618139274c992630824473cb3fb70d4c80eb1733d4772a63"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/tdd-protocol.md",
+      "sha256": "ef15100ee9a7085b7ae0ee4a3780e6d21700b6c7488c6d46ae6d8df05ea2045f"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/references/test-acceptance-contract.md",
+      "sha256": "02b02e7f16e469b530ed5e7ead225ccc9269cf1e6f8bbf065d9bb4953adea2ae"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/scripts/documentation.ps1",
+      "sha256": "3bbb41dabaf32c2edbd6009d9486c84cf7c00212a8384ca113e787e17476a387"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-core/SKILL.md",
+      "sha256": "30e003f831fd57024ff30e465796d0f3f63e89bf8169ffd80a4fe401429fd8cd"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-debug/SKILL.md",
+      "sha256": "f809f6bec9cecf658eccab367ba8700238c0ecacb185d4ea050e8bf7b45a300e"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-dev/SKILL.md",
+      "sha256": "ca6897da385a0325a54f15471a13c76f51d46f428db7505b854bbe03a4c06dcb"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-plan/SKILL.md",
+      "sha256": "1f25417dde738a9b62760f461d72cde69d9b2b64ce4055f71ea7a0b35991e23a"
+    },
+    {
+      "exists": true,
+      "path": "skills/team-review/SKILL.md",
+      "sha256": "16ffced0dee7429e6c4da986363bccf953f56999e42c9ee15a494d7b41468945"
+    },
+    {
+      "exists": true,
+      "path": "skills/testing-engineering/SKILL.md",
+      "sha256": "5a149f3b596e9401124c8d85896f38a6d90a90410090b8e122ff798ab0bac8d3"
+    },
+    {
+      "exists": true,
+      "path": "VERSION",
+      "sha256": "a61cc7a990558a2b76c4a814eb233267e219158dcf184b6b30ce458d27027674"
+    }
+  ],
+  "createdAt": "2026-10-02T12:43:38.6570285Z",
+  "schemaVersion": 1,
+  "inventory": [
+    {
+      "path": "AGENTS.md",
+      "kind": "text",
+      "sha256": "1fb41704bc00c4a077ffc58b0a9b828183324e7db26e5e933d7d36779146099b"
+    },
+    {
+      "path": "docs/architecture.md",
+      "kind": "text",
+      "sha256": "d4ba9774de8c4e51bccdbb18019ade3fce83cbfbe095db47e48c7e847d3ca795"
+    },
+    {
+      "path": "docs/release-versioning.md",
+      "kind": "text",
+      "sha256": "d4ebf113c2ba616b719efcb4cdfb89842c4143cd053051758672439c0f5275c7"
+    },
+    {
+      "path": "docs/safe-deployment.md",
+      "kind": "text",
+      "sha256": "08a30663808c799d21794a536438e8968e732d62c40142c8354ef97995c8ad2a"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+      "kind": "text",
+      "sha256": "1e20e19800706dd1554e6df0447798a113e8621c66bff15f95ef1d368733abdf"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+      "kind": "text",
+      "sha256": "f649a8d2a16e4b542252845becafa606f102fb52da5e0a3572fe052b5487c95b"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+      "kind": "text",
+      "sha256": "bee6c2516fc693b297d1c22128590f4fa7abadd17e3296132a126141e94263a4"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+      "kind": "text",
+      "sha256": "e0efed3c43a2bba37ffe73923e2678ba870757c42380d5530a5fd38977d63e53"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+      "kind": "text",
+      "sha256": "e2b88207b27a6d7c111ba2819253d79fd1c3de2992790bb11916ccd0d43d6d90"
+    },
+    {
+      "path": "docs/upstreams.md",
+      "kind": "text",
+      "sha256": "0bce4be17245a8028887538e8db5b94fd169e2668c809ef475aa288063ee9132"
+    },
+    {
+      "path": "docs/verification/active/adaptive-concurrency.md",
+      "kind": "text",
+      "sha256": "12002a266f8cd242b70d5ddee89d2a09fb7c1374bfd5aff249c91700edf45d8d"
+    },
+    {
+      "path": "docs/verification/active/bilingual-docs.md",
+      "kind": "text",
+      "sha256": "2626ac01bfc3dfe4c0a1f2b4f0bb9d8a5baf7b2550213889909881ce03c785ec"
+    },
+    {
+      "path": "docs/verification/active/coverage-sync.md",
+      "kind": "text",
+      "sha256": "68a20b8084f9bc030cd3a29651da799b723952b0f72776b899bbd0bd7bb0d651"
+    },
+    {
+      "path": "docs/verification/active/doc-content-placement.md",
+      "kind": "text",
+      "sha256": "cfc84f4949a829d88c2f31cf2cd3f0c8eb403a47b1467ff3019d6b56c229612d"
+    },
+    {
+      "path": "docs/verification/active/documentation-governance.md",
+      "kind": "text",
+      "sha256": "571f904e4931d2790e75edf16d2f62e74a7612b2f74c1f1302e714520baff922"
+    },
+    {
+      "path": "docs/verification/active/efficient-test-execution.md",
+      "kind": "text",
+      "sha256": "66a585a2cdcfad98c8322399ef0bd7be00f1c3f2fa54173e35a4da08964733a8"
+    },
+    {
+      "path": "docs/verification/active/openspec-integration.md",
+      "kind": "text",
+      "sha256": "763d2ab2d966e92a86bb32bdc5bb13003937bea87fc2f481b70cd57306fc9e53"
+    },
+    {
+      "path": "docs/verification/active/repair-loop-guard.md",
+      "kind": "text",
+      "sha256": "a7d597658f3f202ef7f38a13bad18e8fd8189b344fa2e6bb5f43c22856648d91"
+    },
+    {
+      "path": "docs/verification/active/role-invocation.md",
+      "kind": "text",
+      "sha256": "12e1df3eab1213f405509866414e2f9ae240600436e35cbeff1655c8a6376d04"
+    },
+    {
+      "path": "docs/verification/active/safe-deployment.md",
+      "kind": "text",
+      "sha256": "829cdedf24dc0663b0693f29d888fbcf956f0d3459be4fe0c8d35e4abc0aa809"
+    },
+    {
+      "path": "docs/verification/active/small-task-routing.md",
+      "kind": "text",
+      "sha256": "f67691e42d1c3ddc4584f50633b50834f09aceb661c429597e40f67a4d40fa9f"
+    },
+    {
+      "path": "README.md",
+      "kind": "text",
+      "sha256": "49fff6c906eb74e8efa8fe05fac886dae3fab6276974e9b025b779e8cf232fb4"
+    }
+  ]
+}

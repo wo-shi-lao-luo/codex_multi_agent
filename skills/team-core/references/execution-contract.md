@@ -46,6 +46,8 @@ Apply [documentation governance](documentation-governance.md): assess task-speci
 
 For every documentation path in the Work contract, state its content purpose/source-of-truth responsibility and allowed scope. Follow [file ownership](file-ownership.md): when authorized content edits reveal evidence-backed defects in relevant active docs, correct them within that assigned boundary and recheck affected links/indexes. Route cross-owner fixes to the Lead for a bounded assignment; do not let this become broad cleanup or rewrite history. Review the actual documentation diff for placement, factual accuracy, duplication and alignment with its assigned purpose. Read-only assessments report issues without making repairs; substantive ambiguity remains subject to the user's decision.
 
+When a task includes persistent diagnosis or repair, declare its mode, issue identity, existing history, allowed budget, and stop condition in the Work contract before another attempt. Apply the [repair and diagnosis loop guard](repair-loop-guard.md) across roles and handoffs; do not start another retry until its retrospective or pause gate is satisfied.
+
 For new applications, multi-stage work or material boundary changes, apply the [Project Blueprint contract](project-blueprint.md) before the stage contract. Discover existing code before adopting a baseline. Existing-code structural refactoring requires explicit user approval; declining it preserves the baseline with recorded constraints. Map each stage to modules and file responsibilities, and review that mapping against the final diff.
 
 **Input:** task record and discovery evidence.
@@ -102,6 +104,7 @@ The Lead's final response must include the actual child-agent roster from the ha
 - New compatibility, ownership, or scope concern → return to **Contract**.
 - Failed or incomplete verification → return to **Execute** with the evidence.
 - A decision only the user can make → hand off the decision with options and pause the affected work.
+- Repeated failure or unproductive diagnosis → check the [repair and diagnosis loop guard](repair-loop-guard.md) before another attempt; pause with its evidence-led report when a limit or earlier decision gate is reached.
 
 ## Workflow adapters
 

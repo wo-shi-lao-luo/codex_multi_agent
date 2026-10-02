@@ -2,6 +2,17 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [0.9.5] - 2026-10-02
+
+- Add risk-tiered test selection from changed behavior through affected modules/dependents, stage-impact and core smoke checks, with broader or full-suite execution when cheaper, required by repository gates, or justified by shared/security/data/dependency/build/test configuration, integration, or uncertain impact. E2E/manual coverage and acceptance gates remain unchanged.
+- Permit reuse of prior results only when reachable artifacts establish the relevant source, test, configuration, dependency, data and environment identity; changed or unknown relevant inputs invalidate affected evidence. Distinguish reused evidence from fresh execution and record batch purpose, cost forecast or unknown, checkpoints, and any user hard budget.
+- Define an optional, scoped Explorer test-surface inventory after behavior/module boundaries are supplied. Explorer reports paths, IDs, assertions, commands, boundaries, dependencies and evidence gaps; Tester retains coverage/execution/sufficiency decisions and Lead retains authorization, resource and gate decisions. No new packet schema, scheduler, cache framework, or measured savings claim is introduced.
+
+## [0.9.4] - 2026-10-02
+
+- Add a shared repair/diagnosis loop guard: ordinary repairs require an evidence retrospective after two failures and pause after three; explicitly requested/approved debug mode allows up to six purposeful diagnostic rounds, reviewed at three, with an earlier pause after three consecutive completed rounds without useful evidence or narrowing.
+- Preserve issue identity and history across changed strategies, files, agents and handoffs; keep diagnostic and repair authority/budgets separate, require actionable evidence-led human pause reports and bounded resume, and use task-specific progress checkpoints for healthy long operations without a universal time limit. This is an inspectable instruction contract, not a runtime timer or guaranteed interrupt.
+
 ## [0.9.3] - 2026-10-02
 
 - Default Codex-run testing of all products to adequate low-observation-cost entrypoints, repeatable programmatic execution and structured summaries with evidence drill-down; this is not restricted to products containing AI.

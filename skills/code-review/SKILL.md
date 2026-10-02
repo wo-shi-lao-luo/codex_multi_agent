@@ -42,6 +42,7 @@ Classify a concern without evidence as a question or uncovered risk, not as a de
 
 - No usable diff or baseline → request the review scope.
 - A material issue is confirmed → return it to the owning implementation contract for a focused fix and re-verification.
+- When returning a confirmed issue for repair, preserve its existing identity and cumulative history under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md); review does not reset or replenish an attempt budget.
 - A specialized risk is outside review coverage → name the gap and recommend the smallest expanded review.
 
 ## Output contract

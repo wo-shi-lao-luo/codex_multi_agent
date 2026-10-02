@@ -25,7 +25,11 @@ Read the [Project Blueprint contract](../team-core/references/project-blueprint.
 
 Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [test and acceptance contract](../team-core/references/test-acceptance-contract.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
+For any persistent issue returned from verification or review, apply the shared [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md) before assigning another repair. Carry acceptance-based identity and cumulative history into the existing packet/Work record; satisfy its retrospective and pause gates before continuing. A failed repair never silently switches the task into a debug allocation.
+
 Apply the test contract's [efficient test execution](../team-core/references/test-acceptance-contract.md#efficient-test-execution) rule by default. Before implementation, record the adequate entrypoint/real boundary, runner, observation mode and rationale in the Work contract or stage packet. Use repeatable runners and summary-first inspection while retaining the complete evidence and all required E2E, browser, visual and manual checkpoints.
+
+Use the test contract's risk tiers and reuse identity when planning execution. If the affected test surface is unclear, a bounded Explorer inventory may locate it after behavior/modules are scoped; Tester retains coverage and execution decisions. Never use a narrow tier or reused result to bypass a repository-required gate.
 
 1. Create a Task record. Identify outcome, constraints, acceptance checks, and unknowns.
 2. Discover only the facts needed to choose an approach. Use `team-explorer` for uncertain scope and `team-architect` for cross-module contracts.
@@ -64,6 +68,7 @@ After the normal Handoff is prepared, create the local minimal feedback record d
 
 - New scope, contract, or ownership concern → update the Work contract before continuing.
 - Failed verification or valid review finding → assign a focused return to Execute, then rerun the affected verification.
+- Before each repeated repair, apply the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md); a reached threshold or earlier decision blocker pauses the affected issue and requires its evidence-led user report.
 - Missing environment, credentials, or user decision → hand off the blocker with the smallest useful next step.
 
 ## Output contract
