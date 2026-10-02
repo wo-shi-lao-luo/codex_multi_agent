@@ -7,7 +7,7 @@ description: Internal reference bundle for Codex Multi-Agent Kit team workflows.
 
 For every Team workflow, read [role routing](references/role-routing.md): preflight needed roles against the active tool catalog, explicitly select named roles without silent generic fallback, reconcile actual calls and show the final actual-agent roster under [handoff format](references/handoff-format.md). Source profiles and task labels are not runtime identity evidence.
 
-Before planning/implementation and when project docs change, read [documentation governance](references/documentation-governance.md). Its docs/governance marker tracks adoption and scoped review evidence; active PRDs constrain intent, optional document categories depend on the task, and ambiguity requires user decisions. `scripts/documentation.ps1` detects evidence changes without resolving semantics or moving legacy docs.
+Before planning/implementation and when project docs change, read [documentation governance](references/documentation-governance.md). It assigns document content responsibilities and placement, requires bounded evidence-backed corrections discovered during authorized edits, and preserves active PRD authority, optional categories and user decisions on ambiguity. Its docs/governance marker tracks adoption and scoped review evidence; `scripts/documentation.ps1` detects evidence changes without resolving semantics or moving legacy docs.
 
 When a target project has `openspec/team-integration.json`, read [spec lifecycle](references/spec-lifecycle.md) and [OpenSpec integration](references/openspec-integration.md). This optional adapter keeps the Lead in control and links native specs/tasks to existing stage evidence. Without the marker, do not adopt OpenSpec automatically.
 

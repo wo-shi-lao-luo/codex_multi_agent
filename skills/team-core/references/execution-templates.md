@@ -30,6 +30,7 @@ Refactor decision, approved scope, and user evidence:
 Allowed files, planned additions, and composition-root exceptions:
 Affected area or boundary:
 Documentation review path, scope/task and freshness evidence:
+Purpose/source of truth for each assigned documentation path; allowed adjacent factual corrections:
 Applicable PRD/specification and confirmed decisions:
 Unresolved documentation findings and permitted independent work:
 Expected result:
@@ -57,6 +58,7 @@ Target viewports, states and core interactions:
 Check performed:
 Close reconciliation: start/Work contract obligations versus actual roles, checks, outcomes and gaps:
 Invocation reconciliation: planned roles, actual selector arguments, returned handles/observed identity, deviations and user decisions
+Documentation semantic check: assigned purpose/placement, factual alignment, duplication, affected links/indexes, bounded repairs and escalations:
 Documentation alignment and changed-evidence reassessment:
 Result:
 Evidence:

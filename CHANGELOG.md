@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.2] - 2026-10-02
+
+- Clarify document content ownership: README remains a stable project entrypoint; development journals, detailed test procedures, stage results and readiness records reuse their existing authoritative documents.
+- Require prompt, evidence-backed correction of related documentation defects encountered during authorized edits, with bounded ownership, preserved history and references, user decisions for substantive ambiguity, and read-only tasks remaining non-mutating.
+- Add Lead/writer assignment and semantic close checks for document placement and duplicate or stale facts; no automatic cleanup, new required document set, runtime/schema change or installation is introduced.
+
 ## [0.9.1] - 2026-10-02
 
 - Require E2E scenario plans to include every manual case/requirement with equivalent conditions/results and explicit checkpoints; distinguish listed, implemented, executed and passing evidence and require user decisions for automation exceptions.

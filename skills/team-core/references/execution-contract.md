@@ -44,6 +44,8 @@ At start, briefly record task type/risk, applicable standards, intended named ro
 
 Apply [documentation governance](documentation-governance.md): assess task-specific sufficiency before implementation, adopt unchecked existing projects, classify changed docs and recheck stale evidence. Respect active applicable PRDs, preserve optional document categories, and ask the user before resolving substantive ambiguity. Lead owns readiness; only explicitly independent authorized work proceeds under a partial review.
 
+For every documentation path in the Work contract, state its content purpose/source-of-truth responsibility and allowed scope. Follow [file ownership](file-ownership.md): when authorized content edits reveal evidence-backed defects in relevant active docs, correct them within that assigned boundary and recheck affected links/indexes. Route cross-owner fixes to the Lead for a bounded assignment; do not let this become broad cleanup or rewrite history. Review the actual documentation diff for placement, factual accuracy, duplication and alignment with its assigned purpose. Read-only assessments report issues without making repairs; substantive ambiguity remains subject to the user's decision.
+
 For new applications, multi-stage work or material boundary changes, apply the [Project Blueprint contract](project-blueprint.md) before the stage contract. Discover existing code before adopting a baseline. Existing-code structural refactoring requires explicit user approval; declining it preserves the baseline with recorded constraints. Map each stage to modules and file responsibilities, and review that mapping against the final diff.
 
 **Input:** task record and discovery evidence.
@@ -69,6 +71,8 @@ For code changes, apply the [code comment contract](code-comments.md) while impl
 **Output:** the bounded implementation, investigation result, or review result requested by the Lead.
 
 **Exit:** the assigned work is complete enough for independent verification. A newly discovered scope change returns to Contract; it is not silently absorbed into the current assignment.
+
+For documentation changes, apply the assigned document purpose while editing. Inspect relevant connected documents and repair clear, evidenced defects that are within the assignment; send cross-owner or ambiguous findings back through the Contract/decision path instead of silently expanding scope.
 
 ## 5. Verify
 
