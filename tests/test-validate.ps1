@@ -32,7 +32,9 @@ function Invoke-CopiedValidator {
 
 try {
   New-Item -ItemType Directory -Path $testRoot -ErrorAction Stop | Out-Null
-  foreach ($item in 'agents', 'skills', 'scripts', 'VERSION', 'CHANGELOG.md') {
+  # Copy both release histories because reciprocal language navigation is a real local link;
+  # this fixture completeness does not make Chinese documentation an installer prerequisite.
+  foreach ($item in 'agents', 'skills', 'scripts', 'VERSION', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md') {
     Copy-Item -LiteralPath (Join-Path $root $item) -Destination $testRoot -Recurse -Force -ErrorAction Stop
   }
 

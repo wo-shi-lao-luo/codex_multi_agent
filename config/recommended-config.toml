@@ -1,12 +1,16 @@
 # Merge this section into ~/.codex/config.toml if no [agents] table exists.
-# If it already exists, add only the missing keys instead of creating a second table.
-# For an existing kit installation, explicitly update the two default_subagent keys.
+# If it already exists, merge the recommended keys into that table; do not create a second table.
+# For an existing kit installation, explicitly update max_concurrent_threads_per_session
+# and the two default_subagent keys rather than only adding missing keys.
 # Recommended Lead: select GPT-6 Astra / high in the main session.
 # This fragment does not change the main-session model or implement model fallback.
 
 [agents]
 enabled = true
-max_concurrent_threads_per_session = 3
+# Ceiling excludes the main/Lead thread; normally use 2-3 child agents.
+# Expand only for independent, ready tasks; the actual host/runtime cap may be lower.
+# Editing this source fragment does not establish that the runtime has loaded it.
+max_concurrent_threads_per_session = 6
 default_subagent_model = "gpt-6.1-sol"
 default_subagent_reasoning_effort = "medium"
 interrupt_message = true

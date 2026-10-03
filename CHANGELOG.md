@@ -1,5 +1,26 @@
 # Changelog
 
+English | [简体中文](CHANGELOG.zh-CN.md)
+
+## [0.9.5] - 2026-10-02
+
+- Add risk-tiered test selection from changed behavior through affected modules/dependents, stage-impact and core smoke checks, with broader or full-suite execution when cheaper, required by repository gates, or justified by shared/security/data/dependency/build/test configuration, integration, or uncertain impact. E2E/manual coverage and acceptance gates remain unchanged.
+- Permit reuse of prior results only when reachable artifacts establish the relevant source, test, configuration, dependency, data and environment identity; changed or unknown relevant inputs invalidate affected evidence. Distinguish reused evidence from fresh execution and record batch purpose, cost forecast or unknown, checkpoints, and any user hard budget.
+- Define an optional, scoped Explorer test-surface inventory after behavior/module boundaries are supplied. Explorer reports paths, IDs, assertions, commands, boundaries, dependencies and evidence gaps; Tester retains coverage/execution/sufficiency decisions and Lead retains authorization, resource and gate decisions. No new packet schema, scheduler, cache framework, or measured savings claim is introduced.
+
+## [0.9.4] - 2026-10-02
+
+- Add a shared repair/diagnosis loop guard: ordinary repairs require an evidence retrospective after two failures and pause after three; explicitly requested/approved debug mode allows up to six purposeful diagnostic rounds, reviewed at three, with an earlier pause after three consecutive completed rounds without useful evidence or narrowing.
+- Preserve issue identity and history across changed strategies, files, agents and handoffs; keep diagnostic and repair authority/budgets separate, require actionable evidence-led human pause reports and bounded resume, and use task-specific progress checkpoints for healthy long operations without a universal time limit. This is an inspectable instruction contract, not a runtime timer or guaranteed interrupt.
+
+## [0.9.3] - 2026-10-02
+
+- Default Codex-run testing of all products to adequate low-observation-cost entrypoints, repeatable programmatic execution and structured summaries with evidence drill-down; this is not restricted to products containing AI.
+- Give API/integration tests broad business-rule coverage and browsers complete user journeys plus distinct UI/client and front-to-backend risks. Remove redundant business permutations from proposed browser plans only with equivalent conditions/assertions and evidence; preserve manual-to-E2E mapping and rendered inspection.
+- Add execution/observation planning fields to new stage packets and workflow templates, with isolated generator/nonmutation regressions. Existing schema2 packets, TDD tracks and user-only acceptance/archival remain compatible; no forced API, new production seam, real installation, global activation or measured token savings is introduced.
+- Add a complete Simplified Chinese README and changelog, reciprocal language navigation, same-change maintenance rules, and a separate repository-only structural validator with isolated tests. Semantic translation still needs human review; the 0.9.3 version line is retained.
+- Recommend a per-session ceiling of six concurrently open child threads, excluding the Lead, with adaptive use based on ready independent work and actual host capacity. Explain and record expansion beyond three; preserve role obligations and avoid parallel work with shared mutable state or dependencies. Existing installations must update the setting explicitly; source config does not establish loaded runtime capacity.
+
 ## [0.9.2] - 2026-10-02
 
 - Clarify document content ownership: README remains a stable project entrypoint; development journals, detailed test procedures, stage results and readiness records reuse their existing authoritative documents.

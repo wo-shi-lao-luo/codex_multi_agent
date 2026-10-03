@@ -9,6 +9,8 @@ Every child agent returns a concise handoff:
 
 Writers add changed files and verification performed. Reviewers rank findings by impact and include file references.
 
+When handing off an unresolved issue, include its acceptance behavior, conditions and observed deviation; linked/reopened issue status; repair and diagnostic history with evidence references; active user-authorized mode/budget and next stop condition; current changes/tests/process state; pause status and any exact user decision needed. Recover missing history and disclose uncertainty before continuing. See the [repair and diagnosis loop guard](repair-loop-guard.md); a new child or session does not reset its counts.
+
 Children also report their own returned ID/task handle and any actually available role/model evidence; use `unknown` for metadata they cannot observe. Do not infer loaded identity from the assignment prompt, and do not take over the Lead's roster or spawn additional agents.
 
 ## Lead's final actual-agent roster

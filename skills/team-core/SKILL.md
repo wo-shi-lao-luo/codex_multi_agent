@@ -19,6 +19,10 @@ For project and multi-stage work, read the [Project Blueprint contract](referenc
 
 This is a supporting Skill, not a user-facing workflow entrypoint. Team workflow Skills read the files in `references/` so their shared operating contracts ship with the installed kit. Use `references/execution-contract.md` as the common lifecycle and its minimum-team/complete-obligations rules for code-changing `$team-dev`; use `references/role-routing.md` for named-role routing, approved Lead-only exceptions, ownership, and handoffs. The implementation-agent minimum does not apply to pure consultation or read-only workflows.
 
+For persistent failures being diagnosed or repaired, apply the shared [repair and diagnosis loop guard](references/repair-loop-guard.md). It defines acceptance-based issue identity, cumulative bounded attempts, pause evidence and human-authorized resume; workflow Skills route into it rather than duplicating its thresholds.
+
 For an explicit `team-*` workflow close, read [feedback recording](references/feedback-recording.md). It defines the minimal, local acceptance record and the conditions under which the installed runtime may be called. The runtime lives at `scripts/feedback-runtime.ps1`; it does not write inside a business repository or make any external request.
 
 For `$team-dev` implementation work, read [test and acceptance contract](references/test-acceptance-contract.md) and [TDD protocol](references/tdd-protocol.md). Its `scripts/stage-verification.ps1` intentionally creates and validates Git-tracked verification packets inside the target project; archival occurs only after a validated, authoritative final manual status.
+
+For test planning, execution, or review in Codex workflows, apply the contract's [efficient test execution](references/test-acceptance-contract.md#efficient-test-execution) rule by default; it remains the single source for test tiers, evidence reuse, cost limits, and observation choices.

@@ -17,7 +17,9 @@ Do not use to impose a generic coverage target, create tests solely to increase 
 
 1. Find the repository's test commands, test layers, fixtures, and nearby behavioral examples.
 2. Read the Task record and Work contract. Identify changed behavior, failure paths, boundaries, integration points, and the regression that should be prevented.
-3. Choose the narrowest test layer for each focused risk, while retaining required end-to-end scenario coverage under the acceptance contract. Practical lower-layer assertions complement, rather than replace, required E2E flows; do not force every other layer without a material risk.
+   If a failing check is part of an existing diagnosis/repair loop, preserve its issue identity and result evidence under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md); a failed test run is not automatically a failed repair attempt.
+3. Choose the lowest-observation-cost adequate entrypoint and observation method for each risk under the shared [efficient test execution](../team-core/references/test-acceptance-contract.md#efficient-test-execution) rule. Practical lower-layer assertions complement, rather than replace, required E2E flows; do not force every other layer without a material risk.
+   Select test tiers and reusable evidence under that contract, including relevant-input identity, repository gates, and any authorized cost budget. When the scoped test surface is unclear and not cheap to map, request a bounded Explorer lookup; the Tester retains selection, execution and sufficiency decisions.
 
 ## Build a test contract
 

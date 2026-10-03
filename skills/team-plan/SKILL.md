@@ -27,6 +27,12 @@ Apply the [Project Blueprint contract](../team-core/references/project-blueprint
 
 Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [test and acceptance contract](../team-core/references/test-acceptance-contract.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
+When planning work likely to revisit a known defect, use the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md) to identify the issue by acceptance behavior/conditions/deviation and preserve earlier attempts. State any requested debug mode, bounded diagnostic/repair allocation, progress checkpoints for long operations, and stop condition in the Work contract; planning itself does not grant repair or debug authority.
+
+Apply the test contract's [efficient test execution](../team-core/references/test-acceptance-contract.md#efficient-test-execution) rule when proposing test layers and commands. Record the proposed entrypoint, real boundary, runner, observation mode and rationale in the Work contract or stage plan; preserve full manual-scenario coverage and explain any duplicate browser business permutations represented by equivalent API/integration evidence.
+
+Use its test-tier, prior-evidence and resource-budget rules when planning checks. Request a scoped Explorer test inventory only when the relevant surface is not already readily known; the plan records evidence and gates without deciding that a required test may be skipped.
+
 1. Create a Task record: outcome, constraints, acceptance checks, and open questions.
 2. Discover repository facts. Use `team-explorer` for unfamiliar scope and `team-architect` for cross-module contracts; request bounded findings with evidence.
 3. Turn evidence into a Work contract. Define affected boundaries, ownership, compatibility, verification, and rollout or recovery needs when material.

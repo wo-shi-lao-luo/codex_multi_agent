@@ -272,8 +272,15 @@ Assess unit, integration, contract/API, E2E, regression, manual, component/UI, a
 
 ## Automated test and E2E plan
 - Commands, fixtures, environment, cleanup, and TDD exceptions:
+- Choose the lowest-observation-cost adequate entrypoint, runner, and observation mode per case. Retain full trusted result artifacts, inspect summaries first, and drill down for failures, ambiguity, unexpected behavior, or material/safety-sensitive risk.
+- API/integration scenarios generally cover broader business permutations at a declared real application boundary; browser checks retain representative complete journeys and distinct UI/client/front-end-back-end risks. Record evidence and rationale for reduced duplicate browser permutations. Do not treat mocks, direct model calls, or narrow endpoint checks as a complete user journey.
 - Include every manual scenario/requirement in the E2E plan with equivalent conditions, expected results and explicit checkpoints; list gaps without treating plans/exceptions as passing.
 - On encountered user-added/changed manual cases, update E2E and applicable other-layer tests/assertions, reopen affected evidence and rerun; ask on ambiguity, expanded scope or automation exceptions. Preserve archived acceptance with a follow-up stage.
+
+### Execution and observation choices
+| Case / test ID | Execution entrypoint and real boundary | Runner / command | Observation mode and rationale | Retained browser / visual checkpoints | Evidence / drill-down / gaps |
+| --- | --- | --- | --- | --- | --- |
+| | | | | | |
 
 ### Manual-to-automated coverage mapping
 | Manual case / requirement ID | E2E scenario / test ID and checkpoints | Other test layers / test IDs or reasons | Status and evidence | Gap / user exception decision |

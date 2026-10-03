@@ -25,12 +25,18 @@ Read the [Project Blueprint contract](../team-core/references/project-blueprint.
 
 Read [role routing](../team-core/references/role-routing.md), [file ownership](../team-core/references/file-ownership.md), [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [test and acceptance contract](../team-core/references/test-acceptance-contract.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
+For any persistent issue returned from verification or review, apply the shared [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md) before assigning another repair. Carry acceptance-based identity and cumulative history into the existing packet/Work record; satisfy its retrospective and pause gates before continuing. A failed repair never silently switches the task into a debug allocation.
+
+Apply the test contract's [efficient test execution](../team-core/references/test-acceptance-contract.md#efficient-test-execution) rule by default. Before implementation, record the adequate entrypoint/real boundary, runner, observation mode and rationale in the Work contract or stage packet. Use repeatable runners and summary-first inspection while retaining the complete evidence and all required E2E, browser, visual and manual checkpoints.
+
+Use the test contract's risk tiers and reuse identity when planning execution. If the affected test surface is unclear, a bounded Explorer inventory may locate it after behavior/modules are scoped; Tester retains coverage and execution decisions. Never use a narrow tier or reused result to bypass a repository-required gate.
+
 1. Create a Task record. Identify outcome, constraints, acceptance checks, and unknowns.
 2. Discover only the facts needed to choose an approach. Use `team-explorer` for uncertain scope and `team-architect` for cross-module contracts.
 3. Create a Work contract before assigning writers. Declare ownership for shared APIs, schemas, migrations, generated clients, and lockfiles. Keep production-code ownership to one writer by default.
 4. Before implementation, discover the available test entrypoints and create the target repository's Git-tracked stage verification packet required by the Test & Acceptance Contract. `team-tester` owns its concise coverage matrix, TDD-track decisions, Red/Green evidence design, and human verification script, and post-verifies the implementation. Keep Tester-owned test files separate from production-code ownership.
 5. Fill and validate the packet before writers begin. Every material behavior is `test-first`, `test-after`, or `manual-or-environmental`; unexplained exceptions block an unqualified start.
-6. Delegate bounded work with expected output, relevant constraints, and verification. Run at most three child threads; child agents do not orchestrate further agents.
+6. Delegate bounded work with expected output, relevant constraints, and verification. Follow [adaptive child-thread concurrency](../team-core/references/role-routing.md#adaptive-child-thread-concurrency), including its host-capacity and above-three explanation/recording rules; child agents do not orchestrate further agents.
 
 Before assigning any child, including `team-tester` for step 4 packet planning, briefly state task type/risk, applicable standards, planned named roles/ownership and checks. Apply role routing's named-role preflight against the active tool catalog and pass the exact named role in the supported selector (e.g. `agent_type`). A task name or prompt is not selection. If no available named role legitimately fits, pause and ask about a specific alternative; do not silently use a generic agent or the Lead. Lead-only implementation requires the user's explicit request that the Lead personally implement the work, or approval of a specific proposed exception. Ordinary requests such as “do it” or “fix this” authorize implementation but do not authorize Lead-only ownership. Under an approved exception, the Lead takes the writer and Tester planning/execution duties as self-check; that is not independent Tester evidence and does not waive independent Reviewer review for material work. If a no-delegation request conflicts with required independent review, explain the conflict and ask for scoped direction.
 
@@ -62,6 +68,7 @@ After the normal Handoff is prepared, create the local minimal feedback record d
 
 - New scope, contract, or ownership concern → update the Work contract before continuing.
 - Failed verification or valid review finding → assign a focused return to Execute, then rerun the affected verification.
+- Before each repeated repair, apply the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md); a reached threshold or earlier decision blocker pauses the affected issue and requires its evidence-led user report.
 - Missing environment, credentials, or user decision → hand off the blocker with the smallest useful next step.
 
 ## Output contract

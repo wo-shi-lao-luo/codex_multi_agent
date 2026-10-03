@@ -19,8 +19,10 @@ Apply [role routing](../team-core/references/role-routing.md) before delegation:
 
 Read [handoff format](../team-core/references/handoff-format.md), [execution templates](../team-core/references/execution-templates.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [feedback recording](../team-core/references/feedback-recording.md).
 
+Apply the shared [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md) throughout investigation. An explicit user request for debugging/investigation, including `$team-debug`, or approval of a proposed debug mode authorizes the bounded diagnostic allocation defined there. Keep repair counts separate; do not grant debug rounds automatically after a failed development fix. Carry history through the Debug ledger and handoff.
+
 1. Create a Task record with symptom, expected behavior, reproduction, available logs, and impact.
-2. Build a Debug hypothesis ledger. Separate observations from hypotheses and choose the smallest discriminating check for each hypothesis.
+2. Build a Debug hypothesis ledger. Separate observations from hypotheses and choose the smallest discriminating check for each hypothesis. Record the authorized mode/allocation and count purposeful rounds; complete each required mid-review, continuing only within the remaining authorized allocation when evidence supports it, and pause at stall, exhausted-budget or immediate-decision gates.
 3. Delegate independent investigations to `team-explorer`, `team-tester`, and the relevant domain owner. Give each a different question or evidence source; do not create duplicate exploration.
 4. Compare results. Reject hypotheses with contrary evidence and identify the most likely root cause, including confidence and remaining uncertainty.
 5. For an automatable defect, capture the smallest failing regression reproduction before recommending a repair. If that is not practical, select and document the `test-after` or `manual-or-environmental` track and its alternative evidence.
