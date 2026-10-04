@@ -10,12 +10,13 @@
 - `$team-plan <goal>` — 制定可供决策的计划，不编辑代码。
 - `$team-review <scope>` — 并行审查分支、代码差异或变更集。
 - `$team-debug <symptom>` — 先调查不确定的故障，再决定是否修改。
+- `$team-ai-simulate <AI agent or workflow>` — 显式地在本地模拟有界的 AI 行为，再决定是否工程化。
 - `$team-doc-check <task>` — 采用或重新检查项目文档，并生成针对当前任务的就绪度评估。
 - `$team-project-rules <task>` — 检查、起草或维护目标项目的 `AGENTS.md` 指引。
 
 ## 团队成员
 
-`team-explorer`、`team-architect`、`team-docs-maintainer`、`team-frontend-engineer`、`team-backend-engineer`、`team-database-specialist`、`team-tester` 和 `team-reviewer` 是 Codex 自定义智能体。主 Codex 对话负责 Lead 工作，持有任务状态、整合结果并给出最终答复。
+`team-explorer`、`team-architect`、`team-ai-architect`、`team-docs-maintainer`、`team-frontend-engineer`、`team-backend-engineer`、`team-database-specialist`、`team-tester`、`team-reviewer`、`team-ai-simulation-actor-basic`、`team-ai-simulation-actor-advanced` 和 `team-ai-engineer` 是 Codex 自定义智能体。基础和高级模拟角色都只负责一个受限的行为节点，并遵守相同边界；`team-ai-architect` 负责提出 AI 领域设计方案，`team-ai-engineer` 实现分配给它的应用 AI 行为。主 Codex 对话负责 Lead 工作，持有任务状态、整合结果并给出最终答复。
 
 ## 模型分配
 
@@ -26,6 +27,10 @@
 | 文档维护者 | `gpt-6-luna` | high |
 | 前端、后端、测试 | `gpt-6.1-sol` | medium |
 | 数据库专家、审查员 | `gpt-6.1-sol` | high |
+| AI 模拟角色基础档 | `gpt-6-luna` | medium |
+| AI 模拟角色高级档 | `gpt-6.1-sol` | medium |
+| AI 架构师 | `gpt-6.1-sol` | xhigh |
+| AI 工程师 | `gpt-6.1-sol` | medium |
 
 主 Lead 建议使用 GPT-6 Astra / high。这是建议，不是已安装的智能体设置。可选配置片段将通用子智能体设为 GPT-6.1 Sol / medium；具名团队角色保留各自显式配置。已经合并旧配置片段的用户需要手动更新其中两个 `default_subagent_*` 值；安装器不会合并全局配置。
 
@@ -64,9 +69,10 @@
 .\tests\test-deployment.ps1
 .\tests\test-documentation.ps1
 .\tests\test-feedback-runtime.ps1
+.\tests\test-ai-simulation.ps1
 ```
 
-这些测试只在唯一的系统临时目录中运行。它们会检查无效元数据和缺失的本地引用、TDD 阶段包的初始化与安全状态转换、完整软件包和更新行为，以及反馈运行时的校验、聚合、归档、删除确认和清理；每个测试退出前都会移除自己的临时目录。
+这些测试只在唯一的系统临时目录中运行。它们会检查无效元数据和缺失的本地引用、TDD 阶段包的初始化与安全状态转换、完整软件包和更新行为、反馈运行时的校验/聚合/归档/删除确认/清理，以及本地 AI 模拟定义和运行证据处理；每个测试退出前都会移除自己的临时目录。
 
 要单独检查公开文档的结构和同步情况，请运行：
 
@@ -81,7 +87,7 @@
 
 agent 名称使用 `team-` 前缀，以避免与个人 agent 重名。安装收据没有记录的历史组件会保留原样；手动删除前应先确认其归属。
 
-当前版本: `0.10.1`（审查预览版，不会自动视为稳定版）。工具包自有的本地产物采用范围明确的 Git 保护，并检查实际索引。文档治理元数据、导航索引和审查记录保留在当前检出目录中，但不会通过 Git 共享；新检出的仓库需要根据现有文档自行建立采用及审查状态。用户编写的项目文档、PRD、蓝图、阶段验证包和原生规格仍可纳入版本控制。已跟踪的本地产物或与用户显式包含规则冲突的情况需要用户决定如何处理。工具包不会安装 Git hook 或后台监控，用户仍可手动强制暂存。详见[生成产物 Git 保护约定](skills/team-core/references/generated-artifacts.md)。显式的 `team-*` 工作流通过 `team-core` 写入精简且脱敏的本地验收记录。`$team-dev` 会在目标项目中创建并校验由 Git 跟踪的阶段验证包；条件允许时使用 `test-first`，否则记录采用的替代路径。普通修复失败两次后，工作流会查找相关外部证据；适用的新证据最多可支持一次有条件的扩展，修复总次数不超过五次。Debug 模式的资料检索计入原有六轮诊断额度。暂停依据证据进行；恢复需要用户授权。正常推进的长时间操作按任务设置进度检查点，不设统一时间上限。测试执行采用风险分层和基于证据的结果复用；测试范围不清楚时可定向请 Explorer 查找，但 E2E/人工覆盖和仓库门禁仍具有约束力。请参阅[修复与诊断循环约定](skills/team-core/references/repair-loop-guard.md)、[反馈记录规则](skills/team-core/references/feedback-recording.md)、[测试与验收约定](skills/team-core/references/test-acceptance-contract.md)、[TDD 流程](skills/team-core/references/tdd-protocol.md)、[代码注释约定](skills/team-core/references/code-comments.md)、[项目指引约定](skills/team-core/references/project-rules.md)、[版本规则](docs/release-versioning.md)和[更新日志](CHANGELOG.zh-CN.md)。0.1.0 版本还将 `sql-safety` 更名为 `database-engineering`，并将 `test-strategy` 更名为 `testing-engineering`。历史 Skill 目录如果未记录在安装收据中，会保持不变；由收据管理且已停用的 Skills 会与所选目标版本保持一致。
+当前版本: `1.0.0`（新主产品线，审查预览版；不会自动视为稳定版）。工具包自有的本地产物采用范围明确的 Git 保护，并检查实际索引。文档治理元数据、导航索引和审查记录保留在当前检出目录中，但不会通过 Git 共享；新检出的仓库需要根据现有文档自行建立采用及审查状态。用户编写的项目文档、PRD、蓝图、阶段验证包和原生规格仍可纳入版本控制。已跟踪的本地产物或与用户显式包含规则冲突的情况需要用户决定如何处理。工具包不会安装 Git hook 或后台监控，用户仍可手动强制暂存。详见[生成产物 Git 保护约定](skills/team-core/references/generated-artifacts.md)。反馈运行时目前支持 `$team-dev`、`$team-plan`、`$team-debug` 和 `$team-review`；`$team-ai-simulate` 使用单独的本地运行记录，不调用该运行时。`$team-dev` 会在目标项目中创建并校验由 Git 跟踪的阶段验证包；条件允许时使用 `test-first`，否则记录采用的替代路径。普通修复失败两次后，工作流会查找相关外部证据；适用的新证据最多可支持一次有条件的扩展，修复总次数不超过五次。Debug 模式的资料检索计入原有六轮诊断额度。暂停依据证据进行；恢复需要用户授权。正常推进的长时间操作按任务设置进度检查点，不设统一时间上限。测试执行采用风险分层和基于证据的结果复用；测试范围不清楚时可定向请 Explorer 查找，但 E2E/人工覆盖和仓库门禁仍具有约束力。请参阅[修复与诊断循环约定](skills/team-core/references/repair-loop-guard.md)、[反馈记录规则](skills/team-core/references/feedback-recording.md)、[测试与验收约定](skills/team-core/references/test-acceptance-contract.md)、[TDD 流程](skills/team-core/references/tdd-protocol.md)、[代码注释约定](skills/team-core/references/code-comments.md)、[项目指引约定](skills/team-core/references/project-rules.md)、[AI 模拟指南](docs/ai-simulation.md)、[版本规则](docs/release-versioning.md)和[更新日志](CHANGELOG.zh-CN.md)。0.1.0 版本还将 `sql-safety` 更名为 `database-engineering`，并将 `test-strategy` 更名为 `testing-engineering`。历史 Skill 目录如果未记录在安装收据中，会保持不变；由收据管理且已停用的 Skills 会与所选目标版本保持一致。
 
 涉及可见界面的工作会将 [frontend-design](skills/frontend-design/SKILL.md) 与 frontend-engineering 配合使用。[UI 交付约定](skills/team-core/references/ui-quality.md)会保留页面级目标，明确完整页面或流程的负责人，并要求将渲染检查与功能测试分别留证。无需为此增加专门的设计智能体、改变模型或为每个页面单独编写设计文档。缺少浏览器证据时，必须注明尚未进行视觉验证，不能称为已可发布。
 

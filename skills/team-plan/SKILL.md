@@ -13,6 +13,8 @@ Use for a feature, refactor, integration, or technical change that needs reposit
 
 Do not use for a one-line factual answer, a request to implement immediately after a sufficient approved plan, or a review of an existing change set; route those to the appropriate direct workflow.
 
+When the proposed product behavior includes an AI agent or workflow, identify prompts, context/history, model/tool calls, state transitions and human gates in the plan. Use `team-ai-architect` for a bounded read-only proposal when material AI-specific design choices are unresolved; `team-architect` retains software-wide structure and cross-module architecture. If the user wants to explore behavior before coding, offer the explicit `$team-ai-simulate` workflow; its prototype is a separate decision point and does not replace `$team-dev` or authorize production implementation.
+
 ## Build the plan
 
 Apply [role routing](../team-core/references/role-routing.md) before delegation: check needed named roles in the active tool catalog, explicitly select them, and ask before any unavailable-role alternative. Task labels and source profiles do not prove runtime identity. Reconcile actual calls and include the [handoff format](../team-core/references/handoff-format.md)'s actual child roster in the final response, including failures/retries or explicit none.

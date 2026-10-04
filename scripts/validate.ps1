@@ -33,7 +33,32 @@ $expectedAgentProfiles = @{
   'team-frontend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-reviewer' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
   'team-tester' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-ai-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-ai-simulation-actor-basic' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
+  'team-ai-simulation-actor-advanced' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-ai-architect' = @{ model = 'gpt-6.1-sol'; reasoning = 'xhigh' }
 }
+
+# New workflow assets must be shipped together; routing prose is not execution proof.
+foreach ($resource in @('skills/team-ai-simulate/SKILL.md','skills/ai-engineering/SKILL.md','agents/team-ai-engineer.toml','agents/team-ai-simulation-actor-basic.toml','agents/team-ai-simulation-actor-advanced.toml','agents/team-ai-architect.toml','skills/team-core/scripts/ai-simulation.ps1','skills/team-core/references/ai-simulation.md','skills/team-core/templates/ai-simulation/definition.json')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing AI simulation resource: $resource") }
+}
+# Retired source names would create duplicate discovery routes in a new install.
+# Deployment tests separately establish removal of old receipt-owned payload files.
+foreach ($obsolete in @('skills/team-simulate','agents/team-simulation-actor.toml')) {
+  if (Test-Path -LiteralPath (Join-Path $root $obsolete)) { $failures.Add("Obsolete AI simulation source resource: $obsolete") }
+}
+foreach ($profile in $expectedAgentProfiles.Keys) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root "agents/$profile.toml") -PathType Leaf)) { $failures.Add("Missing required agent profile: $profile") }
+}
+# Guard actual reference links rather than accepting an unconnected prose mention.
+foreach ($skillName in @('team-core','team-ai-simulate','ai-engineering')) {
+  $path=Join-Path $root "skills/$skillName/SKILL.md"
+  $target=if ($skillName -eq 'team-core') { 'references/ai-simulation.md' } else { '../team-core/references/ai-simulation.md' }
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Content -LiteralPath $path -Raw) -notmatch ('\]\(' + [regex]::Escape($target) + '\)')) { $failures.Add("$skillName must link to ai-simulation.md") }
+}
+$aiAgentPath=Join-Path $root 'agents/team-ai-engineer.toml'
+if ((Test-Path -LiteralPath $aiAgentPath -PathType Leaf) -and -not (Get-Content -LiteralPath $aiAgentPath -Raw).Contains('ai-engineering')) { $failures.Add('team-ai-engineer must route to ai-engineering') }
 
 Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-Object {
   $entries = @{}
@@ -71,6 +96,17 @@ Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-
     $expectedProfile = $expectedAgentProfiles[$_.BaseName]
     if ($entries['model'] -ne $expectedProfile.model -or $entries['model_reasoning_effort'] -ne $expectedProfile.reasoning) {
       $failures.Add("$($_.Name) does not match the required model profile")
+    }
+    # Actors and the AI design specialist observe bounded evidence; they are not
+    # production writers. A stronger actor model must not broaden its permissions.
+    if ($_.BaseName -in @('team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect') -and $entries['sandbox_mode'] -ne 'read-only') {
+      $failures.Add("$($_.Name) must declare read-only sandbox mode")
+    }
+    if ($_.BaseName -in @('team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect') -and -not ([string]$entries['developer_instructions']).Contains('team-ai-simulate')) {
+      $failures.Add("$($_.Name) must route explicit simulations to team-ai-simulate")
+    }
+    if ($_.BaseName -eq 'team-ai-architect' -and -not ([string]$entries['developer_instructions']).Contains('ai-engineering')) {
+      $failures.Add('team-ai-architect must reference ai-engineering domain guidance')
     }
   } else {
     $failures.Add("$($_.Name) is not part of the supported team agent profile")

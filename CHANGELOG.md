@@ -2,6 +2,14 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.0.0] - 2026-10-05
+
+- Start the new `1.0.0` major product line as a review preview; this version does not automatically promote the Kit to stable. Add the explicit-only `$team-ai-simulate` workflow for prototyping AI agents and AI workflows before a separate engineering decision.
+- Add model-agnostic `team-ai-simulation-actor-basic` and `team-ai-simulation-actor-advanced` profiles with the same bounded behavior contract, a read-only `team-ai-architect`, and `team-ai-engineer` plus `ai-engineering` routing for authorized application AI behavior. Actor tier selection follows target model family/tier and test purpose; role configuration takes precedence over spawn model overrides.
+- Define four explicit context modes, synthetic cases with criteria kept outside the actor packet, Lead-controlled routing/mock results, approved-proxy versus target-model distinctions, and host-context/identity/usage limits.
+- Add the local `team-core/scripts/ai-simulation.ps1` helper and reusable definition template. It validates bounded definitions, freezes declared source snapshots, records non-replaceable call evidence with a terminal integrity head under an exact protected `_work/ai-sim-<task>/` path, and reports integrity/drift without running models or deciding acceptance.
+- Add the shared AI-simulation contract, engineering guidance and verification entry; keep raw traces separate from the `team-core` feedback runtime, which continues to support `$team-dev`, `$team-plan`, `$team-debug`, and `$team-review` only.
+
 ## [0.10.1] - 2026-10-04
 
 - Add bounded external-source research to persistent bug-fix and debug workflows: research follows the ordinary two-failure retrospective, while explicitly authorized debug research consumes an existing diagnostic round. Applicable evidence may qualify one conditional extension from three to at most five ordinary repair attempts; user budgets, scope/safety gates, and pause conditions remain controlling.

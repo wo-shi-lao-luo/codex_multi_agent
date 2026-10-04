@@ -33,11 +33,29 @@ function Fingerprint([string]$Path) {
 try {
   New-Item -ItemType Directory $testRoot | Out-Null
   $old = Join-Path $testRoot 'old'; $new = Join-Path $testRoot 'new'
-  Write-Package $old '0.6.1'; Write-Package $new '0.7.0'
+  Write-Package $old '0.11.0'; Write-Package $new '1.0.0'
   Set-Content "$new/skills/team-fixture/new-only.md" 'new-only file'
   New-Item -ItemType Directory "$new/skills/team-new" | Out-Null
   Set-Content "$new/skills/team-new/SKILL.md" "---`nname: team-new`ndescription: New fixture.`n---"
   Set-Content "$new/agents/team-new.toml" 'name = "team-new"'
+  # SIM-09: the prior prototype uses a generic workflow/actor; 1.0.0 renames and separates AI roles.
+  # Expected: upgrade removes obsolete identities; downgrade restores only old owned assets.
+  New-Item -ItemType Directory "$old/skills/team-simulate" | Out-Null
+  Set-Content "$old/skills/team-simulate/SKILL.md" "---`nname: team-simulate`ndescription: Old synthetic simulation fixture.`n---"
+  Set-Content "$old/agents/team-simulation-actor.toml" 'name = "team-simulation-actor"'
+  foreach ($name in 'team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect','team-ai-engineer') {
+    Set-Content "$new/agents/$name.toml" "name = `"$name`""
+  }
+  foreach ($name in 'team-ai-simulate','ai-engineering') {
+    New-Item -ItemType Directory "$new/skills/$name" | Out-Null
+    Set-Content "$new/skills/$name/SKILL.md" "---`nname: $name`ndescription: Synthetic simulation fixture.`n---"
+  }
+  foreach ($package in $old,$new) {
+    New-Item -ItemType Directory "$package/skills/team-core" | Out-Null
+    Set-Content "$package/skills/team-core/SKILL.md" "---`nname: team-core`ndescription: Retained synthetic core.`n---"
+  }
+  New-Item -ItemType Directory "$new/skills/team-core/scripts" | Out-Null
+  Set-Content "$new/skills/team-core/scripts/ai-simulation.ps1" '# Synthetic new-version helper'
   # Scenario: preview on empty homes. Expected: no installation or manager files are written.
   & $manager -Action Deploy -SourceRoot $old @arguments -WhatIf | Out-Null
   Assert-True (-not (Test-Path $fakeCodex) -and -not (Test-Path $fakeAgents)) 'Preview changed homes.'
@@ -46,7 +64,8 @@ try {
   & $manager -Action Verify @arguments | Out-Null
   $receiptPath = "$management/install-receipt.json"
   $receipt = Get-Content $receiptPath -Raw | ConvertFrom-Json
-  Assert-True ($receipt.schemaVersion -eq 2 -and $receipt.kitVersion -eq '0.6.1') 'Wrong receipt.'
+  Assert-True ($receipt.schemaVersion -eq 2 -and $receipt.kitVersion -eq '0.11.0') 'Wrong receipt.'
+  Assert-True (-not(Test-Path -LiteralPath "$management/stable.json")) 'Initial major-line lifecycle test implicitly marked stable.'
   Assert-True (Test-Path "$management/rollback.ps1") 'Missing persistent recovery entrypoint.'
   # Scenario: user explicitly pins a tested install. Expected: later upgrades do not move stable.
   $stable = & $manager -Action MarkStable @arguments | ConvertFrom-Json
@@ -57,9 +76,19 @@ try {
   Set-Content "$fakeAgents/skills/personal/SKILL.md" 'personal skill'
   & $manager -Action Deploy -SourceRoot $new @arguments | Out-Null
   Assert-True ((Get-Content "$management/stable.json" -Raw) -eq $stableBytes) 'Upgrade moved stable.'
+  Assert-True (-not(Test-Path -LiteralPath "$fakeAgents/skills/team-simulate") -and -not(Test-Path -LiteralPath "$fakeCodex/agents/team-simulation-actor.toml")) 'SIM-09 upgrade retained old workflow/actor.'
+  foreach($path in @("$fakeAgents/skills/team-ai-simulate/SKILL.md","$fakeCodex/agents/team-ai-simulation-actor-basic.toml","$fakeCodex/agents/team-ai-simulation-actor-advanced.toml","$fakeCodex/agents/team-ai-architect.toml")){
+    Assert-True (Test-Path -LiteralPath $path -PathType Leaf) "SIM-09 upgrade omitted $path"
+  }
   # Scenario: new -> old source. Expected: new agent, whole Skill and file inside retained Skill disappear.
   & $manager -Action Deploy -SourceRoot $old @arguments | Out-Null
   foreach ($path in @("$fakeCodex/agents/team-new.toml","$fakeAgents/skills/team-new","$fakeAgents/skills/team-fixture/new-only.md")) { Assert-True (-not (Test-Path $path)) "Residual content: $path" }
+  foreach ($path in @("$fakeCodex/agents/team-ai-simulation-actor-basic.toml","$fakeCodex/agents/team-ai-simulation-actor-advanced.toml","$fakeCodex/agents/team-ai-architect.toml","$fakeCodex/agents/team-ai-engineer.toml","$fakeAgents/skills/team-ai-simulate","$fakeAgents/skills/ai-engineering","$fakeAgents/skills/team-core/scripts/ai-simulation.ps1")) {
+    Assert-True (-not (Test-Path -LiteralPath $path)) "SIM-07 downgrade left residue: $path"
+  }
+  Assert-True (Test-Path -LiteralPath "$fakeAgents/skills/team-simulate/SKILL.md") 'SIM-09 downgrade did not restore old Skill.'
+  Assert-True (Test-Path -LiteralPath "$fakeCodex/agents/team-simulation-actor.toml") 'SIM-09 downgrade did not restore old actor.'
+  Assert-True ((Get-Content "$management/stable.json" -Raw) -eq $stableBytes -and (Test-Path -LiteralPath "$management/backups/$($stable.snapshotId)")) 'SIM-09 downgrade changed/deleted pinned stable snapshot.'
   Assert-True ((Get-Content "$fakeCodex/config.toml" -Raw).Trim() -eq '# personal settings') 'Global config changed.'
   Assert-True ((Get-Content "$fakeAgents/skills/personal/SKILL.md" -Raw).Trim() -eq 'personal skill') 'Personal Skill changed.'
   # Scenario: standalone rollback entry survives source checkout removal. Expected: stable restores offline.
@@ -67,6 +96,8 @@ try {
   & "$management/rollback.ps1" -Action Restore @arguments | Out-Null
   & $manager -Action Verify @arguments | Out-Null
   Assert-True (-not (Test-Path "$fakeAgents/skills/team-new")) 'Standalone restore left new Skill.'
+  Assert-True (-not(Test-Path -LiteralPath "$fakeAgents/skills/team-ai-simulate") -and -not(Test-Path -LiteralPath "$fakeCodex/agents/team-ai-architect.toml")) 'SIM-09 standalone stable restore retained major-line identities.'
+  Assert-True (Test-Path -LiteralPath "$fakeAgents/skills/team-simulate/SKILL.md") 'SIM-09 stable restore omitted prior Skill.'
   # Scenario: local customization. Expected: refuse by default; explicit Force preserves original in backup.
   Set-Content "$fakeAgents/skills/team-fixture/SKILL.md" 'user modification'
   Assert-Fails { & $manager -Action Deploy -SourceRoot $new @arguments } 'CONFLICT'
@@ -133,10 +164,10 @@ try {
   Set-Content "$old/VERSION" '9.9.9'
   & $manager -Action Deploy -SourceRoot $old -GitRef $commit @arguments | Out-Null
   $gitReceipt = Get-Content $receiptPath -Raw | ConvertFrom-Json
-  Assert-True ($gitReceipt.kitVersion -eq '0.6.1' -and $gitReceipt.source.commit -eq $commit) 'Git target not honored.'
+  Assert-True ($gitReceipt.kitVersion -eq '0.11.0' -and $gitReceipt.source.commit -eq $commit) 'Git target not honored.'
   Assert-True ((Get-Content "$old/VERSION" -Raw).Trim() -eq '9.9.9') 'Git target changed worktree.'
   # Scenario: old schema-v1 receipt. Expected: adopt known paths, upgrade ownership metadata and remove retired units.
-  $legacy = @{ schemaVersion=1; kitVersion='0.6.1'; codexHome=$fakeCodex; agentsHome=$fakeAgents; files=$gitReceipt.files }
+  $legacy = @{ schemaVersion=1; kitVersion='0.11.0'; codexHome=$fakeCodex; agentsHome=$fakeAgents; files=$gitReceipt.files }
   $legacy | ConvertTo-Json -Depth 20 | Set-Content $receiptPath
   & $manager -Action Deploy -SourceRoot $new @arguments | Out-Null
   & $manager -Action Restore -SnapshotId $stable.snapshotId @arguments | Out-Null

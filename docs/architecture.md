@@ -22,6 +22,21 @@ Functional tests and rendered visual inspection are separate evidence. The Lead 
 
 `team-database-specialist` owns SQL safety, schema design, migrations, indexing, query plans, transaction boundaries, and data-change rollback. It is invoked only when data-layer changes are material.
 
+## Optional AI simulation and engineering
+
+`$team-ai-simulate` is an explicit-only local prototyping workflow for AI agents and AI workflows. It uses the existing Codex executor and one bounded, read-only actor profile: `team-ai-simulation-actor-basic` or `team-ai-simulation-actor-advanced`. Both have the same behavior restrictions; the Lead selects the profile from the declared target model family/tier and test purpose, and `team-tester` independently owns case coverage and scoring/verification. The Lead assembles case packets, responds to mock-tool requests, chooses routing and integrates evidence. `team-ai-architect` may propose bounded AI-domain designs when material questions warrant it; it does not replace software-wide `team-architect`. The workflow adds no scheduler, general workflow engine, production API adapter, recursive delegation or secure thread sandbox. `team-ai-engineer` with `ai-engineering` owns authorized application AI behavior such as prompts, model-call contracts, context/history, tool protocols, routing, and workflow state. Generic service infrastructure remains with `team-backend-engineer`; a shared interface must have one agreed contract and disjoint file ownership. A prototype is a separate decision from engineering production behavior.
+
+| Module | Owner files and responsibility | Dependencies |
+| --- | --- | --- |
+| Simulation workflow (SIM-WORKFLOW) | `skills/team-ai-simulate/SKILL.md`, `skills/team-core/references/ai-simulation.md`, and target-project versioned definitions/cases; explicit user choice, context packet contract and prototype scope | Native named actor role; user decisions; existing stage packet |
+| Simulation evidence (SIM-EVIDENCE) | `skills/team-core/scripts/ai-simulation.ps1` and `skills/team-core/templates/ai-simulation/definition.json`; validate bounded definitions, freeze declared sources, record calls and inspect integrity/drift | PowerShell 7; existing generated-artifact Work protection; target-project local files |
+| Simulation actor (SIM-ACTOR) | `agents/team-ai-simulation-actor-basic.toml` and `agents/team-ai-simulation-actor-advanced.toml`; same bounded read-only behavior with purpose-selected profiles | Host-selected exact named role; explicit case packet |
+| AI architecture (AI-ARCHITECT) | `agents/team-ai-architect.toml`; bounded read-only AI-domain design, separate from broad software architecture | `ai-engineering`; Lead-owned cross-boundary contract |
+| AI engineering (AI-ENGINEERING) | `agents/team-ai-engineer.toml` and `skills/ai-engineering/SKILL.md`; own application-specific prompt/context/model/tool/state behavior after authorization | `$team-dev`; backend boundary agreement; applicable test and review contracts |
+| Simulation verification (SIM-VERIFY) | Existing stage verification packet and `tests/test-ai-simulation.ps1`; retain independent acceptance criteria and validate helper behavior in isolation | Tester-owned test plan/evidence; Reviewer; no live production service |
+
+The helper records supplied packets, observed outputs, mock results, state and Lead routing evidence. It cannot prove the full host prompt, actor identity without host metadata, cost when telemetry is absent, semantic acceptance, or criteria secrecy through shared files. Luna can serve as a proxy for a lightweight target; proxy success is not target-model equivalence. No code restructure of the existing executor or business runtime is required.
+
 ## Optional specification boundary
 
 OpenSpec integration adds an optional external CLI boundary, not a fourth executor or a second Lead. The existing workflow stays unchanged without a project opt-in marker. See the [spec lifecycle](../skills/team-core/references/spec-lifecycle.md) and [integration contract](../skills/team-core/references/openspec-integration.md).

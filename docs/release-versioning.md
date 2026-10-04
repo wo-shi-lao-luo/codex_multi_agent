@@ -12,7 +12,7 @@ Increment the second number for a large new feature or a substantial restructuri
 
 ## First number: explicit product-release decision
 
-Increment the first number only when the maintainer explicitly declares a formal stable release or intentionally begins a new major product line. Do not promote the first number merely because several small changes have accumulated. Planned prerelease work uses the intended line with a suffix such as `1.1.0-alpha.1` or `1.1.0-beta.1` after that decision.
+Increment the first number only when the maintainer explicitly declares a formal stable release or intentionally begins a new major product line. Do not promote the first number merely because several small changes have accumulated. Starting a major product line and declaring a stable release are separate decisions: `1.0.0` may still be an alpha, beta, or review preview and does not automatically mean stable. Planned prerelease work uses the intended line with a suffix such as `1.1.0-alpha.1` or `1.1.0-beta.1` after that decision.
 
 ## Public documentation language pairs
 

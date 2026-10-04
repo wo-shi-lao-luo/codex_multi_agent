@@ -2,7 +2,7 @@
 
 ## Purpose and boundary
 
-The explicit `team-*` workflows may create a small, local run record after their normal user-facing handoff is prepared. The record is evidence for improving this kit; it is not a source-code backup, task tracker, background service, or substitute for the user-facing handoff.
+The supported explicit workflows (`team-dev`, `team-plan`, `team-debug`, and `team-review`) may create a small, local run record after their normal user-facing handoff is prepared. The record is evidence for improving this kit; it is not a source-code backup, task tracker, background service, or substitute for the user-facing handoff. Other `team-*` workflows, including `team-ai-simulate`, do not call this runtime unless their workflow is deliberately added to its accepted schema and routing.
 
 Only explicit team workflows participate. Do not create a record for ordinary conversations or silently introduce a project-local file, Git change, connector, or external request.
 

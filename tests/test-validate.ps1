@@ -41,6 +41,39 @@ try {
   # Scenario: an intact package. Expected: validation succeeds before mutations.
   Assert-Condition (Invoke-CopiedValidator) 'Baseline validation failed in an isolated package copy.'
 
+  # SIM-08: an obsolete but syntactically valid workflow must not coexist with its new AI-only name.
+  # Expected: validator rejects the extra retired unit and accepts removal of that owned fixture.
+  $retiredUnit=Join-Path $testRoot 'skills/team-simulate'
+  New-Item -ItemType Directory -Path $retiredUnit | Out-Null
+  Set-Content -LiteralPath (Join-Path $retiredUnit 'SKILL.md') -Value "---`nname: team-simulate`ndescription: Retired synthetic workflow fixture.`n---`n# Retired workflow" -Encoding utf8
+  Assert-Condition (-not(Invoke-CopiedValidator)) 'Validator accepted obsolete team-simulate unit.'
+  $resolvedRetired=[IO.Path]::GetFullPath($retiredUnit)
+  Assert-Condition ($resolvedRetired -eq [IO.Path]::GetFullPath((Join-Path $testRoot 'skills/team-simulate'))) 'Unsafe retired-unit fixture cleanup.'
+  Remove-Item -LiteralPath $resolvedRetired -Recurse -Force
+  Assert-Condition (Invoke-CopiedValidator) 'Validator failed after removing obsolete workflow fixture.'
+
+  # SIM-08: basic/advanced actors and AI architect must not acquire production-write permissions.
+  # Expected: validator rejects each writable sandbox mutation and accepts exact restoration.
+  foreach ($role in 'team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect') {
+    $rolePath=Join-Path $testRoot "agents/$role.toml"
+    $roleText=Get-Content -LiteralPath $rolePath -Raw
+    Assert-Condition ($roleText.Contains('sandbox_mode = "read-only"')) "$role lacks declared readonly sandbox."
+    Set-Content -LiteralPath $rolePath -Value ($roleText.Replace('sandbox_mode = "read-only"','sandbox_mode = "workspace-write"')) -Encoding utf8
+    Assert-Condition (-not(Invoke-CopiedValidator)) "Validator accepted write permissions for $role."
+    Copy-Item -LiteralPath (Join-Path $root "agents/$role.toml") -Destination $rolePath -Force
+    Assert-Condition (Invoke-CopiedValidator) "Validator failed after restoring readonly $role."
+  }
+
+  # SIM-01: required optional-simulation payload assets disappear one at a time.
+  # Expected: validator rejects each omission and recovers after exact restoration.
+  foreach ($relative in @('skills/team-ai-simulate/SKILL.md','skills/ai-engineering/SKILL.md','agents/team-ai-simulation-actor-basic.toml','agents/team-ai-simulation-actor-advanced.toml','agents/team-ai-architect.toml','agents/team-ai-engineer.toml','skills/team-core/scripts/ai-simulation.ps1')) {
+    $asset = Join-Path $testRoot $relative
+    Remove-Item -LiteralPath $asset -Force
+    Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted missing simulation asset $relative."
+    Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $asset -Force
+    Assert-Condition (Invoke-CopiedValidator) "Validation did not recover after restoring $relative."
+  }
+
   # Scenario: the required local artifact protection helper is absent from the payload.
   # Expected: package validation fails and recovers after restoring the exact source helper.
   $artifactHelper = Join-Path $testRoot 'skills/team-core/scripts/generated-artifacts.ps1'
@@ -80,6 +113,10 @@ try {
     'team-frontend-engineer' = @('gpt-6.1-sol', 'medium')
     'team-reviewer' = @('gpt-6.1-sol', 'high')
     'team-tester' = @('gpt-6.1-sol', 'medium')
+    'team-ai-simulation-actor-basic' = @('gpt-6-luna', 'medium')
+    'team-ai-simulation-actor-advanced' = @('gpt-6.1-sol', 'medium')
+    'team-ai-architect' = @('gpt-6.1-sol', 'xhigh')
+    'team-ai-engineer' = @('gpt-6.1-sol', 'medium')
   }
   foreach ($role in $approvedProfiles.Keys) {
     $agentPath = Join-Path $testRoot "agents/$role.toml"
