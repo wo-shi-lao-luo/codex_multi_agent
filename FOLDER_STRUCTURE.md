@@ -18,6 +18,8 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `skills/team-core/references/documentation-governance.md` — task-scoped sufficiency, PRD authority, ambiguity and legacy contract with runtime schema.
 - `skills/team-core/references/project-rules.md` — target-project instruction-file authority, candidate discovery, approval and maintenance contract.
 - `skills/team-core/scripts/documentation.ps1` — local document inventory, adoption, scoped review and stale-evidence detector.
+- `skills/team-core/scripts/generated-artifacts.ps1` — narrow profile-based local artifact protection and read-only Git-index checks; see `skills/team-core/references/generated-artifacts.md`.
+- `skills/team-core/references/generated-artifacts.md` — artifact profiles, durable evidence boundaries, result schema, conflict handling and caller lifecycle.
 - `skills/team-core/scripts/project-rules.ps1` — read-only discovery metadata for applicable project instruction-file candidates.
 - `skills/team-core/references/code-comments.md` — shared code-comment writing, self-check and review contract.
 - `skills/team-core/references/role-routing.md` and `handoff-format.md` — named-role availability, explicit invocation evidence and final actual child-agent roster contracts.
@@ -38,7 +40,7 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `docs/verification/active/role-invocation.md` — role-routing regression evidence, actual invocation roster and pending human checks for the bounded workflow correction.
 - `docs/verification/active/coverage-sync.md` — manual-to-E2E/other-layer synchronization contract evidence, isolated regressions and pending real-workflow acceptance.
 - `docs/verification/active/small-task-routing.md` — minimal named-team routing, Lead-only exception and complete-workflow evidence; isolated regressions and pending runtime acceptance.
-- `docs/governance/` — this project's documentation adoption marker, index and current scoped reviews, when initialized. Historical system-owned review records stay under `reviews/archive/`.
+- `docs/governance/` — local documentation-adoption metadata, navigation index and scoped review runtime state, when initialized. The Kit keeps `documentation.json`, `doc-index.md` and the entire `reviews/` subtree on disk but outside Git; user-authored governance documents elsewhere remain versionable. A fresh checkout establishes its own adoption/review state from available documents. See `skills/team-core/references/generated-artifacts.md` for exact protection boundaries.
 - `docs/PRD/` — product requirements when needed; do not create an empty folder merely for template completeness.
 - `docs/legacy/` — confirmed superseded project documentation, preserving replacement/reason and references; no automatic age-based moves.
 - `docs/` — architecture, source-attribution notes, and approved system-design specifications.
@@ -59,4 +61,4 @@ Keep this repository as the source of truth. Do not edit installed copies under 
 
 ## Archive policy
 
-System-owned historical documentation-governance reviews are kept under `docs/governance/reviews/archive/`. Move superseded generated artifacts to `待删除/<date>_<reason>/`; preserve source, installed configuration, and user-created project files.
+System-owned documentation-governance reviews, including local history under `docs/governance/reviews/archive/`, remain in place as local runtime state; Git ignore rules do not delete or move them. For other authorized artifact lifecycle work, move clearly superseded generated artifacts to `待删除/<date>_<reason>/` reversibly and preserve source, installed configuration, and user-created project files.

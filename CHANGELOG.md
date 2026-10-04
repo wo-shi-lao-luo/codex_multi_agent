@@ -2,6 +2,11 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [0.10.1] - 2026-10-04
+
+- Add `skills/team-core/scripts/generated-artifacts.ps1` with `Documentation`, `OpenSpec`, and `Work` profiles. `Work` protects only an exact `_work/<boundedtask>` path. `Protect` appends narrowly scoped rules to `ProjectRoot/.gitignore`; `Check` audits the actual index and effective include policy. Documentation temporary rules match only exact Kit-generated siblings with a 32-character lowercase-hex token and `.tmp`, not general `*.tmp` files.
+- Protect documentation and OpenSpec local outputs before writing; `$team-dev` protects each applicable scope before generation and repeats `Protect` plus `Check` before an authorized commit or handoff. The complete Documentation governance runtime bundle (`<DocsRoot>/governance/reviews/` plus the exact `documentation.json` and `doc-index.md` files) stays on disk locally and defaults to ignored; other `governance/` content is not broadly ignored. A fresh checkout must establish adoption/review state from its available documents. User-authored governance docs, PRDs, `AGENTS.md`, Blueprint, active and archived verification packets, and native specs and archives remain versionable. Tracked artifacts and explicit include rules require user-directed handling. No files are automatically untracked or staged; no Git hook, background watcher, or prevention of manual `git add -f` is added. Add isolated real-Git regression coverage; this patch remains a review preview and does not update a local installation.
+
 ## [0.10.0] - 2026-10-04
 
 - Add the `team-project-rules` Skill and shared contract for assessing, drafting, and maintaining target-project `AGENTS.md` instructions; connect it to planning, development preflight, and documentation checks.

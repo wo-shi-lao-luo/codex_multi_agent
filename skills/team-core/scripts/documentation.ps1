@@ -3,6 +3,8 @@
 This runtime verifies authored evidence and its freshness. It cannot establish business
 intent, authenticate user approval, or prove that a document was actually read. The Lead
 must choose sufficient sources and resolve semantic questions before submitting a review.
+The generated marker, index and review subtree form a retained local runtime bundle;
+Git protection does not change authored project documents or review policy/schema.
 #>
 [CmdletBinding()]
 param(
@@ -17,7 +19,8 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $policyVersion = 2
-$kitVersion = '0.10.0'
+# Ignore hygiene changes the executing kit version, not review policy or schema.
+$kitVersion = '0.10.1'
 $categories = @('requirements','architecture','interfaces-data','ui-ux','runtime','testing-acceptance','security-migration')
 $root = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd('/','\')
 if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'PATH: ProjectRoot must be an existing directory.' }
@@ -328,6 +331,8 @@ try {
   }
   if ($Action -eq 'Initialize') {
     if ($null -ne $state -or (Test-Path -LiteralPath $indexPath)) { throw 'EXISTS: Existing governance must be inspected, not overwritten.' }
+    # Validate inventory/configuration first; protection precedes even the local lock.
+    & (Join-Path $PSScriptRoot 'generated-artifacts.ps1') -Action Protect -ProjectRoot $root -DocsRoot $DocsRoot -Profile Documentation | Out-Null
     $lock=Acquire-Lock
     if ((Test-Path -LiteralPath $statePath) -or (Test-Path -LiteralPath $indexPath) -or (Test-Path -LiteralPath $pendingPath)) { throw 'EXISTS: Existing/concurrent governance must be inspected.' }
     $inventory=@(Get-Inventory $null)
@@ -354,6 +359,13 @@ try {
   Assert-Assessment $review $inventory
   $dependencies=@(Get-Dependencies $review.dependencies)
   $stateHash=Get-Hash $statePath
+  # Invalid ownership/evidence must not install ignore policy as a side effect.
+  # These guards are repeated after locking because another writer may intervene.
+  Assert-OwnedIndex $state
+  foreach ($existingId in $state.reviews.Keys) { $null=Read-OwnedReview $state $existingId }
+  $id=$review.scope; $recordRelative="$governance/reviews/$id.json"; $reportRelative="$governance/reviews/$id.md"
+  if (-not $state.reviews.Contains($id) -and ((Test-Path -LiteralPath (Resolve-Project $recordRelative)) -or (Test-Path -LiteralPath (Resolve-Project $reportRelative)))) { throw 'EXISTS: Unowned scope files cannot be overwritten.' }
+  & (Join-Path $PSScriptRoot 'generated-artifacts.ps1') -Action Protect -ProjectRoot $root -DocsRoot $DocsRoot -Profile Documentation | Out-Null
   $lock=Acquire-Lock
   $fresh=Read-State
   if ((Get-Hash $statePath) -cne $stateHash -or (Get-Hash $inputPath) -cne $inputHash -or (Fingerprint @(Get-Inventory $fresh)) -cne (Fingerprint $inventory) -or (Fingerprint @(Get-Dependencies $review.dependencies)) -cne (Fingerprint $dependencies)) { throw 'STALE: Evidence or registry changed during review publication.' }

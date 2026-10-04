@@ -41,6 +41,14 @@ try {
   # Scenario: an intact package. Expected: validation succeeds before mutations.
   Assert-Condition (Invoke-CopiedValidator) 'Baseline validation failed in an isolated package copy.'
 
+  # Scenario: the required local artifact protection helper is absent from the payload.
+  # Expected: package validation fails and recovers after restoring the exact source helper.
+  $artifactHelper = Join-Path $testRoot 'skills/team-core/scripts/generated-artifacts.ps1'
+  Remove-Item -LiteralPath $artifactHelper -Force
+  Assert-Condition (-not (Invoke-CopiedValidator)) 'Validation accepted missing artifact protection helper.'
+  Copy-Item -LiteralPath (Join-Path $root 'skills/team-core/scripts/generated-artifacts.ps1') -Destination $artifactHelper -Force
+  Assert-Condition (Invoke-CopiedValidator) 'Validation did not recover after restoring artifact protection helper.'
+
   # Scenario: a required Team workflow replaces its role-routing link with an existing valid link.
   # Expected: package validation rejects a missing named-role route, then accepts its restoration.
   foreach ($skillName in 'team-dev', 'team-core', 'team-plan', 'team-debug', 'team-review', 'team-doc-check', 'team-project-rules') {

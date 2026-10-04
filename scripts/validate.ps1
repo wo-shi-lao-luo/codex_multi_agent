@@ -166,6 +166,24 @@ foreach ($skillName in @('team-core','team-plan','team-dev','team-review','team-
 foreach ($resource in @('skills/team-doc-check/SKILL.md','skills/team-core/scripts/documentation.ps1','agents/team-docs-maintainer.toml')) {
   if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing documentation resource: $resource") }
 }
+# Ship the narrow local-artifact boundary and its writer routes. This verifies
+# packaging/discovery only; real Git tests establish policy and index behavior.
+$artifactHelper = Join-Path $root 'skills/team-core/scripts/generated-artifacts.ps1'
+if (-not (Test-Path -LiteralPath $artifactHelper -PathType Leaf)) { $failures.Add('Missing generated-artifacts.ps1') }
+foreach ($caller in @('documentation.ps1','openspec-adapter.ps1')) {
+  $callerPath = Join-Path $root "skills/team-core/scripts/$caller"
+  # Missing/empty resources are normal package failures, not null dereferences.
+  $callerContent = if (Test-Path -LiteralPath $callerPath -PathType Leaf) { Get-Content -LiteralPath $callerPath -Raw } else { $null }
+  if ([string]::IsNullOrWhiteSpace($callerContent) -or -not $callerContent.Contains("'generated-artifacts.ps1'")) { $failures.Add("$caller must route writer protection to generated-artifacts.ps1") }
+}
+$artifactContract = Join-Path $root 'skills/team-core/references/generated-artifacts.md'
+if (-not (Test-Path -LiteralPath $artifactContract -PathType Leaf)) { $failures.Add('Missing generated-artifacts.md contract') }
+foreach ($skillName in @('team-core','team-dev','team-doc-check')) {
+  $target = if ($skillName -eq 'team-core') { 'references/generated-artifacts.md' } else { '../team-core/references/generated-artifacts.md' }
+  $file = Join-Path $root "skills/$skillName/SKILL.md"
+  $skillContent = if (Test-Path -LiteralPath $file -PathType Leaf) { Get-Content -LiteralPath $file -Raw } else { $null }
+  if ([string]::IsNullOrWhiteSpace($skillContent) -or -not $skillContent.Contains("]($target)")) { $failures.Add("$skillName must link to generated-artifacts.md") }
+}
 # Require packaged instruction discovery plus real Markdown routes. This guards
 # discovery/distribution only; it cannot authenticate approval or runtime loading.
 foreach ($resource in @('skills/team-project-rules/SKILL.md','skills/team-core/scripts/project-rules.ps1')) {
