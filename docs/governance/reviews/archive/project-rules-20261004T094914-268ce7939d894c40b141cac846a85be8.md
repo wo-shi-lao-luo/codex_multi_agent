@@ -1,0 +1,35 @@
+# Proactive project rules follow-up assessment
+
+The user approved task-time assessment and evidence-backed proposals for target-project instruction coverage, with genuine scoped approval before any creation or modification. Source implementation is complete within that approved scope. Authority did not extend to other real target instruction writes, global settings, installation, commit, push or PR actions; none were performed. The existing unpublished 0.10.0 remains unchanged rather than receiving a separate release increment.
+
+## Scope and sufficiency
+
+Current project instructions, release policy, architecture, relevant workflow routes and final canonical/Skill contents were inspected. The existing inventory has no active applicable PRD; other independent-feature documents remain classified unrelated and are not recertified. Existing DOC-RULES and source placement are reused; no runtime/helper change, new role, schema/policy increment or source restructuring was needed for this follow-up. All preceding dirty source and legitimate governance provenance were preserved.
+
+The implemented rule checks only the task-relevant root-to-working-directory chain at task start, first entry into a relevant module, and relevant evidence changes. Missing, short or old files alone do not establish a gap. Root guidance remains concise and durable; nested instructions require a stable genuinely different module boundary. Detailed requirements, architecture and acceptance evidence stay in authoritative linked documents.
+
+Lead consolidates any child finding and reports exact root/nested path, inspected evidence, current-work impact, concise proposed delta and a real approval question. Every target instruction-file write, including factual or link-only corrections to AGENTS.md, AGENTS.override.md or configured equivalents, requires approval for the bounded path and rules. An explicit user request supplies authority only for its actual scope; ordinary implementation, assessment permission, fingerprints or an authored marker do not. Ambiguity pauses only dependent work. Refusal preserves files and independent authorized development.
+
+Reachable prior actual proposals/decisions suppress unchanged repetition until material relevant evidence or scope changes. Existing Work/governance/project decisions are used where available, with no new tracker or cross-session guarantee without durable evidence. Refusal/deferral never becomes permission later. This is workflow-level checking, not a background watcher/global hook; discovery does not prove host loading or mid-session reload.
+
+## Ownership and verification
+
+This follow-up reused three actual handles with their original explicit role selectors: /root/project_rules_docs (team-docs-maintainer) for instruction/routing/public source; /root/project_rules_tester (team-tester) for preimplementation coverage, packet and verification; /root/project_rules_reviewer (team-reviewer) for independent frozen-source, paired public documents and six raw forward cases. Backend participation recorded in the preceding packet belongs only to the original implementation. No new or recursive child was created; actual resolved host role/model/effort remains unreported, not inferred from profiles. Lead owns scoped assessment publication and final integration.
+
+Tester prepared CASE-PR-F01..F05 and manual-to-E2E checkpoints before production edits. The instruction-decision behavior uses the documented manual-or-environmental track, not invented Red evidence or keyword-regex tests. Fresh affected checks on frozen sources each exited 0: scripts/validate.ps1; scripts/validate-docs.ps1 -ProjectRoot .; tests/test-bilingual-docs.ps1; tests/test-validate.ps1; canonical stage-verification Validate for project-rules. Regression fixture cleanup was observed. Lead independently confirmed its selected 62-file source map identical before and after gates; it is a separate selection from Tester's recorded 64-file post-gate aggregate.
+
+Exact unchanged helper/documentation script-plus-test hashes and environment support reuse of their earlier deterministic executed results. Unchanged generic deployment evidence is also input-specific reuse, not a newly executed rollback or current-package installation. Prior fake-home install evidence belongs to its historical package digest; this changed payload has not been installed or fake-home installation-tested.
+
+Reviewer independently read current final source and all four complete public bilingual documents, preserving factual equivalence and historical release records, with no material issue. PFWD-01..06 provide inspectable semantic walkthroughs of useful root proposal, justified nested proposal, unchanged refusal suppression, materially changed evidence, sufficient-root no-op and narrowly approved factual repair. They are not executed Codex E2E or proof that an active host loaded the new Skill.
+
+## Remaining acceptance boundary
+
+The packet remains active and final manual status remains manual pending. Real fresh-session behavior, automatic proposal/deduplication, actual scoped authoring and effective host loading still need user/environment testing. No user exception closes those gaps. Ready means the current documents are sufficient for the approved bounded source work and follow-on acceptance, not that user acceptance or project-wide coverage has been achieved.
+
+The scoped native review preserves classifications, dependency identities and prior assessment archives. Its authored input is temporary and is removed after publication; durable governance/stage evidence is retained in its established location.
+
+## Release preparation reassessment (2026-10-04)
+
+The user subsequently authorized new-branch commit/publication, local installation and PR. Git disallows the double-slash spelling; codex/lao-luo was created while preserving every current source change. Initial source inspection found only one surplus terminal blank line in the new Skill. Lead removed that blank line, compared the final complete Skill with the reviewed instructions above and confirmed no semantic change; prior review identities stay historical, not rewritten as new evidence.
+
+The final formatted package passed a fresh isolated test-install-user.ps1 run, including install/update/preview/conflict/backup assertions and fixture cleanup; package digest 7fc0f205fa8b77247310dfb033185f8ddd078e116775a1cfc410a29c8a744ae8. Public bilingual structural and regression checks passed; their prose has not changed since the complete independent semantic review. Existing real 0.9.5 payload verification and candidate install preview passed without conflicts. Actual new installation/publication remains a future action at this assessment, rather than a passing claim. Global configuration is preserved; no automatic MarkStable. Native scoped revalidation records the real changed Skill and packet identities. No child agents participated in release operations; original implementation roster remains historical. Real loaded Agent E2E and manual acceptance remain pending.

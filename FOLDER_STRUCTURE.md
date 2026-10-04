@@ -12,10 +12,13 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 
 - `agents/` — native Codex custom-agent TOML files.
 - `agents/team-docs-maintainer.toml` — Luna/high documentation specialist; bounded assigned-doc maintenance and evidence-backed findings.
-- `skills/` — reusable Codex Skills. `team-*` skills are explicit workflow entrypoints; `team-core` bundles their shared policy references for installation.
+- `skills/` — reusable Codex Skills. Most `team-*` Skills are explicit workflow entrypoints; `team-project-rules` also routes from task-time evidence checks in `$team-plan`/`$team-dev`. `team-core` bundles their shared policy references for installation.
 - `skills/team-doc-check/` — documentation readiness/adoption entrypoint; distributed Skill source, not repository discovery configuration.
+- `skills/team-project-rules/` — entrypoint for reviewing, drafting and maintaining target-project `AGENTS.md` files.
 - `skills/team-core/references/documentation-governance.md` — task-scoped sufficiency, PRD authority, ambiguity and legacy contract with runtime schema.
+- `skills/team-core/references/project-rules.md` — target-project instruction-file authority, candidate discovery, approval and maintenance contract.
 - `skills/team-core/scripts/documentation.ps1` — local document inventory, adoption, scoped review and stale-evidence detector.
+- `skills/team-core/scripts/project-rules.ps1` — read-only discovery metadata for applicable project instruction-file candidates.
 - `skills/team-core/references/code-comments.md` — shared code-comment writing, self-check and review contract.
 - `skills/team-core/references/role-routing.md` and `handoff-format.md` — named-role availability, explicit invocation evidence and final actual child-agent roster contracts.
 - `skills/frontend-design/` — implementation-oriented interface design and rendered refinement Skill, distributed by the installer.

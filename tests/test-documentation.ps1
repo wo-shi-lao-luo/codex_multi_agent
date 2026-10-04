@@ -54,6 +54,28 @@ try {
   # Scenario: explicit semantic review. Expected: matching scope/task is reusable, unrelated task is not.
   Record (New-Review)
   & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' | Out-Null
+  # Scenario: higher-priority root instructions appear after review. Expected: inventory includes override, old review stale, bytes untouched.
+  Set-Content "$sandbox/AGENTS.override.md" '# User-owned override policy'
+  $overrideScan=& $script -Action Scan -ProjectRoot $sandbox | ConvertFrom-Json
+  Assert (@($overrideScan.documents | Where-Object path -eq 'AGENTS.override.md').Count -eq 1) 'Root override not inventoried.'
+  Reject { & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' } 'STALE'
+  Record (New-Review)
+  & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' | Out-Null
+  Set-Content "$sandbox/AGENTS.override.md" '# Changed override policy'
+  Reject { & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' } 'STALE'
+  Assert ((Get-Content "$sandbox/AGENTS.override.md" -Raw).Trim() -eq '# Changed override policy') 'Runtime rewrote override policy.'
+  Remove-Item -LiteralPath "$sandbox/AGENTS.override.md"
+  Record (New-Review)
+  # Scenario: a scoped chain review tracks an absent nested override. Expected: later creation invalidates even outside default doc inventory.
+  New-Item -ItemType Directory -Path "$sandbox/app" | Out-Null
+  $chainReview=New-Review; $chainReview.dependencies=@('src/login.ts','app/AGENTS.override.md')
+  Record $chainReview
+  & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' | Out-Null
+  Set-Content "$sandbox/app/AGENTS.override.md" '# Newly effective nested rules'
+  Reject { & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' } 'STALE'
+  Remove-Item -LiteralPath "$sandbox/app/AGENTS.override.md"
+  Remove-Item -LiteralPath "$sandbox/app"
+  Record (New-Review)
   Reject { & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Remove login' } 'STALE'
   # Scenario: an assessment is replaced after genuine re-review. Expected: retain previous report bytes outside current pointers.
   $initialReport=Get-ChildItem -LiteralPath "$sandbox/docs/governance/reviews" -File -Filter '*.md' | Select-Object -First 1

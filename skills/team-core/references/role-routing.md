@@ -5,7 +5,7 @@ The Lead classifies a request before delegating.
 | Condition | Roles |
 |---|---|
 | Code-changing `$team-dev` task, including a small bounded change | One exact named domain implementer plus `team-tester`; the Tester prepares the concise coverage/verification plan before implementation and verifies afterward, with non-overlapping file ownership |
-| Substantial document inventory, adoption, consistency or scoped readiness | `team-docs-maintainer` using team-doc-check; Explorer supplies focused code facts, Architect/Tester judge relevant technical/acceptance gaps through Lead |
+| Substantial document inventory, adoption, consistency or scoped readiness, including target-project `AGENTS.md` lifecycle work | `team-docs-maintainer` using team-doc-check or team-project-rules; Explorer supplies bounded code facts, Architect/Tester judge relevant technical/acceptance gaps through Lead |
 | UI, component, browser behavior, client state | One `team-frontend-engineer` owns the coherent page/flow using frontend-design and frontend-engineering; `team-explorer` first when scope is uncertain |
 | API, service, auth, jobs, integration | `team-backend-engineer`; `team-architect` for cross-cutting contracts |
 | Schema, migration, query plan, index, data repair, transaction | `team-database-specialist`; `team-backend-engineer` consumes the agreed contract |
