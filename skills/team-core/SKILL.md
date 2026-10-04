@@ -9,6 +9,8 @@ For every Team workflow, read [role routing](references/role-routing.md): prefli
 
 Before planning/implementation and when project docs change, read [documentation governance](references/documentation-governance.md). It assigns document content responsibilities and placement, requires bounded evidence-backed corrections discovered during authorized edits, and preserves active PRD authority, optional categories and user decisions on ambiguity. Its docs/governance marker tracks adoption and scoped review evidence; `scripts/documentation.ps1` detects evidence changes without resolving semantics or moving legacy docs.
 
+During `$team-plan` and `$team-dev` preflight, assess applicable target-project instruction coverage at task start, on first entry to a relevant module, and when relevant instruction/command/convention evidence changes. Read the [project-rules contract](references/project-rules.md) for evidence-based proposals, approval scope, deduplication, and candidate discovery. A material gap is presented by the Lead even without an explicit instruction-file request. This workflow checkpoint does not add a background watcher or automatic edit.
+
 When a target project has `openspec/team-integration.json`, read [spec lifecycle](references/spec-lifecycle.md) and [OpenSpec integration](references/openspec-integration.md). This optional adapter keeps the Lead in control and links native specs/tasks to existing stage evidence. Without the marker, do not adopt OpenSpec automatically.
 
 For new pages and visible UI changes, read the [UI delivery contract](references/ui-quality.md). It preserves page-level goals through delegation and separates functional verification from rendered visual inspection; frontend-design supplies the implementation guidance.

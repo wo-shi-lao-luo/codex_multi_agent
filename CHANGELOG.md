@@ -2,6 +2,14 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [0.10.0] - 2026-10-04
+
+- Add the `team-project-rules` Skill and shared contract for assessing, drafting, and maintaining target-project `AGENTS.md` instructions; connect it to planning, development preflight, and documentation checks.
+- Define bounded discovery of root-to-working-directory instruction candidates, including `AGENTS.override.md`, `AGENTS.md`, explicit fallback names, and absent or shadowed paths. The read-only helper reports candidate metadata without exposing instruction contents or global Codex settings.
+- Distinguish agent working guidance from product requirements, architecture, and task acceptance. Require actual user authorization for first creation or policy changes, preserve existing user content, and ask on material ambiguity while allowing independent authorized work to continue.
+- Add isolated coverage for candidate precedence and scope, documentation review dependencies, and package routing. Discovery does not draft policy, authenticate approval, or prove the active Codex session loaded an instruction file.
+- Assess instruction coverage at task start, first entry to a relevant module, and when related evidence changes; surface only material, evidenced gaps to the user, and require approval for every target instruction-file write. Reuse reachable decisions to avoid duplicate proposals; no background watcher or missing/short/old-file trigger is added.
+
 ## [0.9.5] - 2026-10-02
 
 - Add risk-tiered test selection from changed behavior through affected modules/dependents, stage-impact and core smoke checks, with broader or full-suite execution when cheaper, required by repository gates, or justified by shared/security/data/dependency/build/test configuration, integration, or uncertain impact. E2E/manual coverage and acceptance gates remain unchanged.

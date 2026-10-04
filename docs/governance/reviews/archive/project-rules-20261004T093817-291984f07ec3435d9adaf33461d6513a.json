@@ -1,0 +1,603 @@
+{
+  "scope": "project-rules",
+  "dependencies": [
+    {
+      "sha256": null,
+      "exists": false,
+      "path": "AGENTS.override.md"
+    },
+    {
+      "sha256": "73176aa2978e42e392c1341f2626e5dd18f63de203b6c7ccf9f66e329162868e",
+      "exists": true,
+      "path": "agents/team-docs-maintainer.toml"
+    },
+    {
+      "sha256": "7308b69075e1162b9a0c5628220f6883b02f60cdf9025d5daf7493b3f61395d7",
+      "exists": true,
+      "path": "CHANGELOG.md"
+    },
+    {
+      "sha256": "c3f6aaa1234a7f1654e4788d6506be987d647a0ac3502d312cf908db795ca37e",
+      "exists": true,
+      "path": "CHANGELOG.zh-CN.md"
+    },
+    {
+      "sha256": "fe8ee8507e498df7d0856a0b652f446c91b10d0fdad6e1ed50933ae1b011a79c",
+      "exists": true,
+      "path": "FOLDER_STRUCTURE.md"
+    },
+    {
+      "sha256": "68586aefbb26758c596aad122861ef9767b4c2b0758528c79f87a0ddde55e394",
+      "exists": true,
+      "path": "README.zh-CN.md"
+    },
+    {
+      "sha256": "37216fb6e7db674aba0cc61c1c07e77f3dda0c4da90f2d193d500a1a2e309f1f",
+      "exists": true,
+      "path": "scripts/deploy-user.ps1"
+    },
+    {
+      "sha256": "6ae7380f7c902619766e4744ddcb6e44cdbd64e9f00d41986a99ecd8f18ada54",
+      "exists": true,
+      "path": "scripts/install-user.ps1"
+    },
+    {
+      "sha256": "af931899ca9f8f1b77930d061f724273571aa55399bcc9a759a486da8c0244aa",
+      "exists": true,
+      "path": "scripts/validate-docs.ps1"
+    },
+    {
+      "sha256": "c27ae4e3d9cea61610de4532b60659bc60eac6e09b8a064d41b065919d9687fc",
+      "exists": true,
+      "path": "scripts/validate.ps1"
+    },
+    {
+      "sha256": "b0b50f53b1d186d57c8fa39de8ace48f5488746528b0deeae5401e8ca79ba750",
+      "exists": true,
+      "path": "skills/team-core/references/documentation-governance.md"
+    },
+    {
+      "sha256": "8eba417169eb366346c9412fa3d0ef83fafddd0733b0865f06c5fea3599bfeb5",
+      "exists": true,
+      "path": "skills/team-core/references/execution-contract.md"
+    },
+    {
+      "sha256": "356682fd74c2f983bd7f9a03f7c8357e8024cff4f80225f446afcbb4505c1ba2",
+      "exists": true,
+      "path": "skills/team-core/references/project-rules.md"
+    },
+    {
+      "sha256": "061203018347950590a9c3363a04971317de091ff3a572fd1c93974e4fa027d9",
+      "exists": true,
+      "path": "skills/team-core/references/role-routing.md"
+    },
+    {
+      "sha256": "53d6e80bf5b200bd10897fc6dd84bfb4da7b2a381d3e688c35443f3655079eb9",
+      "exists": true,
+      "path": "skills/team-core/scripts/documentation.ps1"
+    },
+    {
+      "sha256": "c94ec928b8f54a2f20454a0ebe8476580b5036887b0c32f5fa2489aeb0bfe34f",
+      "exists": true,
+      "path": "skills/team-core/scripts/project-rules.ps1"
+    },
+    {
+      "sha256": "77a4fbc626e31678b6242bfee337d6353f67489e1956cd9fc59645652dfc12fb",
+      "exists": true,
+      "path": "skills/team-core/scripts/stage-verification.ps1"
+    },
+    {
+      "sha256": "dde6e71220d4e7be1015892e87e0f6c03893f09d75a25cc48f56ee23778b92be",
+      "exists": true,
+      "path": "skills/team-core/SKILL.md"
+    },
+    {
+      "sha256": "fc3fe435d7ca7eb1714f193c43d9699c7cff466c9dc4f140c234c30ca918c789",
+      "exists": true,
+      "path": "skills/team-dev/SKILL.md"
+    },
+    {
+      "sha256": "fe2a9d16791ac7d3f2dc927c506baf0130545a0a508c979a4f58b97598acafdf",
+      "exists": true,
+      "path": "skills/team-doc-check/SKILL.md"
+    },
+    {
+      "sha256": "b2a42a2df13b8d423cb54810fa8d50b3d8746704916cff6bd21b9199da80d501",
+      "exists": true,
+      "path": "skills/team-plan/SKILL.md"
+    },
+    {
+      "sha256": "e5d9296f230bdeaaab5dff106a2516ea41a649dc9e39cc6ee1129288653ca9ea",
+      "exists": true,
+      "path": "skills/team-project-rules/SKILL.md"
+    },
+    {
+      "sha256": "139765e52944edba8113d4ecc43a662e51fdf3dea6493449e24ba616a120cdba",
+      "exists": true,
+      "path": "tests/test-bilingual-docs.ps1"
+    },
+    {
+      "sha256": "3a7e802afddfc5e72770fb9a52fedd9a2d7602f432cb9b70c05bb3c655b551d1",
+      "exists": true,
+      "path": "tests/test-deployment.ps1"
+    },
+    {
+      "sha256": "a03a677a7fcbf256d37931da32c1af06a0a0fbffa5a6576d2f9113da68b29494",
+      "exists": true,
+      "path": "tests/test-documentation.ps1"
+    },
+    {
+      "sha256": "41368bc9dce69e7b7e8290f8c3434ade8246ec586d44b242634125ee757dcad0",
+      "exists": true,
+      "path": "tests/test-install-user.ps1"
+    },
+    {
+      "sha256": "ffdba73fe285ea7a04a4b6ef1b6f76a23ec75a0bb25c06aa341fb8d040f2e6a8",
+      "exists": true,
+      "path": "tests/test-project-rules.ps1"
+    },
+    {
+      "sha256": "e81d126cc9eb2138bb1517e4a61fc432ce2cfbfe7caa0fdeeec3b92f43aee198",
+      "exists": true,
+      "path": "tests/test-stage-verification.ps1"
+    },
+    {
+      "sha256": "bb171839577a4da509d78f00ba84d13c4efead08666df5d41afc61f88dd7f68d",
+      "exists": true,
+      "path": "tests/test-validate.ps1"
+    },
+    {
+      "sha256": "79370f5fc166b688207f169f7f80fb31e0646a55ac956637a579688986aa0f91",
+      "exists": true,
+      "path": "VERSION"
+    }
+  ],
+  "fingerprints": {
+    "task": "972d534bc078da585f5f39f0b3e085e0fa8c35a3e910d898ccc5d7a59de4f61c",
+    "classifications": "1e17c46d6735310088c4f68771f3a624d9f95cf9dc4e3ecd969327309bb14e37",
+    "inventory": "c4d3f117df0de0c01091266a9e57cce49cc79877af18d08570c02d666cfc6788",
+    "dependencies": "b0bd563f44ac236d90fa8bc599eecf0f9708a318b2c4afff17d313069c013a76"
+  },
+  "inventory": [
+    {
+      "sha256": "1fb41704bc00c4a077ffc58b0a9b828183324e7db26e5e933d7d36779146099b",
+      "path": "AGENTS.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "b9b7da4dda4c6cb7ac3eda94fc7d570fdeefcd6178d155d0c1a027099d237c03",
+      "path": "docs/architecture.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "d4ebf113c2ba616b719efcb4cdfb89842c4143cd053051758672439c0f5275c7",
+      "path": "docs/release-versioning.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "08a30663808c799d21794a536438e8968e732d62c40142c8354ef97995c8ad2a",
+      "path": "docs/safe-deployment.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "1e20e19800706dd1554e6df0447798a113e8621c66bff15f95ef1d368733abdf",
+      "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "f649a8d2a16e4b542252845becafa606f102fb52da5e0a3572fe052b5487c95b",
+      "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "bee6c2516fc693b297d1c22128590f4fa7abadd17e3296132a126141e94263a4",
+      "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "e0efed3c43a2bba37ffe73923e2678ba870757c42380d5530a5fd38977d63e53",
+      "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "e2b88207b27a6d7c111ba2819253d79fd1c3de2992790bb11916ccd0d43d6d90",
+      "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "0bce4be17245a8028887538e8db5b94fd169e2668c809ef475aa288063ee9132",
+      "path": "docs/upstreams.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "12002a266f8cd242b70d5ddee89d2a09fb7c1374bfd5aff249c91700edf45d8d",
+      "path": "docs/verification/active/adaptive-concurrency.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "2626ac01bfc3dfe4c0a1f2b4f0bb9d8a5baf7b2550213889909881ce03c785ec",
+      "path": "docs/verification/active/bilingual-docs.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "68a20b8084f9bc030cd3a29651da799b723952b0f72776b899bbd0bd7bb0d651",
+      "path": "docs/verification/active/coverage-sync.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "cfc84f4949a829d88c2f31cf2cd3f0c8eb403a47b1467ff3019d6b56c229612d",
+      "path": "docs/verification/active/doc-content-placement.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "571f904e4931d2790e75edf16d2f62e74a7612b2f74c1f1302e714520baff922",
+      "path": "docs/verification/active/documentation-governance.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "66a585a2cdcfad98c8322399ef0bd7be00f1c3f2fa54173e35a4da08964733a8",
+      "path": "docs/verification/active/efficient-test-execution.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "763d2ab2d966e92a86bb32bdc5bb13003937bea87fc2f481b70cd57306fc9e53",
+      "path": "docs/verification/active/openspec-integration.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "204ae7ea9daaf1b9ba48e1e77fc7fd4687bad0d59281007c6f09010b58aa56de",
+      "path": "docs/verification/active/project-rules.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "a7d597658f3f202ef7f38a13bad18e8fd8189b344fa2e6bb5f43c22856648d91",
+      "path": "docs/verification/active/repair-loop-guard.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "12e1df3eab1213f405509866414e2f9ae240600436e35cbeff1655c8a6376d04",
+      "path": "docs/verification/active/role-invocation.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "829cdedf24dc0663b0693f29d888fbcf956f0d3459be4fe0c8d35e4abc0aa809",
+      "path": "docs/verification/active/safe-deployment.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "f67691e42d1c3ddc4584f50633b50834f09aceb661c429597e40f67a4d40fa9f",
+      "path": "docs/verification/active/small-task-routing.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "809d5eee026d7d48fd5c3c8ada082b1ac652039767db6ea21e2a455829d4c0eb",
+      "path": "docs/verification/active/tiered-test-execution.md",
+      "kind": "text"
+    },
+    {
+      "sha256": "2fb0b6bd3c46ef545f4120d7391750e3bfd438e640db4ec0b1c441f48b0bee03",
+      "path": "README.md",
+      "kind": "text"
+    }
+  ],
+  "schemaVersion": 1,
+  "kitVersion": "0.10.0",
+  "assessment": {
+    "schemaVersion": 1,
+    "scope": "project-rules",
+    "task": "Extend approved project-rules capability with proactive approval-gated proposals",
+    "outcome": "ready",
+    "summary": "Completed scoped source assessment: proactive task/module/evidence checkpoints and bounded evidence-backed proposals; all target instruction writes require genuine scoped user approval. Five affected checks and independent semantic review passed; real Agent E2E and human acceptance remain pending.",
+    "documents": [
+      {
+        "path": "AGENTS.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read actual current source for approved scope; no approval authentication inferred."
+      },
+      {
+        "path": "docs/architecture.md",
+        "category": "architecture",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read actual current source for approved scope; no approval authentication inferred."
+      },
+      {
+        "path": "docs/release-versioning.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read actual current source for approved scope; no approval authentication inferred."
+      },
+      {
+        "path": "docs/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/superpowers/plans/2026-09-20-tdd-protocol-implementation-plan.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-18-feedback-loop-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-project-blueprint-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-tdd-protocol-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/superpowers/specs/2026-09-20-test-first-acceptance-design.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/upstreams.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/adaptive-concurrency.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/bilingual-docs.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/coverage-sync.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/doc-content-placement.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/documentation-governance.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/efficient-test-execution.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/openspec-integration.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/repair-loop-guard.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/role-invocation.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/safe-deployment.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/small-task-routing.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "docs/verification/active/tiered-test-execution.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "unrelated",
+        "reason": "Independent prior capability/design/QA source outside this task; preserve without claiming full inspection or acceptance."
+      },
+      {
+        "path": "README.md",
+        "category": "reference",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read actual current source for approved scope; no approval authentication inferred."
+      },
+      {
+        "path": "docs/verification/active/project-rules.md",
+        "category": "testing-acceptance",
+        "lifecycle": "active",
+        "authority": "supporting",
+        "disposition": "read",
+        "reason": "Read existing packet, preimplementation CASE-PR-F01..F05, affected test/reuse provenance, actual follow-up three-role ledger and independent PFWD-01..06 semantic evidence; real-session/manual acceptance remains pending."
+      }
+    ],
+    "dependencies": [
+      "skills/team-core/scripts/documentation.ps1",
+      "scripts/validate.ps1",
+      "skills/team-core/SKILL.md",
+      "skills/team-dev/SKILL.md",
+      "skills/team-plan/SKILL.md",
+      "skills/team-doc-check/SKILL.md",
+      "skills/team-core/references/documentation-governance.md",
+      "skills/team-core/references/project-rules.md",
+      "skills/team-project-rules/SKILL.md",
+      "skills/team-core/scripts/project-rules.ps1",
+      "AGENTS.override.md",
+      "VERSION",
+      "README.zh-CN.md",
+      "CHANGELOG.md",
+      "CHANGELOG.zh-CN.md",
+      "skills/team-core/references/execution-contract.md",
+      "skills/team-core/references/role-routing.md",
+      "agents/team-docs-maintainer.toml",
+      "FOLDER_STRUCTURE.md",
+      "tests/test-project-rules.ps1",
+      "tests/test-documentation.ps1",
+      "tests/test-validate.ps1",
+      "tests/test-install-user.ps1",
+      "tests/test-deployment.ps1",
+      "scripts/install-user.ps1",
+      "scripts/deploy-user.ps1",
+      "scripts/validate-docs.ps1",
+      "tests/test-bilingual-docs.ps1",
+      "tests/test-stage-verification.ps1",
+      "skills/team-core/scripts/stage-verification.ps1"
+    ],
+    "evidence": [
+      "user: approved bounded proactive assessment/proposal design; kit-source implementation only, no target instruction write, installation, commit/push or global config authority",
+      "skills/team-project-rules/SKILL.md: read final activation, workflow and output; task-time checks, evidence threshold, actual scoped approval, prior decisions and host-loading unknown",
+      "skills/team-core/references/project-rules.md: read final canonical bounded chains, gap evidence, Lead proposals, all-write approval and dedup/independent-work boundaries",
+      "skills/team-plan/SKILL.md; skills/team-dev/SKILL.md; skills/team-doc-check/SKILL.md; skills/team-core/SKILL.md: final workflow routes inspected",
+      "skills/team-core/references/execution-contract.md; skills/team-core/references/documentation-governance.md; agents/team-docs-maintainer.toml: final matching scope/approval responsibilities inspected",
+      "README.md; README.zh-CN.md; CHANGELOG.md; CHANGELOG.zh-CN.md: original complete documents inspected by Lead; final complete paired documents independently reread by Reviewer with no material semantic discrepancy; histories retained",
+      "docs/architecture.md; FOLDER_STRUCTURE.md: existing DOC-RULES and source placement amended, no structural refactor or new role",
+      "docs/verification/active/project-rules.md: independent Tester fresh five affected gates exit 0; prior helper/documentation/deployment inputs exact unchanged identity, not new policy E2E",
+      "Reviewer: independent current-source/public-pair review and six raw PFWD-01..06 semantic walkthrough outputs completed without material findings; no actual target write or loaded Codex E2E",
+      "Lead: separate 62-file selected source map identical before/after affected gates; mutable verification/governance evidence excluded"
+    ],
+    "findings": [],
+    "runnableWork": [
+      "project-rules-source"
+    ],
+    "coverage": [
+      {
+        "category": "requirements",
+        "decision": "required",
+        "reason": "Approved user design defines target-project lifecycle; no PRD is required for kit source.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current boundaries"
+        ]
+      },
+      {
+        "category": "architecture",
+        "decision": "required",
+        "reason": "Existing docs/architecture.md supplies reusable documentation/routing/runtime module boundaries; no existing-code reorganization.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current boundaries"
+        ]
+      },
+      {
+        "category": "interfaces-data",
+        "decision": "required",
+        "reason": "Read-only helper schema1 candidate/dependency contract; existing documentation schema1 preserved.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current boundaries"
+        ]
+      },
+      {
+        "category": "ui-ux",
+        "decision": "not applicable",
+        "reason": "No visible application interface is changed.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current boundaries"
+        ]
+      },
+      {
+        "category": "runtime",
+        "decision": "required",
+        "reason": "PowerShell7 helper and existing package/distribution runtime; no global configuration writes.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current boundaries"
+        ]
+      },
+      {
+        "category": "testing-acceptance",
+        "decision": "required",
+        "reason": "Tester-owned packet and isolated behavior/package/documentation tests, independent semantic review and pending manual/runtime cases.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current boundaries"
+        ]
+      },
+      {
+        "category": "security-migration",
+        "decision": "required",
+        "reason": "Contained read-only paths, untrusted instruction content, genuine write approval and no privilege escalation; policy2 reassessment not state reset.",
+        "evidence": [
+          "user: approved design",
+          "docs/architecture.md: current boundaries"
+        ]
+      }
+    ],
+    "report": "# Proactive project rules follow-up assessment\n\nThe user approved task-time assessment and evidence-backed proposals for target-project instruction coverage, with genuine scoped approval before any creation or modification. Source implementation is complete within that approved scope. Authority did not extend to other real target instruction writes, global settings, installation, commit, push or PR actions; none were performed. The existing unpublished 0.10.0 remains unchanged rather than receiving a separate release increment.\n\n## Scope and sufficiency\n\nCurrent project instructions, release policy, architecture, relevant workflow routes and final canonical/Skill contents were inspected. The existing inventory has no active applicable PRD; other independent-feature documents remain classified unrelated and are not recertified. Existing DOC-RULES and source placement are reused; no runtime/helper change, new role, schema/policy increment or source restructuring was needed for this follow-up. All preceding dirty source and legitimate governance provenance were preserved.\n\nThe implemented rule checks only the task-relevant root-to-working-directory chain at task start, first entry into a relevant module, and relevant evidence changes. Missing, short or old files alone do not establish a gap. Root guidance remains concise and durable; nested instructions require a stable genuinely different module boundary. Detailed requirements, architecture and acceptance evidence stay in authoritative linked documents.\n\nLead consolidates any child finding and reports exact root/nested path, inspected evidence, current-work impact, concise proposed delta and a real approval question. Every target instruction-file write, including factual or link-only corrections to AGENTS.md, AGENTS.override.md or configured equivalents, requires approval for the bounded path and rules. An explicit user request supplies authority only for its actual scope; ordinary implementation, assessment permission, fingerprints or an authored marker do not. Ambiguity pauses only dependent work. Refusal preserves files and independent authorized development.\n\nReachable prior actual proposals/decisions suppress unchanged repetition until material relevant evidence or scope changes. Existing Work/governance/project decisions are used where available, with no new tracker or cross-session guarantee without durable evidence. Refusal/deferral never becomes permission later. This is workflow-level checking, not a background watcher/global hook; discovery does not prove host loading or mid-session reload.\n\n## Ownership and verification\n\nThis follow-up reused three actual handles with their original explicit role selectors: /root/project_rules_docs (team-docs-maintainer) for instruction/routing/public source; /root/project_rules_tester (team-tester) for preimplementation coverage, packet and verification; /root/project_rules_reviewer (team-reviewer) for independent frozen-source, paired public documents and six raw forward cases. Backend participation recorded in the preceding packet belongs only to the original implementation. No new or recursive child was created; actual resolved host role/model/effort remains unreported, not inferred from profiles. Lead owns scoped assessment publication and final integration.\n\nTester prepared CASE-PR-F01..F05 and manual-to-E2E checkpoints before production edits. The instruction-decision behavior uses the documented manual-or-environmental track, not invented Red evidence or keyword-regex tests. Fresh affected checks on frozen sources each exited 0: scripts/validate.ps1; scripts/validate-docs.ps1 -ProjectRoot .; tests/test-bilingual-docs.ps1; tests/test-validate.ps1; canonical stage-verification Validate for project-rules. Regression fixture cleanup was observed. Lead independently confirmed its selected 62-file source map identical before and after gates; it is a separate selection from Tester's recorded 64-file post-gate aggregate.\n\nExact unchanged helper/documentation script-plus-test hashes and environment support reuse of their earlier deterministic executed results. Unchanged generic deployment evidence is also input-specific reuse, not a newly executed rollback or current-package installation. Prior fake-home install evidence belongs to its historical package digest; this changed payload has not been installed or fake-home installation-tested.\n\nReviewer independently read current final source and all four complete public bilingual documents, preserving factual equivalence and historical release records, with no material issue. PFWD-01..06 provide inspectable semantic walkthroughs of useful root proposal, justified nested proposal, unchanged refusal suppression, materially changed evidence, sufficient-root no-op and narrowly approved factual repair. They are not executed Codex E2E or proof that an active host loaded the new Skill.\n\n## Remaining acceptance boundary\n\nThe packet remains active and final manual status remains manual pending. Real fresh-session behavior, automatic proposal/deduplication, actual scoped authoring and effective host loading still need user/environment testing. No user exception closes those gaps. Ready means the current documents are sufficient for the approved bounded source work and follow-on acceptance, not that user acceptance or project-wide coverage has been achieved.\n\nThe scoped native review preserves classifications, dependency identities and prior assessment archives. Its authored input is temporary and is removed after publication; durable governance/stage evidence is retained in its established location.\n"
+  },
+  "reportSha256": "d4b704a4e9f9466c64e0571dba2a98d0afabd2f262fde9e48040a8e8d6c2b801",
+  "policyVersion": 2,
+  "createdAt": "2026-10-04T09:20:16.2420968Z"
+}

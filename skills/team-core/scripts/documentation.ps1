@@ -16,8 +16,8 @@ param(
   [string]$WorkItem
 )
 $ErrorActionPreference = 'Stop'
-$policyVersion = 1
-$kitVersion = '0.9.5'
+$policyVersion = 2
+$kitVersion = '0.10.0'
 $categories = @('requirements','architecture','interfaces-data','ui-ux','runtime','testing-acceptance','security-migration')
 $root = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd('/','\')
 if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'PATH: ProjectRoot must be an existing directory.' }
@@ -131,7 +131,9 @@ function Get-Inventory($State) {
     } elseif (-not $observed.ContainsKey($Relative)) { $observed[$Relative]=$true; $paths.Add($Relative) }
   }
   Visit $DocsRoot
-  foreach ($path in @('README.md','AGENTS.md')) { Visit $path }
+  # Root overrides are relevant even when they shadow AGENTS.md. Nested/fallback
+  # candidates remain task-scoped dependencies, not an automatic recursive scan.
+  foreach ($path in @('README.md','AGENTS.md','AGENTS.override.md')) { Visit $path }
   $extras = if ($null -ne $State) { @($State.additionalPaths) } else { @($AdditionalPaths) }
   foreach ($path in $extras) { $normalized=Normalize-Path $path; Visit $normalized }
   return @($paths | Sort-Object | ForEach-Object {
@@ -321,7 +323,7 @@ try {
   $inventory=@(Get-Inventory $state)
   if ($Action -in @('Scan','Status')) {
     $delta=Get-Delta $state $inventory
-    @{action=$Action.ToLowerInvariant();adopted=($null -ne $state);policyVersion=$policyVersion;recordedPolicyVersion=if ($state) {$state.policyVersion} else {$null};docsRoot=$DocsRoot;documents=$inventory;added=$delta.added;changed=$delta.changed;removed=$delta.removed;reviews=if ($state) {@($state.reviews.Keys | Sort-Object)} else {@()};boundaries=@{documentRoot=$DocsRoot;additionalPaths=if ($state) {@($state.additionalPaths)} else {@($AdditionalPaths)};rootDocuments=@('README.md','AGENTS.md');excluded=@('governance records','credentials','dependency trees','generated output');attachments='Inventoried, not interpreted or presumed read.'};limitation='Inventory and fingerprints do not prove semantic sufficiency or user approval.'} | ConvertTo-Json -Depth 30
+    @{action=$Action.ToLowerInvariant();adopted=($null -ne $state);policyVersion=$policyVersion;recordedPolicyVersion=if ($state) {$state.policyVersion} else {$null};docsRoot=$DocsRoot;documents=$inventory;added=$delta.added;changed=$delta.changed;removed=$delta.removed;reviews=if ($state) {@($state.reviews.Keys | Sort-Object)} else {@()};boundaries=@{documentRoot=$DocsRoot;additionalPaths=if ($state) {@($state.additionalPaths)} else {@($AdditionalPaths)};rootDocuments=@('README.md','AGENTS.md','AGENTS.override.md');excluded=@('governance records','credentials','dependency trees','generated output');attachments='Inventoried, not interpreted or presumed read.'};limitation='Inventory and fingerprints do not prove semantic sufficiency or user approval.'} | ConvertTo-Json -Depth 30
     return
   }
   if ($Action -eq 'Initialize') {

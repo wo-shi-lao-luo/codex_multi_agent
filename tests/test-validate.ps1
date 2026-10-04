@@ -43,7 +43,7 @@ try {
 
   # Scenario: a required Team workflow replaces its role-routing link with an existing valid link.
   # Expected: package validation rejects a missing named-role route, then accepts its restoration.
-  foreach ($skillName in 'team-dev', 'team-core', 'team-plan', 'team-debug', 'team-review', 'team-doc-check') {
+  foreach ($skillName in 'team-dev', 'team-core', 'team-plan', 'team-debug', 'team-review', 'team-doc-check', 'team-project-rules') {
     $roleSkill = Join-Path $testRoot "skills/$skillName/SKILL.md"
     $originalRoleSkill = Get-Content -LiteralPath $roleSkill -Raw
     Assert-Condition ($originalRoleSkill.Contains('role-routing.md')) "Required role-routing route is absent in $skillName."
@@ -109,6 +109,27 @@ try {
     Copy-Item -LiteralPath (Join-Path $root "skills/$name/SKILL.md") -Destination $file -Force
   }
   Assert-Condition (Invoke-CopiedValidator) 'Restored documentation routes did not validate.'
+
+  # Scenario: target-project instruction capability loses a distributed resource.
+  # Expected: reject each omission and accept exact restoration, without installing anything.
+  foreach ($relative in @('skills/team-project-rules/SKILL.md','skills/team-core/references/project-rules.md','skills/team-core/scripts/project-rules.ps1')) {
+    $file=Join-Path $testRoot $relative
+    Remove-Item -LiteralPath $file
+    Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted missing project-rule resource $relative."
+    Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $file
+    Assert-Condition (Invoke-CopiedValidator) "Validation did not recover after restoring $relative."
+  }
+  # Scenario: a workflow substitutes another valid local link for project-rule routing.
+  # Expected: reject the missing route; ordinary Markdown link validity is insufficient.
+  foreach ($name in @('team-core','team-dev','team-plan','team-doc-check','team-project-rules')) {
+    $file=Join-Path $testRoot "skills/$name/SKILL.md"
+    $text=Get-Content -LiteralPath $file -Raw
+    Assert-Condition ($text.Contains('project-rules.md')) "Required project-rule route absent in $name."
+    Set-Content -LiteralPath $file -Value ($text.Replace('project-rules.md','execution-contract.md'))
+    Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted missing project-rule route in $name."
+    Copy-Item -LiteralPath (Join-Path $root "skills/$name/SKILL.md") -Destination $file -Force
+  }
+  Assert-Condition (Invoke-CopiedValidator) 'Restored project-rule routing did not validate.'
 
   # Scenario: each UI workflow loses its contract route while links remain valid.
   # Expected: reject each mutation, and accept the restored package.

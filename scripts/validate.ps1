@@ -141,6 +141,7 @@ $coreReferences += 'project-blueprint.md'
 $coreReferences += 'code-comments.md'
 $coreReferences += 'ui-quality.md'
 $coreReferences += 'documentation-governance.md'
+$coreReferences += 'project-rules.md'
 foreach ($reference in $coreReferences) {
   if (-not (Test-Path -LiteralPath (Join-Path $coreReferenceDirectory $reference))) {
     $failures.Add("team-core is missing reference $reference")
@@ -150,7 +151,7 @@ foreach ($reference in $coreReferences) {
 # Guard discovery routes and distribution; semantic readiness is checked by the Lead, not regexes.
 # Losing a direct routing link must fail even when a replacement Markdown link
 # resolves. This checks packaged discovery, not actual future spawn arguments.
-foreach ($skillName in @('team-core','team-dev','team-plan','team-debug','team-review','team-doc-check')) {
+foreach ($skillName in @('team-core','team-dev','team-plan','team-debug','team-review','team-doc-check','team-project-rules')) {
   $target = if ($skillName -eq 'team-core') { 'references/role-routing.md' } else { '../team-core/references/role-routing.md' }
   $file = Join-Path $root "skills/$skillName/SKILL.md"
   if (-not (Test-Path -LiteralPath $file -PathType Leaf) -or -not (Get-Content -LiteralPath $file -Raw).Contains("]($target)")) {
@@ -164,6 +165,16 @@ foreach ($skillName in @('team-core','team-plan','team-dev','team-review','team-
 }
 foreach ($resource in @('skills/team-doc-check/SKILL.md','skills/team-core/scripts/documentation.ps1','agents/team-docs-maintainer.toml')) {
   if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing documentation resource: $resource") }
+}
+# Require packaged instruction discovery plus real Markdown routes. This guards
+# discovery/distribution only; it cannot authenticate approval or runtime loading.
+foreach ($resource in @('skills/team-project-rules/SKILL.md','skills/team-core/scripts/project-rules.ps1')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing project-rules resource: $resource") }
+}
+foreach ($skillName in @('team-core','team-doc-check','team-dev','team-plan','team-project-rules')) {
+  $target = if ($skillName -eq 'team-core') { 'references/project-rules.md' } else { '../team-core/references/project-rules.md' }
+  $file = Join-Path $root "skills/$skillName/SKILL.md"
+  if (-not (Test-Path -LiteralPath $file -PathType Leaf) -or (Get-Content -LiteralPath $file -Raw) -notmatch ('\]\(' + [regex]::Escape($target) + '\)')) { $failures.Add("$skillName must link to project-rules.md") }
 }
 $docsAgent=Join-Path $root 'agents/team-docs-maintainer.toml'
 if (Test-Path -LiteralPath $docsAgent) {
