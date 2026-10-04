@@ -36,7 +36,7 @@ Unresolved documentation findings and permitted independent work:
 Expected result:
 Shared contract or compatibility concern:
 Verification:
-Persistent issue guard (when applicable; see [repair and diagnosis loop guard](repair-loop-guard.md)): acceptance/conditions/deviation identity; mode and user authorization; prior history reference; diagnostic/repair allocation; long-operation progress checkpoints; stop condition:
+Persistent issue guard (when applicable; see [repair and diagnosis loop guard](repair-loop-guard.md)): acceptance/conditions/deviation identity; mode and user authorization; prior history reference; diagnostic/repair allocation; external research question/sources/applicability and local validation (when relevant); whether the single evidence-qualified ordinary extension is used; long-operation progress checkpoints; stop condition:
 Test execution choices (before implementation): entrypoint and real boundary, runner/command, observation mode and rationale, browser/visual checkpoints, and any API/integration evidence used to reduce duplicate browser permutations (see [efficient test execution](test-acceptance-contract.md#efficient-test-execution)):
 Tier/reuse plan (when applicable): target test/CASE IDs; selected tier and rationale; prior artifact input identity/provenance or rerun trigger; expansion/full-suite gates; forecast or `unknown`; user hard budget, if any:
 Recovery or rollout consideration:
@@ -73,7 +73,7 @@ UI functional evidence (when applicable):
 UI visual status: verified | issues remain | not verified | not applicable (reason)
 UI rendered evidence: revision, route/page, viewport, state, observation or screenshot reference
 UI fixes, re-inspection and remaining gaps:
-Persistent issue guard (when applicable; see [repair and diagnosis loop guard](repair-loop-guard.md)): issue identity (acceptance + conditions + deviation); mode and user authorization; repair failures / diagnostic rounds and prior history reference; next allowed attempt and stop condition:
+Persistent issue guard (when applicable; see [repair and diagnosis loop guard](repair-loop-guard.md)): issue identity (acceptance + conditions + deviation); mode and user authorization; repair failures / diagnostic rounds and prior history reference; external research question, sources, applicability, adopted/rejected evidence and local validation; extension used/remaining; next allowed attempt and stop condition:
 Long operation checkpoint (when applicable): expected progress evidence, checkpoint, observed state, continue/pause decision:
 Pause report / human decision (when applicable): trigger, facts vs ranked hypotheses, exact input and reason, bounded recommendation, preserved state, user decision:
 ```
@@ -102,6 +102,8 @@ Discriminating check:
 Result: supported | rejected | inconclusive
 Next investigation or fix scope:
 Guard history reference / completed diagnostic round and consecutive completed rounds without useful evidence/narrowing:
+External research (if triggered): sanitized question; source and version/platform/trigger fit; finding and source type (official/upstream/community); adopted | rejected | inconclusive; local discriminating check and result:
+Ordinary repair extension gate (if applicable): evidence supports a materially new strategy beyond every failed strategy; original authorization and user budget checked; extension used (yes/no); repair attempts remaining; stop condition:
 ```
 
 ## Review coverage record

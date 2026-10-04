@@ -9,7 +9,7 @@ The Lead classifies a request before delegating.
 | UI, component, browser behavior, client state | One `team-frontend-engineer` owns the coherent page/flow using frontend-design and frontend-engineering; `team-explorer` first when scope is uncertain |
 | API, service, auth, jobs, integration | `team-backend-engineer`; `team-architect` for cross-cutting contracts |
 | Schema, migration, query plan, index, data repair, transaction | `team-database-specialist`; `team-backend-engineer` consumes the agreed contract |
-| Unknown root cause | `team-explorer` plus `team-tester`; `team-architect` when causes span modules |
+| Unknown root cause | `team-explorer` plus `team-tester`; `team-architect` when causes span modules. When external evidence is called for, the Lead may assign Explorer one bounded, read-only lookup using a sanitized question, if the active tool catalog exposes search/read capability. Require source/version fit and findings; absent capability is reported as a limitation. The lookup adds no diagnostic or repair budget. |
 | Test surface needs targeted discovery after behavior/modules are scoped | Optionally `team-explorer` for bounded test inventory; `team-tester` owns coverage selection, execution and sufficiency; Lead applies existing user authorization, manages in-scope resources and checks required gates |
 | Any material implementation, regardless of task size or changed-file count | `team-reviewer` independently reviews after the writer's first complete pass; add a relevant domain specialist when risk or boundary warrants it |
 | Instruction-only harness/documentation edits that change team behavior | `team-docs-maintainer` as the matching writer plus `team-tester`; add `team-reviewer` when the change is material |
