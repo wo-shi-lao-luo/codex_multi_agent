@@ -307,7 +307,7 @@ try {
     # Revalidate the frozen definition, not a live source reread after snapshotting.
     $frozen=Read-Json (Join-Path $runFull $snapshots[0].path); Assert-Definition $frozen
     if ((Json $frozen) -cne (Json $definition)) { throw 'DRIFT: Definition changed during initialization.' }
-    $manifest=@{schemaVersion=1;kitVersion='1.0.0';runId=$RunId;workPath=$WorkPath;definitionPath=$DefinitionPath;definition=$frozen;snapshots=$snapshots;createdAt=[DateTime]::UtcNow.ToString('o');assessmentScope='prototype';hostAddedContext='unknown';modelRequestParameters='unknown'}
+    $manifest=@{schemaVersion=1;kitVersion='1.0.1';runId=$RunId;workPath=$WorkPath;definitionPath=$DefinitionPath;definition=$frozen;snapshots=$snapshots;createdAt=[DateTime]::UtcNow.ToString('o');assessmentScope='prototype';hostAddedContext='unknown';modelRequestParameters='unknown'}
     Publish-Json (Join-Path $runFull 'manifest.json') $manifest
     Publish-Json (Join-Path $runFull 'head.json') @{schemaVersion=1;runId=$RunId;sequence=0;lastEnvelopeSha256=$null}
     Publish-Json (Join-Path $runFull 'ownership.json') @{schemaVersion=1;manifestSha256=File-Digest (Join-Path $runFull 'manifest.json');runId=$RunId}

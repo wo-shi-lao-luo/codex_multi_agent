@@ -13,4 +13,6 @@ This repository is its own source of truth. The following projects informed its 
 
 The 0.6.0 UI guidance is independently written for this kit's page-level delegation and verification contracts. These references informed the design discussion; no upstream Skill source or external runtime dependency is bundled.
 
+The 1.0.1 risk-proportional design-exploration contract is independently authored from the approved product requirements and this kit's existing Team contracts. No external brainstorming Skill text, code, or runtime is copied or bundled, and no upstream source or dependency is added for this capability.
+
 ECC is MIT-licensed. This first version contains independently written, condensed guidance inspired by its public capability areas; it does not copy ECC Skill files. Any future direct import must record the source path, revision, license text, and attribution in this document and `NOTICE.md`.

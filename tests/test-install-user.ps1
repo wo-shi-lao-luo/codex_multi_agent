@@ -52,6 +52,9 @@ try {
   Assert-Condition (Test-Path -LiteralPath $receiptPath) 'Initial installation did not create a receipt.'
 
   $packageFiles = Get-PackageFileMap
+  # DE-01: the shared exploration reference is distributed with existing Team Skills.
+  # Expected: it is in the payload map; the loop below proves installed bytes match source.
+  Assert-Condition ($packageFiles.ContainsKey('agents-home/skills/team-core/references/design-exploration.md')) 'Package discovery omitted design-exploration reference.'
   # SIM-01: install optional simulation and engineering assets into fake homes.
   # Expected: every explicitly required new asset is discovered by the dynamic payload map.
   foreach ($requiredAsset in @('codex/agents/team-ai-simulation-actor-basic.toml','codex/agents/team-ai-simulation-actor-advanced.toml','codex/agents/team-ai-architect.toml','codex/agents/team-ai-engineer.toml','agents-home/skills/team-ai-simulate/SKILL.md','agents-home/skills/ai-engineering/SKILL.md','agents-home/skills/team-core/scripts/ai-simulation.ps1')) {

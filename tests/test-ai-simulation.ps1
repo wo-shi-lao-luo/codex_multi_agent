@@ -13,7 +13,7 @@ foreach ($relative in $(if ($BehaviorOnly) { @('skills/team-core/scripts/ai-simu
   Assert-Condition (Test-Path -LiteralPath (Join-Path $root $relative) -PathType Leaf) "SIM-01 missing packaged capability: $relative"
 }
 # SIM-08: the approved AI-only workflow and distinct model-agnostic roles replace obsolete names.
-# Expected: no retired source assets, exactly approved default profiles and release line 1.0.0.
+# Expected: no retired source assets, approved default profiles and a supported package release.
 if(-not $BehaviorOnly){
   foreach($retired in 'skills/team-simulate','agents/team-simulation-actor.toml'){
     Assert-Condition (-not(Test-Path -LiteralPath (Join-Path $root $retired))) "Retired simulation source asset remains: $retired"
@@ -24,7 +24,8 @@ if(-not $BehaviorOnly){
     Assert-Condition ($profile -match ('(?m)^model = "'+[regex]::Escape($profiles[$role][0])+'"\r?$') -and $profile -match ('(?m)^model_reasoning_effort = "'+$profiles[$role][1]+'"\r?$')) "Unexpected default profile for $role"
     Assert-Condition ($profile -match '(?m)^sandbox_mode = "read-only"\r?$') "Readonly simulation/design role $role is writable."
   }
-  Assert-Condition ((Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim() -eq '1.0.0') 'Approved release line is not 1.0.0.'
+  $packageVersion=(Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
+  Assert-Condition ($packageVersion -cmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$') 'Package VERSION is not a supported release format.'
 }
 if ($DiscoveryOnly) { Write-Output 'AI simulation discovery checks passed.'; return }
 $helper = Join-Path $root 'skills/team-core/scripts/ai-simulation.ps1'

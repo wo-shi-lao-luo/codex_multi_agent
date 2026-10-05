@@ -178,9 +178,24 @@ $coreReferences += 'code-comments.md'
 $coreReferences += 'ui-quality.md'
 $coreReferences += 'documentation-governance.md'
 $coreReferences += 'project-rules.md'
+$coreReferences += 'design-exploration.md'
 foreach ($reference in $coreReferences) {
   if (-not (Test-Path -LiteralPath (Join-Path $coreReferenceDirectory $reference))) {
     $failures.Add("team-core is missing reference $reference")
+  }
+}
+
+# These routes make the shared exploration contract reachable at planning and
+# development checkpoints. Structural links do not establish semantic compliance.
+foreach ($route in @(
+  @{ path='skills/team-core/SKILL.md'; target='references/design-exploration.md' },
+  @{ path='skills/team-plan/SKILL.md'; target='../team-core/references/design-exploration.md' },
+  @{ path='skills/team-dev/SKILL.md'; target='../team-core/references/design-exploration.md' },
+  @{ path='skills/team-core/references/execution-contract.md'; target='design-exploration.md' }
+)) {
+  $path=Join-Path $root $route.path
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Content -LiteralPath $path -Raw) -notmatch ('\]\(' + [regex]::Escape($route.target) + '\)')) {
+    $failures.Add("$($route.path) must link to $($route.target)")
   }
 }
 

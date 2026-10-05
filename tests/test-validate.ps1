@@ -1,6 +1,6 @@
 # Validate package contracts in a disposable copy; no real installation is modified.
 [CmdletBinding()]
-param()
+param([switch]$DesignExplorationOnly)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -40,6 +40,34 @@ try {
 
   # Scenario: an intact package. Expected: validation succeeds before mutations.
   Assert-Condition (Invoke-CopiedValidator) 'Baseline validation failed in an isolated package copy.'
+
+  # DE-01: a copied package without the required shared design reference is incomplete.
+  # Expected: the real package validator rejects omission, then accepts exact restoration.
+  $designReference=Join-Path $testRoot 'skills/team-core/references/design-exploration.md'
+  if(Test-Path -LiteralPath $designReference){Remove-Item -LiteralPath $designReference -Force}
+  Assert-Condition (-not(Invoke-CopiedValidator)) 'DE-01 validator accepted missing design-exploration reference.'
+  Copy-Item -LiteralPath (Join-Path $root 'skills/team-core/references/design-exploration.md') -Destination $designReference -Force
+  Assert-Condition (Invoke-CopiedValidator) 'DE-01 validator did not recover after reference restoration.'
+
+  # DE-01: each declared Team/shared execution entrypoint loses its Markdown resource route.
+  # Expected: even a plain-prose mention cannot satisfy the concrete local-link contract.
+  foreach($route in @(
+    @{path='skills/team-core/SKILL.md';target='references/design-exploration.md'},
+    @{path='skills/team-plan/SKILL.md';target='../team-core/references/design-exploration.md'},
+    @{path='skills/team-dev/SKILL.md';target='../team-core/references/design-exploration.md'},
+    @{path='skills/team-core/references/execution-contract.md';target='design-exploration.md'}
+  )){
+    $routePath=Join-Path $testRoot $route.path
+    $routeText=Get-Content -LiteralPath $routePath -Raw
+    $linkPattern='\[[^\]]+\]\('+[regex]::Escape($route.target)+'\)'
+    Assert-Condition ($routeText -match $linkPattern) "Missing baseline design route in $($route.path)."
+    $withoutLink=[regex]::Replace($routeText,$linkPattern,'design-exploration.md (unlinked mention)')
+    Set-Content -LiteralPath $routePath -Value $withoutLink -Encoding utf8
+    Assert-Condition (-not(Invoke-CopiedValidator)) "Validator accepted unlinked design route in $($route.path)."
+    Copy-Item -LiteralPath (Join-Path $root $route.path) -Destination $routePath -Force
+    Assert-Condition (Invoke-CopiedValidator) "Validator failed after restoring design route in $($route.path)."
+  }
+  if($DesignExplorationOnly){Write-Output 'Design-exploration package guard tests passed.';return}
 
   # SIM-08: an obsolete but syntactically valid workflow must not coexist with its new AI-only name.
   # Expected: validator rejects the extra retired unit and accepts removal of that owned fixture.

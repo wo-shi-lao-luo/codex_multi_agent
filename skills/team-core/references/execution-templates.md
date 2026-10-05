@@ -7,6 +7,7 @@ Use these concise templates when a team workflow needs a shared artifact. Keep t
 ```text
 Outcome:
 Task type and risk:
+Design depth (light | full | not applicable), rationale and material uncertainty:
 Constraints:
 Applicable standards and conditional checks:
 Acceptance checks:
@@ -19,6 +20,9 @@ Brief start declaration: named roles/ownership and planned checks
 ```text
 Owner:
 Task type, risk rationale and applicable obligations:
+Design depth and rationale; user-approved decisions reused; material decisions still open:
+Context/reference supplied to each proposal/check child (goal, applicable PRD revision, non-goals, relevant constraints/evidence/accepted decisions/unknowns; exact shared reference):
+Design outcome/readiness and affected blocked versus independent work (when full exploration applies):
 Planned roles and active tool catalog availability evidence:
 Named implementation owner; Tester packet/test ownership; Reviewer when material:
 Lead-only authority/approved exception evidence, if applicable:

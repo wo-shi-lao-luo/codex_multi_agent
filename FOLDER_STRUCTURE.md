@@ -19,6 +19,7 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `skills/team-ai-simulate/` — explicit-only local AI agent/workflow prototyping Skill; simulation is separate from production authorization.
 - `skills/ai-engineering/` — AI application behavior Skill for authorized engineering of prompts, context, model/tool protocols and workflow state.
 - `skills/team-core/references/ai-simulation.md` — shared local simulation context, evidence, privacy and acceptance contract.
+- `skills/team-core/references/design-exploration.md` — shared risk-proportional design-depth, bounded proposal, approval and decision-reuse contract for Team planning/development.
 - `skills/team-core/scripts/ai-simulation.ps1` and `templates/ai-simulation/definition.json` — bounded definition validation, frozen source snapshots, non-replaceable call records with a mutable fail-closed terminal head, and a reusable target-project definition example.
 - `skills/team-doc-check/` — documentation readiness/adoption entrypoint; distributed Skill source, not repository discovery configuration.
 - `skills/team-project-rules/` — entrypoint for reviewing, drafting and maintaining target-project `AGENTS.md` files.

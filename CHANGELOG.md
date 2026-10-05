@@ -2,6 +2,11 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.0.1] - 2026-10-05
+
+- Add automatic, risk- and uncertainty-based design-depth checks to `$team-plan` and `$team-dev`: clear work uses a light check, while materially unresolved decisions receive bounded fuller exploration. Reuse accepted decisions unless relevant scope or evidence changes.
+- Add shared context, proposal, routing and handoff guidance for Explorer, read-only Architects, Developers and Testers. Preserve existing PRD/Blueprint/OpenSpec/Work/stage authorities, approval/refactor/debug-budget gates, and exclude bounded AI simulation actors. No new runtime, agent or upstream dependency is introduced.
+
 ## [1.0.0] - 2026-10-05
 
 - Start the new `1.0.0` major product line as a review preview; this version does not automatically promote the Kit to stable. Add the explicit-only `$team-ai-simulate` workflow for prototyping AI agents and AI workflows before a separate engineering decision.
