@@ -68,6 +68,7 @@ Test execution outcome: planned/skipped/timed out/failed/executed/passing distin
 Per-batch disposition: executed | reused | skipped | blocked | failed; relevant input identity and evidence reference; actual cost or `unknown`; progress checkpoint and decision:
 Close reconciliation: start/Work contract obligations versus actual roles, checks, outcomes and gaps:
 Invocation reconciliation: planned roles, actual selector arguments, returned handles/observed identity, deviations and user decisions
+Child lifecycle reconciliation (when applicable): original handle/selected role; handoff and open issues; write/process ownership ended or safely transferred independently of closure; reuse/close decision and documented host operation/result; exact-role queue/retry and evidence; capacity status or unknown
 Documentation semantic check: assigned purpose/placement, factual alignment, duplication, affected links/indexes, bounded repairs and escalations:
 Documentation alignment and changed-evidence reassessment:
 Result:

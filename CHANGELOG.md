@@ -2,6 +2,20 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.0.4] - 2026-10-07
+
+### Added
+
+- Extend task-scoped documentation governance with semantic consistency checks across relevant documents. Distinguish redundant detailed rules, complementary scopes and exceptions, conflicts under the same conditions, and legitimate repetition such as navigation, bilingual counterparts and historical evidence.
+- Determine authority for each claim and scope from existing versioned sources or confirmed user decisions. Treat code/configuration as evidence of observed behavior, not approved intent; route focused Explorer, Architect and Tester evidence through the Lead. Do not create a parallel authority registry or a new finding kind.
+- Allow assigned maintainers to replace a redundant passage with a useful summary and specific reference only when its authority is clear. Preserve unique context; keep disputed claims intact for user direction and pause only dependent work. Whole-document moves/deletion, historical or acceptance edits, and target instruction writes retain their existing approval boundaries.
+- Add safe child-thread lifecycle guidance to the existing role-routing contract: reconcile roles and roster at workflow events, preserve named-role identity, require complete handoff and independent process/write ownership before a documented host close, and keep unsupported or uncertain closure distinct from capacity evidence. A confirmed close permits only a bounded retry of the same queued role; existing limits and final roster obligations remain.
+
+### Changed
+
+- Trigger semantic checks during scoped adoption, relevant document changes, material implementation changes affecting documented claims, task closure, or discovery of a related defect. This is not a full-repository sweep or background watcher.
+- Increment documentation policy to version 3 so prior scoped assessments require fresh review; retain the existing review schema and adoption configuration. Keep detailed reconciliation rules in the shared governance reference, with concise routing in `team-doc-check` and the GPT-6 Luna / high Docs Maintainer instructions.
+
 ## [1.0.3] - 2026-10-07
 
 ### Added
