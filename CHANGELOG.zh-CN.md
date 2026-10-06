@@ -2,6 +2,25 @@
 
 [English](CHANGELOG.md) | 简体中文
 
+## [1.0.1] - 2026-10-05
+
+- 为 `$team-plan` 和 `$team-dev` 增加基于风险和未解决不确定性的自动设计深度判断：边界清楚、决定已确认的任务采用轻量检查；存在实质未决事项时进行有界的深入探索。除非相关范围或证据发生变化，否则复用已确认的决定。
+- 增加面向 Explorer、只读 Architect、Developer 和 Tester 的共享上下文、方案、路由与交接约定；沿用既有 PRD/Blueprint/OpenSpec/Work/阶段包权威，以及批准、重构和 Debug 预算门槛，并排除受限 AI 模拟 actor。本次不新增运行时、agent 或上游依赖。
+
+## [1.0.0] - 2026-10-05
+
+- 以审查预览版形式开启新的 `1.0.0` 主产品线；该版本不会自动将工具包提升为稳定版。增加仅显式触发的 `$team-ai-simulate` 工作流，用于在单独决定工程化之前模拟 AI 智能体和 AI 工作流。
+- 增加模型无关命名的 `team-ai-simulation-actor-basic` 和 `team-ai-simulation-actor-advanced` 配置（两者遵循相同的受限行为规范）、只读的 `team-ai-architect`，以及用于获准后开发应用 AI 行为的 `team-ai-engineer` 和 `ai-engineering` 路由。角色档位依据目标模型系列/层级和测试目的选择；角色配置优先于启动子智能体时指定的模型覆盖。
+- 定义四种显式上下文模式、验收标准不进入 actor 输入包的合成测试样例、由 Lead 控制的路由/模拟工具结果、经批准的代理模型与目标模型的区别，以及宿主上下文/身份/用量方面的限制。
+- 增加本地 `team-core/scripts/ai-simulation.ps1` 辅助脚本和可复用定义模板。它会校验有界定义、冻结声明的源文件快照，在精确受保护的 `_work/ai-sim-<task>/` 路径下记录不可替换的调用证据及末尾完整性锚点，并报告完整性/源文件漂移；它不会运行模型或判断验收结果。
+- 增加共享 AI 模拟约定、工程指引和验证入口；原始轨迹与 `team-core` 反馈运行时分开存储。反馈运行时仍只支持 `$team-dev`、`$team-plan`、`$team-debug` 和 `$team-review`。
+
+## [0.10.1] - 2026-10-04
+
+- 为持续的缺陷修复和 Debug 工作流加入有界的外部资料检索：普通修复失败两次后的复盘会触发检索；明确授权的 Debug 模式会把检索计入已有诊断轮次。适用证据最多可支持一次有条件的扩展，将普通修复上限从三次提高到五次；用户设定的预算、范围/安全门槛和暂停条件仍优先适用。
+- 增加 `skills/team-core/scripts/generated-artifacts.ps1`，提供 `Documentation`、`OpenSpec` 和 `Work` 三种配置。`Work` 只保护一个明确的 `_work/<boundedtask>` 路径。`Protect` 只会向 `ProjectRoot/.gitignore` 追加范围明确的规则；`Check` 会检查实际索引和生效中的显式包含规则。文档临时文件规则只匹配工具包生成的同目录临时文件：文件名含 32 位小写十六进制标记并以 `.tmp` 结尾，不会忽略通用 `*.tmp` 文件。
+- 写入文档或 OpenSpec 本地产物前先启用相应保护；`$team-dev` 在生成文件前保护相关范围，并在获准提交或交接前再次运行 `Protect` 和 `Check`。完整的文档治理运行时状态（`<DocsRoot>/governance/reviews/`，以及 `documentation.json` 和 `doc-index.md` 这两个具体文件）保留在本地并默认忽略，但不会宽泛忽略其他 `governance/` 内容。新检出的仓库需要根据现有文档自行建立采用及审查状态。用户编写的治理文档、PRD、`AGENTS.md`、蓝图、活动及归档阶段验证包，以及原生规格和归档仍可纳入版本控制。已跟踪的本地产物或用户的显式包含规则需要用户决定如何处理。不会自动取消跟踪或暂存文件，也不会安装 Git hook 或后台监控，无法阻止手动运行 `git add -f`。增加了使用真实 Git 的隔离回归测试；此补丁仍为审查预览版，不会更新本地安装。
+
 ## [0.10.0] - 2026-10-04
 
 - 增加 `team-project-rules` Skill 和共享约定，用于评估、起草及维护目标项目的 `AGENTS.md` 指引；并将其接入规划、开发前置检查和文档检查。

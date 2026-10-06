@@ -1,0 +1,3 @@
+interface:
+  display_name: "AI Engineering"
+  short_description: "Engineer model prompts, context and workflow runtime"

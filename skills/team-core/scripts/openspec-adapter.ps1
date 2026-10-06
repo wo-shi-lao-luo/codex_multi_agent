@@ -98,6 +98,8 @@ if ($Action -eq 'Doctor') {
   exit 0
 }
 if ($Action -eq 'Enable') {
+  # All dependency/schema checks precede policy mutation; local writes follow it.
+  & (Join-Path $PSScriptRoot 'generated-artifacts.ps1') -Action Protect -ProjectRoot $root -Profile OpenSpec | Out-Null
   # Explicit adoption adds no upstream Skills and never overwrites existing config or schema files.
   New-Item -ItemType Directory -Force $specRoot, "$specRoot/specs", "$specRoot/changes" | Out-Null
   $config = Resolve-SpecPath $root 'openspec/config.yaml'
@@ -133,6 +135,7 @@ if ($Action -ne 'Archive') {
   exit 0
 }
 if (-not $ConfirmArchive) { throw 'APPROVAL: Archive requires explicit -ConfirmArchive after reviewing the close check.' }
+& (Join-Path $PSScriptRoot 'generated-artifacts.ps1') -Action Protect -ProjectRoot $root -Profile OpenSpec | Out-Null
 
 # Only one kit archive can run at a time. External editors are not locked: callers must quiesce writers.
 $lockPath = Resolve-SpecPath $root 'openspec/.team-archive.lock'

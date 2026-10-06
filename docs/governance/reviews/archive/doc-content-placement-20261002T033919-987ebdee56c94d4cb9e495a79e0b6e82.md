@@ -1,9 +1,0 @@
-# Documentation content placement: scoped readiness
-
-The Lead inspected existing documentation authoring and delegation contracts, the source Docs Maintainer profile, current README, architecture, release policy and relevant small-task verification convention. User approved separating stable README entrypoint content from development journals, authoritative stage results, detailed testing guides and governance records, and requested prompt repair of related discovered old-document defects.
-
-Implement in existing shared contracts and route from Skills/agent assignment; no new document taxonomy, compulsory folder set, automatic migration, whole-repository cleanup, business-project edits or product requirements. Evidence-backed assigned factual corrections preserve historical value and links; substantive ambiguity, authority conflicts and disputed archival require user decisions. Out-of-scope/cross-owner repairs need bounded assignment first; read-only work reports only.
-
-Named Docs Maintainer owns instructions; named Tester prepares the canonical stage plan before writing and verifies in isolated fixtures; named Reviewer independently reviews the coherent draft. Lead owns governance and integration. No independent identity/model is inferred from task labels or source profiles. The existing architecture remains sufficient without a Blueprint/refactor change; no OpenSpec marker or applicable PRD is introduced. Other inventoried documents stay unmodified and are not recertified.
-
-This ready assessment authorizes only the requested scoped implementation after packet validation. Source scenario review and successful package tests do not demonstrate real-agent E2E behavior or user manual acceptance. No commit, push or actual install is authorized; Kit release/schema/readiness-policy metadata remain unchanged.

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "flowId": "example-flow",
+  "revision": "1.0.0",
+  "contextPolicyPath": "docs/ai-workflows/example-flow/context-policy.md",
+  "rules": [],
+  "nodes": [
+    {
+      "id": "classify-request",
+      "kind": "model",
+      "promptPath": "docs/ai-workflows/example-flow/prompts/classify-request.md",
+      "context": {
+        "mode": "stateless",
+        "historyPolicy": "none",
+        "maxHistoryTurns": 0,
+        "upstreamFields": [],
+        "stateFields": [],
+        "resetBetweenCases": true,
+        "retryPolicy": "fresh"
+      },
+      "mockTools": []
+    }
+  ],
+  "cases": [
+    {
+      "id": "clear-request",
+      "description": "Replace with a synthetic, representative request.",
+      "input": {
+        "text": "Replace with synthetic input."
+      },
+      "expectedCriteria": [
+        "Replace with an independently scored, observable criterion."
+      ]
+    }
+  ],
+  "models": {
+    "target": {
+      "name": "target-model-name",
+      "provider": "target-provider"
+    },
+    "simulation": {
+      "requestedModel": "gpt-6-luna",
+      "requestedEffort": "medium",
+      "relation": "proxy"
+    }
+  },
+  "budget": {
+    "maxCalls": 12,
+    "maxCallsPerCase": 4,
+    "maxRecordBytes": 65536
+  }
+}

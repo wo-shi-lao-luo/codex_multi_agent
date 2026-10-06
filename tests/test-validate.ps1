@@ -1,6 +1,6 @@
 # Validate package contracts in a disposable copy; no real installation is modified.
 [CmdletBinding()]
-param()
+param([switch]$DesignExplorationOnly)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -41,6 +41,75 @@ try {
   # Scenario: an intact package. Expected: validation succeeds before mutations.
   Assert-Condition (Invoke-CopiedValidator) 'Baseline validation failed in an isolated package copy.'
 
+  # DE-01: a copied package without the required shared design reference is incomplete.
+  # Expected: the real package validator rejects omission, then accepts exact restoration.
+  $designReference=Join-Path $testRoot 'skills/team-core/references/design-exploration.md'
+  if(Test-Path -LiteralPath $designReference){Remove-Item -LiteralPath $designReference -Force}
+  Assert-Condition (-not(Invoke-CopiedValidator)) 'DE-01 validator accepted missing design-exploration reference.'
+  Copy-Item -LiteralPath (Join-Path $root 'skills/team-core/references/design-exploration.md') -Destination $designReference -Force
+  Assert-Condition (Invoke-CopiedValidator) 'DE-01 validator did not recover after reference restoration.'
+
+  # DE-01: each declared Team/shared execution entrypoint loses its Markdown resource route.
+  # Expected: even a plain-prose mention cannot satisfy the concrete local-link contract.
+  foreach($route in @(
+    @{path='skills/team-core/SKILL.md';target='references/design-exploration.md'},
+    @{path='skills/team-plan/SKILL.md';target='../team-core/references/design-exploration.md'},
+    @{path='skills/team-dev/SKILL.md';target='../team-core/references/design-exploration.md'},
+    @{path='skills/team-core/references/execution-contract.md';target='design-exploration.md'}
+  )){
+    $routePath=Join-Path $testRoot $route.path
+    $routeText=Get-Content -LiteralPath $routePath -Raw
+    $linkPattern='\[[^\]]+\]\('+[regex]::Escape($route.target)+'\)'
+    Assert-Condition ($routeText -match $linkPattern) "Missing baseline design route in $($route.path)."
+    $withoutLink=[regex]::Replace($routeText,$linkPattern,'design-exploration.md (unlinked mention)')
+    Set-Content -LiteralPath $routePath -Value $withoutLink -Encoding utf8
+    Assert-Condition (-not(Invoke-CopiedValidator)) "Validator accepted unlinked design route in $($route.path)."
+    Copy-Item -LiteralPath (Join-Path $root $route.path) -Destination $routePath -Force
+    Assert-Condition (Invoke-CopiedValidator) "Validator failed after restoring design route in $($route.path)."
+  }
+  if($DesignExplorationOnly){Write-Output 'Design-exploration package guard tests passed.';return}
+
+  # SIM-08: an obsolete but syntactically valid workflow must not coexist with its new AI-only name.
+  # Expected: validator rejects the extra retired unit and accepts removal of that owned fixture.
+  $retiredUnit=Join-Path $testRoot 'skills/team-simulate'
+  New-Item -ItemType Directory -Path $retiredUnit | Out-Null
+  Set-Content -LiteralPath (Join-Path $retiredUnit 'SKILL.md') -Value "---`nname: team-simulate`ndescription: Retired synthetic workflow fixture.`n---`n# Retired workflow" -Encoding utf8
+  Assert-Condition (-not(Invoke-CopiedValidator)) 'Validator accepted obsolete team-simulate unit.'
+  $resolvedRetired=[IO.Path]::GetFullPath($retiredUnit)
+  Assert-Condition ($resolvedRetired -eq [IO.Path]::GetFullPath((Join-Path $testRoot 'skills/team-simulate'))) 'Unsafe retired-unit fixture cleanup.'
+  Remove-Item -LiteralPath $resolvedRetired -Recurse -Force
+  Assert-Condition (Invoke-CopiedValidator) 'Validator failed after removing obsolete workflow fixture.'
+
+  # SIM-08: basic/advanced actors and AI architect must not acquire production-write permissions.
+  # Expected: validator rejects each writable sandbox mutation and accepts exact restoration.
+  foreach ($role in 'team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect') {
+    $rolePath=Join-Path $testRoot "agents/$role.toml"
+    $roleText=Get-Content -LiteralPath $rolePath -Raw
+    Assert-Condition ($roleText.Contains('sandbox_mode = "read-only"')) "$role lacks declared readonly sandbox."
+    Set-Content -LiteralPath $rolePath -Value ($roleText.Replace('sandbox_mode = "read-only"','sandbox_mode = "workspace-write"')) -Encoding utf8
+    Assert-Condition (-not(Invoke-CopiedValidator)) "Validator accepted write permissions for $role."
+    Copy-Item -LiteralPath (Join-Path $root "agents/$role.toml") -Destination $rolePath -Force
+    Assert-Condition (Invoke-CopiedValidator) "Validator failed after restoring readonly $role."
+  }
+
+  # SIM-01: required optional-simulation payload assets disappear one at a time.
+  # Expected: validator rejects each omission and recovers after exact restoration.
+  foreach ($relative in @('skills/team-ai-simulate/SKILL.md','skills/ai-engineering/SKILL.md','agents/team-ai-simulation-actor-basic.toml','agents/team-ai-simulation-actor-advanced.toml','agents/team-ai-architect.toml','agents/team-ai-engineer.toml','skills/team-core/scripts/ai-simulation.ps1')) {
+    $asset = Join-Path $testRoot $relative
+    Remove-Item -LiteralPath $asset -Force
+    Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted missing simulation asset $relative."
+    Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $asset -Force
+    Assert-Condition (Invoke-CopiedValidator) "Validation did not recover after restoring $relative."
+  }
+
+  # Scenario: the required local artifact protection helper is absent from the payload.
+  # Expected: package validation fails and recovers after restoring the exact source helper.
+  $artifactHelper = Join-Path $testRoot 'skills/team-core/scripts/generated-artifacts.ps1'
+  Remove-Item -LiteralPath $artifactHelper -Force
+  Assert-Condition (-not (Invoke-CopiedValidator)) 'Validation accepted missing artifact protection helper.'
+  Copy-Item -LiteralPath (Join-Path $root 'skills/team-core/scripts/generated-artifacts.ps1') -Destination $artifactHelper -Force
+  Assert-Condition (Invoke-CopiedValidator) 'Validation did not recover after restoring artifact protection helper.'
+
   # Scenario: a required Team workflow replaces its role-routing link with an existing valid link.
   # Expected: package validation rejects a missing named-role route, then accepts its restoration.
   foreach ($skillName in 'team-dev', 'team-core', 'team-plan', 'team-debug', 'team-review', 'team-doc-check', 'team-project-rules') {
@@ -72,6 +141,10 @@ try {
     'team-frontend-engineer' = @('gpt-6.1-sol', 'medium')
     'team-reviewer' = @('gpt-6.1-sol', 'high')
     'team-tester' = @('gpt-6.1-sol', 'medium')
+    'team-ai-simulation-actor-basic' = @('gpt-6-luna', 'medium')
+    'team-ai-simulation-actor-advanced' = @('gpt-6.1-sol', 'medium')
+    'team-ai-architect' = @('gpt-6.1-sol', 'xhigh')
+    'team-ai-engineer' = @('gpt-6.1-sol', 'medium')
   }
   foreach ($role in $approvedProfiles.Keys) {
     $agentPath = Join-Path $testRoot "agents/$role.toml"

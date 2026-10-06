@@ -1,0 +1,6 @@
+interface:
+  display_name: "Team AI Simulate"
+  short_description: "Prototype AI agent workflows before engineering"
+
+policy:
+  allow_implicit_invocation: false

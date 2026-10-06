@@ -23,6 +23,10 @@ For a project with `openspec/team-integration.json`, apply the [spec lifecycle](
 
 For UI changes, use the [UI delivery contract](../team-core/references/ui-quality.md) to review the assembled page against its brief and rendered evidence. Separate functional and visual conclusions; missing browser evidence is an uncovered visual check, not a pass. Report concrete hierarchy, consistency, layout or interaction defects without imposing personal taste.
 
+When the review scope includes an AI agent/workflow or local simulation, apply the [AI simulation contract](../team-core/references/ai-simulation.md) and `ai-engineering` Skill as relevant. Verify context assembly and retention, model identity evidence, mock/real boundaries, independent acceptance evidence and whether prototype results are being overstated as production behavior.
+
+The `team-reviewer` remains the independent review owner. Request `team-ai-architect` only when a material AI-specific design question needs a bounded read-only assessment; involve `team-architect` for overall software-architecture boundaries and let the Lead coordinate cross-boundary findings.
+
 Apply the [code comment contract](../team-core/references/code-comments.md): check layered documentation minimums and every in-scope test's scenario/expected-result explanation against behavior and assertions. Missing mandatory explanations are contract-compliance gaps, not stylistic preferences. Record scope, outcome, exemptions and gaps; rank misleading explanations by concrete impact.
 
 When returning a confirmed finding for implementation, link it to the owning issue and its existing repair history under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md). A review finding does not create a fresh retry budget.

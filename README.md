@@ -10,12 +10,13 @@ A small, user-level development team for Codex. It uses Codex native subagents a
 - `$team-plan <goal>` — produce a decision-ready plan without editing code.
 - `$team-review <scope>` — review a branch, diff, or change set in parallel.
 - `$team-debug <symptom>` — investigate an uncertain failure before changing code.
+- `$team-ai-simulate <AI agent or workflow>` — explicitly prototype bounded AI behavior locally before deciding whether to engineer it.
 - `$team-doc-check <task>` — adopt or recheck project documentation and produce a scoped readiness assessment.
 - `$team-project-rules <task>` — review, draft, or maintain the target project's `AGENTS.md` guidance.
 
 ## Team
 
-`team-explorer`, `team-architect`, `team-docs-maintainer`, `team-frontend-engineer`, `team-backend-engineer`, `team-database-specialist`, `team-tester`, and `team-reviewer` are Codex custom agents. The main Codex thread is the Lead and owns the task state, integration, and final answer.
+`team-explorer`, `team-architect`, `team-ai-architect`, `team-docs-maintainer`, `team-frontend-engineer`, `team-backend-engineer`, `team-database-specialist`, `team-tester`, `team-reviewer`, `team-ai-simulation-actor-basic`, `team-ai-simulation-actor-advanced`, and `team-ai-engineer` are Codex custom agents. The basic and advanced simulation actors serve one bounded behavior node with the same restrictions; `team-ai-architect` proposes AI-domain designs, and `team-ai-engineer` implements assigned AI application behavior. The main Codex thread is the Lead and owns the task state, integration, and final answer.
 
 ## Model allocation
 
@@ -26,6 +27,10 @@ A small, user-level development team for Codex. It uses Codex native subagents a
 | Docs maintainer | `gpt-6-luna` | high |
 | Frontend, Backend, Tester | `gpt-6.1-sol` | medium |
 | Database specialist, Reviewer | `gpt-6.1-sol` | high |
+| AI simulation actor basic | `gpt-6-luna` | medium |
+| AI simulation actor advanced | `gpt-6.1-sol` | medium |
+| AI architect | `gpt-6.1-sol` | xhigh |
+| AI engineer | `gpt-6.1-sol` | medium |
 
 For the Lead, select GPT-6 Astra / high in the main session. This is a recommendation, not an installed agent setting. The optional configuration fragment sets generic subagents to GPT-6.1 Sol / medium; named team roles retain their explicit profiles. Existing users who merged the old fragment must update its two `default_subagent_*` values explicitly; the installer does not merge global configuration.
 
@@ -64,9 +69,10 @@ To verify the distributable package without touching your actual Codex or Skills
 .\tests\test-deployment.ps1
 .\tests\test-documentation.ps1
 .\tests\test-feedback-runtime.ps1
+.\tests\test-ai-simulation.ps1
 ```
 
-These tests run only in unique system-temporary directories. They verify invalid metadata and missing local references, TDD stage-packet initialization and safe state transitions, the complete package and update behavior, and the feedback runtime's validation, aggregation, archive, deletion-confirmation, and cleanup behavior; each directory is removed before its test exits.
+These tests run only in unique system-temporary directories. They verify invalid metadata and missing local references, TDD stage-packet initialization and safe state transitions, the complete package and update behavior, the feedback runtime's validation, aggregation, archive, deletion-confirmation, and cleanup behavior, and local AI-simulation definition/run evidence handling; each directory is removed before its test exits.
 
 To validate public documentation structure and synchronization separately from package validation, run:
 
@@ -81,7 +87,7 @@ The installer validates the kit before writing. Use `-WhatIf` to preview its act
 
 Agent names use the `team-` prefix to avoid collisions with personal agents. Historical components absent from the installation receipt are left untouched; inspect their ownership before removing them manually.
 
-Current release: `0.10.0` (review preview, not automatically stable). Explicit `team-*` workflows write a small, redacted local acceptance record through `team-core`. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. Persistent repair and diagnosis loops use bounded attempts, evidence-based pauses and human-authorized resume; long healthy operations have task-specific progress checkpoints, not a universal time cutoff. Test execution uses risk tiers and evidence-based reuse, with scoped Explorer discovery available when the test surface is unclear; required E2E/manual scope and repository gates remain authoritative. See [repair and diagnosis loop guard](skills/team-core/references/repair-loop-guard.md), [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [project rules](skills/team-core/references/project-rules.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
+Current release: `1.0.1` (focused extension to the 1.0 product line; not a stable-release declaration). Kit-owned local generated artifacts use narrow Git protection and an index check. Documentation governance metadata, index and review records stay on disk locally but are not shared through Git; a fresh checkout must establish its own adoption/review state. User-authored project documents, PRDs, Blueprint, verification packets and native specs remain versionable. Tracked local artifacts and explicit include-rule conflicts need a user decision. The kit installs no Git hooks or background watcher, and manual forced staging remains possible. See [generated-artifact Git protection](skills/team-core/references/generated-artifacts.md). The feedback runtime currently supports `$team-dev`, `$team-plan`, `$team-debug`, and `$team-review`; `$team-ai-simulate` keeps its separate bounded local run trace and does not call that runtime. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. Persistent repair loops research relevant external evidence after two ordinary failures; applicable new evidence may support one conditional extension, up to five repair attempts total. Debug research uses the existing six-round allocation. Pauses remain evidence-based and require user authorization to resume; long healthy operations have task-specific progress checkpoints, not a universal time cutoff. Test execution uses risk tiers and evidence-based reuse, with scoped Explorer discovery available when the test surface is unclear; required E2E/manual scope and repository gates remain authoritative. See [repair and diagnosis loop guard](skills/team-core/references/repair-loop-guard.md), [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [project rules](skills/team-core/references/project-rules.md), [AI simulation guide](docs/ai-simulation.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
 
 Visible UI work uses [frontend-design](skills/frontend-design/SKILL.md) alongside frontend-engineering. The [UI delivery contract](skills/team-core/references/ui-quality.md) preserves page-level goals through delegation and requires rendered inspection separate from functional tests. No extra design agent, model change or per-page design document is required. Missing browser evidence must be reported as visually unverified, not release-ready.
 
@@ -90,6 +96,8 @@ Restart Codex if a newly installed Skill is not immediately visible.
 ## Operating rules
 
 Explicit `$team-dev` code changes, including small fixes and behavior-changing scripts/configuration/Skill instructions, default to a named implementer plus `team-tester`. Risk and material impact, not file or line count, determine independent review and specialist needs. Small tasks may shorten records but retain every applicable engineering check. Lead-only code execution requires a specific user request/approved exception; ordinary "just fix it" is not that approval, and missing roles never permit silent fallback. See [role routing](skills/team-core/references/role-routing.md) and the [minimum complete path](skills/team-core/references/execution-contract.md). Pure nonbehavior spelling/formatting edits may remain Lead-only. Start and close declarations reconcile intended roles/checks with actual evidence. These internal rules do not automatically activate Team workflows outside their explicit entrypoints.
+
+`$team-plan` and `$team-dev` choose light or fuller design exploration from material risk and unresolved uncertainty, not task/file size; already accepted decisions are not re-gated without relevant new evidence. See the shared [design-exploration contract](skills/team-core/references/design-exploration.md).
 
 Stage test plans use [manual-to-automated coverage](skills/team-core/references/test-acceptance-contract.md#manual-scope-and-automated-coverage): E2E plans include every manual scenario/requirement with equivalent conditions/results and checkpoints. Encountered user additions synchronize E2E and applicable other-layer tests, mappings and affected evidence. Unautomatable observations stay visible pending a user exception decision; plan inclusion is not passing coverage. No background watcher or automatic modification of archived acceptance is introduced.
 

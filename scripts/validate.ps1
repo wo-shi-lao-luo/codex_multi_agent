@@ -33,7 +33,32 @@ $expectedAgentProfiles = @{
   'team-frontend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-reviewer' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
   'team-tester' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-ai-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-ai-simulation-actor-basic' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
+  'team-ai-simulation-actor-advanced' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-ai-architect' = @{ model = 'gpt-6.1-sol'; reasoning = 'xhigh' }
 }
+
+# New workflow assets must be shipped together; routing prose is not execution proof.
+foreach ($resource in @('skills/team-ai-simulate/SKILL.md','skills/ai-engineering/SKILL.md','agents/team-ai-engineer.toml','agents/team-ai-simulation-actor-basic.toml','agents/team-ai-simulation-actor-advanced.toml','agents/team-ai-architect.toml','skills/team-core/scripts/ai-simulation.ps1','skills/team-core/references/ai-simulation.md','skills/team-core/templates/ai-simulation/definition.json')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing AI simulation resource: $resource") }
+}
+# Retired source names would create duplicate discovery routes in a new install.
+# Deployment tests separately establish removal of old receipt-owned payload files.
+foreach ($obsolete in @('skills/team-simulate','agents/team-simulation-actor.toml')) {
+  if (Test-Path -LiteralPath (Join-Path $root $obsolete)) { $failures.Add("Obsolete AI simulation source resource: $obsolete") }
+}
+foreach ($profile in $expectedAgentProfiles.Keys) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root "agents/$profile.toml") -PathType Leaf)) { $failures.Add("Missing required agent profile: $profile") }
+}
+# Guard actual reference links rather than accepting an unconnected prose mention.
+foreach ($skillName in @('team-core','team-ai-simulate','ai-engineering')) {
+  $path=Join-Path $root "skills/$skillName/SKILL.md"
+  $target=if ($skillName -eq 'team-core') { 'references/ai-simulation.md' } else { '../team-core/references/ai-simulation.md' }
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Content -LiteralPath $path -Raw) -notmatch ('\]\(' + [regex]::Escape($target) + '\)')) { $failures.Add("$skillName must link to ai-simulation.md") }
+}
+$aiAgentPath=Join-Path $root 'agents/team-ai-engineer.toml'
+if ((Test-Path -LiteralPath $aiAgentPath -PathType Leaf) -and -not (Get-Content -LiteralPath $aiAgentPath -Raw).Contains('ai-engineering')) { $failures.Add('team-ai-engineer must route to ai-engineering') }
 
 Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-Object {
   $entries = @{}
@@ -71,6 +96,17 @@ Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-
     $expectedProfile = $expectedAgentProfiles[$_.BaseName]
     if ($entries['model'] -ne $expectedProfile.model -or $entries['model_reasoning_effort'] -ne $expectedProfile.reasoning) {
       $failures.Add("$($_.Name) does not match the required model profile")
+    }
+    # Actors and the AI design specialist observe bounded evidence; they are not
+    # production writers. A stronger actor model must not broaden its permissions.
+    if ($_.BaseName -in @('team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect') -and $entries['sandbox_mode'] -ne 'read-only') {
+      $failures.Add("$($_.Name) must declare read-only sandbox mode")
+    }
+    if ($_.BaseName -in @('team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect') -and -not ([string]$entries['developer_instructions']).Contains('team-ai-simulate')) {
+      $failures.Add("$($_.Name) must route explicit simulations to team-ai-simulate")
+    }
+    if ($_.BaseName -eq 'team-ai-architect' -and -not ([string]$entries['developer_instructions']).Contains('ai-engineering')) {
+      $failures.Add('team-ai-architect must reference ai-engineering domain guidance')
     }
   } else {
     $failures.Add("$($_.Name) is not part of the supported team agent profile")
@@ -142,9 +178,24 @@ $coreReferences += 'code-comments.md'
 $coreReferences += 'ui-quality.md'
 $coreReferences += 'documentation-governance.md'
 $coreReferences += 'project-rules.md'
+$coreReferences += 'design-exploration.md'
 foreach ($reference in $coreReferences) {
   if (-not (Test-Path -LiteralPath (Join-Path $coreReferenceDirectory $reference))) {
     $failures.Add("team-core is missing reference $reference")
+  }
+}
+
+# These routes make the shared exploration contract reachable at planning and
+# development checkpoints. Structural links do not establish semantic compliance.
+foreach ($route in @(
+  @{ path='skills/team-core/SKILL.md'; target='references/design-exploration.md' },
+  @{ path='skills/team-plan/SKILL.md'; target='../team-core/references/design-exploration.md' },
+  @{ path='skills/team-dev/SKILL.md'; target='../team-core/references/design-exploration.md' },
+  @{ path='skills/team-core/references/execution-contract.md'; target='design-exploration.md' }
+)) {
+  $path=Join-Path $root $route.path
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Content -LiteralPath $path -Raw) -notmatch ('\]\(' + [regex]::Escape($route.target) + '\)')) {
+    $failures.Add("$($route.path) must link to $($route.target)")
   }
 }
 
@@ -165,6 +216,24 @@ foreach ($skillName in @('team-core','team-plan','team-dev','team-review','team-
 }
 foreach ($resource in @('skills/team-doc-check/SKILL.md','skills/team-core/scripts/documentation.ps1','agents/team-docs-maintainer.toml')) {
   if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing documentation resource: $resource") }
+}
+# Ship the narrow local-artifact boundary and its writer routes. This verifies
+# packaging/discovery only; real Git tests establish policy and index behavior.
+$artifactHelper = Join-Path $root 'skills/team-core/scripts/generated-artifacts.ps1'
+if (-not (Test-Path -LiteralPath $artifactHelper -PathType Leaf)) { $failures.Add('Missing generated-artifacts.ps1') }
+foreach ($caller in @('documentation.ps1','openspec-adapter.ps1')) {
+  $callerPath = Join-Path $root "skills/team-core/scripts/$caller"
+  # Missing/empty resources are normal package failures, not null dereferences.
+  $callerContent = if (Test-Path -LiteralPath $callerPath -PathType Leaf) { Get-Content -LiteralPath $callerPath -Raw } else { $null }
+  if ([string]::IsNullOrWhiteSpace($callerContent) -or -not $callerContent.Contains("'generated-artifacts.ps1'")) { $failures.Add("$caller must route writer protection to generated-artifacts.ps1") }
+}
+$artifactContract = Join-Path $root 'skills/team-core/references/generated-artifacts.md'
+if (-not (Test-Path -LiteralPath $artifactContract -PathType Leaf)) { $failures.Add('Missing generated-artifacts.md contract') }
+foreach ($skillName in @('team-core','team-dev','team-doc-check')) {
+  $target = if ($skillName -eq 'team-core') { 'references/generated-artifacts.md' } else { '../team-core/references/generated-artifacts.md' }
+  $file = Join-Path $root "skills/$skillName/SKILL.md"
+  $skillContent = if (Test-Path -LiteralPath $file -PathType Leaf) { Get-Content -LiteralPath $file -Raw } else { $null }
+  if ([string]::IsNullOrWhiteSpace($skillContent) -or -not $skillContent.Contains("]($target)")) { $failures.Add("$skillName must link to generated-artifacts.md") }
 }
 # Require packaged instruction discovery plus real Markdown routes. This guards
 # discovery/distribution only; it cannot authenticate approval or runtime loading.

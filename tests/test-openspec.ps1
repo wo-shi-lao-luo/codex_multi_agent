@@ -11,6 +11,10 @@ $tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $testRoot = Join-Path $tempParent ('codex-openspec-test-' + [guid]::NewGuid().ToString('N'))
 $double = Join-Path $PSScriptRoot 'fixtures/openspec-cli.cjs'
 $priorMode = $env:KIT_OPENSPEC_TEST_MODE
+$priorGitGlobal = $env:GIT_CONFIG_GLOBAL
+$priorGitSystem = $env:GIT_CONFIG_NOSYSTEM
+$env:GIT_CONFIG_GLOBAL = '/dev/null'
+$env:GIT_CONFIG_NOSYSTEM = '1'
 
 function Assert-True([bool]$Value, [string]$Message) { if (-not $Value) { throw $Message } }
 
@@ -57,18 +61,27 @@ function Link-Change([string]$Root, [string]$Change = 'sample', [string]$Scenari
 
 try {
   New-Item -ItemType Directory $testRoot | Out-Null
+  # Scenario: opted-in adapter lifecycle runs in a real temporary Git checkout.
+  # Expected: only adapter-owned local controls/recovery are omitted from staging.
+  & git.exe -C $testRoot init --quiet --template=
+  Assert-True ($LASTEXITCODE -eq 0) 'Could not initialize isolated Git fixture.'
   # Scenario: disabled project. Expected: Doctor is read-only and does not require a CLI.
   $doctor = & $adapter -Action Doctor -ProjectRoot $testRoot | ConvertFrom-Json
   Assert-True (-not $doctor.enabled) 'Disabled project reported enabled.'
   Assert-True (-not (Test-Path "$testRoot/openspec")) 'Doctor adopted project silently.'
+  Assert-True (-not (Test-Path "$testRoot/.gitignore")) 'Doctor wrote Git protection.'
   # Scenario: explicit adoption with unavailable CLI. Expected: fail before any project write.
   Assert-Fails { & $adapter -Action Enable -ProjectRoot $testRoot -OpenSpecEntry "$testRoot/missing.js" } 'DEPENDENCY'
   Assert-True (-not (Test-Path "$testRoot/openspec")) 'Missing dependency left project files.'
+  Assert-True (-not (Test-Path "$testRoot/.gitignore")) 'Missing dependency wrote Git protection.'
   # Scenario: supported CLI double. Expected: explicit Enable creates only the adapter project config.
   & $adapter -Action Enable -ProjectRoot $testRoot -OpenSpecEntry $double | Out-Null
   Assert-True (Test-Path "$testRoot/openspec/team-integration.json") 'Missing opt-in marker.'
   Assert-Fails { & $adapter -Action Enable -ProjectRoot $testRoot -OpenSpecEntry $double } 'ALREADY_ENABLED'
   Write-Change $testRoot
+  # Scenario: the project has durable baseline specifications before archive.
+  # Expected: later failure retains this exact baseline in local recovery evidence.
+  Set-Content "$testRoot/openspec/specs/baseline.md" '# Existing durable specification'
   # Scenario: incompatible CLI, nonzero exit, invalid JSON, or hung process. Expected: distinct failures, no fallback.
   foreach ($row in @(@('version','VERSION'), @('exit','UPSTREAM'), @('json','JSON'), @('timeout','TIMEOUT'), @('schema','SCHEMA'))) {
     $env:KIT_OPENSPEC_TEST_MODE = $row[0]
@@ -126,6 +139,24 @@ try {
   Remove-Item -LiteralPath "$testRoot/openspec/specs/concurrent.md"
   # Scenario: upstream partially writes then fails. Expected: recovery snapshot remains and retry is blocked.
   Assert-Fails { & $adapter -Action Archive -ProjectRoot $testRoot -ChangeId sample -OpenSpecEntry $double -ConfirmArchive } 'RECOVERY'
+
+  # CASE-GA-09d: recovery survives a failed real adapter archive with a CLI double.
+  # Expected: recovery/lock stay local; native specs, tasks, links and packet remain stageable.
+  $recoveryHash = (Get-FileHash "$testRoot/openspec/.team-recovery/specs/baseline.md").Hash
+  Set-Content "$testRoot/openspec/.team-archive.lock" 'preserved local lock'
+  $ignoreHash = (Get-FileHash "$testRoot/.gitignore").Hash
+  Assert-Fails { & $adapter -Action Doctor -ProjectRoot $testRoot -OpenSpecEntry $double } 'RECOVERY'
+  Assert-True ((Get-FileHash "$testRoot/.gitignore").Hash -eq $ignoreHash) 'Doctor changed ignore rules.'
+  Assert-True ((Get-FileHash "$testRoot/openspec/.team-recovery/specs/baseline.md").Hash -eq $recoveryHash) 'Doctor changed recovery evidence.'
+  & git.exe -C $testRoot add --all
+  Assert-True ($LASTEXITCODE -eq 0) 'Git staging failed.'
+  $staged = @(& git.exe -C $testRoot diff --cached --name-only)
+  Assert-True ($LASTEXITCODE -eq 0) 'Git staged-name observation failed.'
+  Assert-True (@($staged | Where-Object { $_ -like 'openspec/.team-recovery/*' -or $_ -eq 'openspec/.team-archive.lock' }).Count -eq 0) 'Local OpenSpec recovery/control was staged.'
+  foreach ($path in 'openspec/team-integration.json','openspec/specs/baseline.md','openspec/changes/sample/tasks.md','openspec/changes/sample/verification.json','docs/verification/active/sample.md') {
+    Assert-True ($path -in $staged) "Durable OpenSpec evidence hidden: $path"
+  }
+  Remove-Item -LiteralPath "$testRoot/openspec/.team-archive.lock"
   Assert-True (Test-Path "$testRoot/openspec/.team-recovery/specs") 'Original specs not backed up.'
   Assert-True (Test-Path "$testRoot/openspec/specs/damaged.md") 'Failure state silently overwritten.'
   Assert-Fails { & $adapter -Action Archive -ProjectRoot $testRoot -ChangeId sample -OpenSpecEntry $double -ConfirmArchive } 'RECOVERY'
@@ -188,6 +219,8 @@ try {
   }
   Write-Host "OpenSpec tests passed. Real CLI exercised: $([bool]$OpenSpecEntry)"
 } finally {
+  $env:GIT_CONFIG_GLOBAL = $priorGitGlobal
+  $env:GIT_CONFIG_NOSYSTEM = $priorGitSystem
   $env:KIT_OPENSPEC_TEST_MODE = $priorMode
   # Only the unique temporary tree owned by this test may be recursively removed.
   if (Test-Path $testRoot) {

@@ -2,6 +2,25 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.0.1] - 2026-10-05
+
+- Add automatic, risk- and uncertainty-based design-depth checks to `$team-plan` and `$team-dev`: clear work uses a light check, while materially unresolved decisions receive bounded fuller exploration. Reuse accepted decisions unless relevant scope or evidence changes.
+- Add shared context, proposal, routing and handoff guidance for Explorer, read-only Architects, Developers and Testers. Preserve existing PRD/Blueprint/OpenSpec/Work/stage authorities, approval/refactor/debug-budget gates, and exclude bounded AI simulation actors. No new runtime, agent or upstream dependency is introduced.
+
+## [1.0.0] - 2026-10-05
+
+- Start the new `1.0.0` major product line as a review preview; this version does not automatically promote the Kit to stable. Add the explicit-only `$team-ai-simulate` workflow for prototyping AI agents and AI workflows before a separate engineering decision.
+- Add model-agnostic `team-ai-simulation-actor-basic` and `team-ai-simulation-actor-advanced` profiles with the same bounded behavior contract, a read-only `team-ai-architect`, and `team-ai-engineer` plus `ai-engineering` routing for authorized application AI behavior. Actor tier selection follows target model family/tier and test purpose; role configuration takes precedence over spawn model overrides.
+- Define four explicit context modes, synthetic cases with criteria kept outside the actor packet, Lead-controlled routing/mock results, approved-proxy versus target-model distinctions, and host-context/identity/usage limits.
+- Add the local `team-core/scripts/ai-simulation.ps1` helper and reusable definition template. It validates bounded definitions, freezes declared source snapshots, records non-replaceable call evidence with a terminal integrity head under an exact protected `_work/ai-sim-<task>/` path, and reports integrity/drift without running models or deciding acceptance.
+- Add the shared AI-simulation contract, engineering guidance and verification entry; keep raw traces separate from the `team-core` feedback runtime, which continues to support `$team-dev`, `$team-plan`, `$team-debug`, and `$team-review` only.
+
+## [0.10.1] - 2026-10-04
+
+- Add bounded external-source research to persistent bug-fix and debug workflows: research follows the ordinary two-failure retrospective, while explicitly authorized debug research consumes an existing diagnostic round. Applicable evidence may qualify one conditional extension from three to at most five ordinary repair attempts; user budgets, scope/safety gates, and pause conditions remain controlling.
+- Add `skills/team-core/scripts/generated-artifacts.ps1` with `Documentation`, `OpenSpec`, and `Work` profiles. `Work` protects only an exact `_work/<boundedtask>` path. `Protect` appends narrowly scoped rules to `ProjectRoot/.gitignore`; `Check` audits the actual index and effective include policy. Documentation temporary rules match only exact Kit-generated siblings with a 32-character lowercase-hex token and `.tmp`, not general `*.tmp` files.
+- Protect documentation and OpenSpec local outputs before writing; `$team-dev` protects each applicable scope before generation and repeats `Protect` plus `Check` before an authorized commit or handoff. The complete Documentation governance runtime bundle (`<DocsRoot>/governance/reviews/` plus the exact `documentation.json` and `doc-index.md` files) stays on disk locally and defaults to ignored; other `governance/` content is not broadly ignored. A fresh checkout must establish adoption/review state from its available documents. User-authored governance docs, PRDs, `AGENTS.md`, Blueprint, active and archived verification packets, and native specs and archives remain versionable. Tracked artifacts and explicit include rules require user-directed handling. No files are automatically untracked or staged; no Git hook, background watcher, or prevention of manual `git add -f` is added. Add isolated real-Git regression coverage; this patch remains a review preview and does not update a local installation.
+
 ## [0.10.0] - 2026-10-04
 
 - Add the `team-project-rules` Skill and shared contract for assessing, drafting, and maintaining target-project `AGENTS.md` instructions; connect it to planning, development preflight, and documentation checks.
