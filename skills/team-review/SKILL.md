@@ -29,6 +29,8 @@ The `team-reviewer` remains the independent review owner. Request `team-ai-archi
 
 Apply the [code comment contract](../team-core/references/code-comments.md): check layered documentation minimums and every in-scope test's scenario/expected-result explanation against behavior and assertions. Missing mandatory explanations are contract-compliance gaps, not stylistic preferences. Record scope, outcome, exemptions and gaps; rank misleading explanations by concrete impact.
 
+Apply the [code readability contract](../team-core/references/code-readability.md) when reviewing code layout. Follow the project's formatter and conventions; report concrete readability or contract problems, not personal style preferences. Formatting alone does not authorize behavior changes.
+
 When returning a confirmed finding for implementation, link it to the owning issue and its existing repair history under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md). A review finding does not create a fresh retry budget.
 
 Apply the [Project Blueprint contract](../team-core/references/project-blueprint.md): compare the actual diff with declared modules, file responsibilities and root exceptions. Verify any existing-code refactor has explicit approval for that scope. Respect recorded declined/deferred decisions; report new concrete risks without re-demanding a previously declined refactor. Structural review is semantic; document validation alone does not establish compliance.

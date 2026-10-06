@@ -2,6 +2,8 @@
 
 Apply when writing or reviewing code, including tests, scripts, SQL and migrations. Follow the target repository's comment language and documentation conventions. Limit changes to the assigned scope; this is not authorization for a repository-wide annotation or refactor pass.
 
+For code layout and formatting, also apply the shared [code-readability contract](code-readability.md). Its formatting-only route does not waive this contract's explanations for interfaces, behavior, or test cases.
+
 ## Layered minimum requirements
 
 Apply these requirements to newly created code and changed units within the assigned scope. Existing adequate documentation counts; do not duplicate it. Backfill untouched historical code only within an explicitly authorized scope. Follow project instructions if they conflict and report the conflict rather than silently claiming compliance.

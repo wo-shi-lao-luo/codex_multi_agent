@@ -38,6 +38,8 @@ Preserve compatibility unless the approved task changes the contract. Keep secre
 
 Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
 
+Apply the shared [code readability contract](../team-core/references/code-readability.md) to assigned code and tests. Follow the project formatter/configuration and keep logical statements readable; a formatting-only transfer must preserve behavior and wait until the original writer freezes the files.
+
 Implement the assigned boundary using repository conventions. Run focused unit, integration, contract, or job verification that demonstrates the changed success path and material failure path. Include `team-database-specialist` when the work contract reaches the data layer.
 
 Create a Verification record with commands and outcomes, integration evidence, unavailable checks, and remaining operational risk.

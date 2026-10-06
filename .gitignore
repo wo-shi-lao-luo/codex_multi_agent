@@ -19,3 +19,11 @@
 /_work/ai-simulation-implementation/
 # Codex Team Kit: exact local artifacts (Work)
 /_work/design-exploration/
+
+# Repository-local backlog and planning records; preserve on disk, exclude from Git.
+/backlog/
+/docs/superpowers/
+# Codex Team Kit: exact local artifacts (Work)
+/_work/code-readability/
+# Codex Team Kit: exact local artifacts (Work)
+/_work/formatter-tool/

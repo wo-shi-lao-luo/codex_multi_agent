@@ -32,6 +32,7 @@ Blueprint path/revision and module IDs (when applicable):
 Existing baseline and retained constraints:
 Refactor decision, approved scope, and user evidence:
 Allowed files, planned additions, and composition-root exceptions:
+Code readability/formatting scope (when applicable): existing formatter/configuration; bounded files; direct maintenance or post-freeze transfer; original writer freeze and named-role availability:
 Affected area or boundary:
 Documentation review path, scope/task and freshness evidence:
 Purpose/source of truth for each assigned documentation path; allowed adjacent factual corrections:
@@ -73,6 +74,7 @@ Result:
 Evidence:
 Remaining risk or unavailable check:
 Comment self-check (code changes): files/interfaces/internal logic inspected, test-case explanation coverage, assertion consistency, outcome, exemptions and gaps
+Readability self-check (code changes): formatter/configuration used; layout/naming/JSX review; semantic data and existing test explanations preserved; formatting-only behavior boundary, outcome, and gaps:
 UI functional evidence (when applicable):
 UI visual status: verified | issues remain | not verified | not applicable (reason)
 UI rendered evidence: revision, route/page, viewport, state, observation or screenshot reference
@@ -116,6 +118,7 @@ Ordinary repair extension gate (if applicable): evidence supports a materially n
 Review scope:
 Coverage: correctness | tests | data | unfamiliar area
 Comment review (code changes): scope, layered minimums, per-test scenario/expected results, semantic/assertion consistency, exemptions and gaps
+Readability review (code changes): target formatter/conventions, concrete layout concerns, meaningful literals preserved, style preferences excluded, outcome and gaps
 UI review (when applicable): brief/baseline, integrated-page evidence, visual status and unobserved states
 Evidence inspected:
 Findings: impact, file reference, evidence

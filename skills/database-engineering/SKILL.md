@@ -38,6 +38,8 @@ Use parameterized queries and least-privilege access. A forward-only migration i
 
 Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
 
+Apply the shared [code readability contract](../team-core/references/code-readability.md) to assigned SQL, code, and tests. Follow the project formatter/configuration and keep query structure readable; a formatting-only transfer preserves query/data semantics and begins only after the original writer freezes the files.
+
 Run the narrowest safe validation available: migration against a representative environment, targeted query checks, application compatibility checks, or a documented dry run. For a data mutation, preserve enough evidence to account for rows or records affected and to support recovery.
 
 Create a Verification record with the migration or query run, result, evidence, and remaining operational risk. If a planned environment or query-plan check is unavailable, state the limitation instead of presenting an unmeasured claim as fact.

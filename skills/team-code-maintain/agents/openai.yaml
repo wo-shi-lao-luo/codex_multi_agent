@@ -1,0 +1,6 @@
+interface:
+  display_name: "Team Code Maintain"
+  short_description: "Safely format assigned code without changing behavior"
+  default_prompt: "Use $team-code-maintain to format the specified code while preserving its behavior."
+policy:
+  allow_implicit_invocation: true

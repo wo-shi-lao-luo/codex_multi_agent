@@ -48,6 +48,8 @@ For visible UI changes, apply the [UI delivery contract](../team-core/references
 
 Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
 
+Apply the shared [code readability contract](../team-core/references/code-readability.md) to assigned tests. Follow the project formatter/configuration and preserve the purpose/expected-result explanation for each independent scenario; formatting-only work must not change assertions or test behavior.
+
 Implement tests using local conventions. Run the relevant commands once they meaningfully cover the changed path. Record whether each planned scenario passed, failed as expected during diagnosis, was not runnable, or needs a wider environment.
 
 ## Return paths

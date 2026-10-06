@@ -60,6 +60,8 @@ For applicable UI work, check final integrated page evidence and separate functi
 
 Apply the [code comment contract](../team-core/references/code-comments.md). Require writers to meet layered documentation minimums and explain every in-scope test's scenario and expected result, even simple tests. Record a per-unit self-check against behavior and assertions, including exemptions and gaps, even without an independent reviewer. Include this coverage when assigning review; missing mandatory explanations must be resolved or explicitly disclosed before completion.
 
+Apply the shared [code readability contract](../team-core/references/code-readability.md) to every assigned writer/tester delivery, alongside the project formatter and local conventions. When a user asks only for formatting, route through `$team-code-maintain`; do not impose the full `$team-dev` gates on genuinely nonbehavioral maintenance. A post-freeze formatting transfer inside this workflow must finish before its existing planned final tests and independent review.
+
 Create a Verification record from actual checks. Record commands and outcomes, inspected behavior, and checks that could not run. Do not close the task until acceptance checks have evidence or the user-facing remaining risk is explicit.
 
 Reconcile planned roles against actual spawn arguments and returned handles under role routing. Distinguish source/tool profiles from confirmed runtime identity and leave unreported model data unknown.

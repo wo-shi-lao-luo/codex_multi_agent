@@ -19,6 +19,8 @@ Preserve accepted prototype scenarios as regression cases when suitable; the sim
 
 Use `$team-dev` for authorized code changes. Follow its documentation-readiness, blueprint, stage verification, TDD, comment, efficient-test and approval gates. The appropriate unit and integration tests should cover context assembly, state transitions, tool protocol, routing/retry/termination, malformed and missing outputs, and approval boundaries. Add API/service tests for broad business behavior; retain representative E2E journeys for user-visible integration and distinct client/UI risks. Do not duplicate the entire business-rule matrix in browser tests when equivalent lower-layer evidence exists. Independent review should verify that scenario assertions reflect the actual contract and that no secret or hidden chain-of-thought enters artifacts.
 
+Apply the shared [code readability contract](../team-core/references/code-readability.md) to assigned code and tests. Follow the project formatter/configuration and preserve prompt, string, and context semantics; formatting-only transfers begin only after the original writer freezes the files.
+
 ## Output contract
 
 For engineering handoff, report the authoritative prompt/workflow source, changed AI boundaries and context contract, accepted prototype cases reused or reasons they do not apply, relevant tests/results, model identity/telemetry limits, tool and state risks, and remaining approval or rollout decisions. If assigned as the writer, list changed files and verification; do not report source model profiles as evidence of the host-resolved model.

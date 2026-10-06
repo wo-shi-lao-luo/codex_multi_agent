@@ -2,6 +2,28 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.0.3] - 2026-10-07
+
+### Added
+
+- Add the PowerShell 7 `team-core/scripts/format-code.ps1` helper for bounded Plan, Check, and Apply operations over literal project-relative files. It supports Prettier, Ruff, PowerShell, and Biome when compatible with existing project configuration; it does not install tools or replace unsupported project formatters.
+- Add [the formatter tool guide](docs/formatter-tool.md) and connect the helper to the shared code-readability contract and direct code-maintenance workflow, including trust/write acknowledgements and known failure limits.
+
+### Changed
+
+- Have codewriters use supported formatter checks for assigned files, then review remaining readability with the Agent and recheck formatting after further edits. Formatting remains behavior-preserving and uses only the authority already established for the files and tooling.
+
+## [1.0.2] - 2026-10-07
+
+### Added
+
+- Add a shared code-readability contract for code authors, testers, and reviewers. Prefer each project's formatter; otherwise target 100 characters and treat lines over 120 as a review signal. Preserve meaningful strings, generated/vendor content, snapshots, and mandatory test explanations.
+- Add implicitly invokable `$team-code-maintain` and the exact `team-code-maintainer` role configured as GPT-6 Luna / medium. Direct behavior-preserving formatting uses scoped checks without requiring the full `$team-dev` lifecycle; an unavailable named role does not silently fall back.
+
+### Changed
+
+- Route codewriters, testers, and reviewers through the shared readability contract. Formatting transfers start only after the original writer freezes the files and retain the material task's existing Tester/Reviewer gates; the formatting-only boundary excludes renames, API/control-flow changes, and behavior changes.
+
 ## [1.0.1] - 2026-10-05
 
 - Add automatic, risk- and uncertainty-based design-depth checks to `$team-plan` and `$team-dev`: clear work uses a light check, while materially unresolved decisions receive bounded fuller exploration. Reuse accepted decisions unless relevant scope or evidence changes.

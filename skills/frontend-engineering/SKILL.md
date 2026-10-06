@@ -42,6 +42,8 @@ Prefer simple composition and existing project patterns. Keep API contracts expl
 
 Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
 
+Apply the shared [code readability contract](../team-core/references/code-readability.md) to assigned code and tests. Follow the project formatter/configuration and keep JSX and nested expressions readable; a formatting-only transfer preserves behavior and begins only after the original writer freezes the files.
+
 Implement the assigned complete page/flow within its client boundary. Verify functional behavior through the narrowest meaningful layer; for visible UI changes, also perform rendered-page inspection under the UI delivery contract. Component tests are not a substitute for visual verification. Fix observed in-scope issues and inspect the affected result again.
 
 Create a Verification record with checks performed, results, evidence, and any unavailable browser or device coverage. Do not call an interaction complete solely because it renders in one state.

@@ -20,6 +20,8 @@ Task size may shorten the record and reduce the number of roles, but does not re
 
 This implementation-role minimum does not require an implementer or Tester for pure consultation, read-only investigation, planning or review workflows. Team workflows still follow this contract proportionately. A `$team-debug` investigation may use bounded diagnostic reproduction and controlled experiments under its current contract, but that does not authorize a production repair; any authorized code repair enters the `$team-dev` implementation path. Ordinary application scripts and configuration follow their domain; behavior-changing Skills, policies or agent-routing/configuration that govern the harness are implementation work, not trivial prose. Truly nonbehavior typo/format corrections may remain Lead-owned.
 
+An explicit `$team-code-maintain` request is a bounded formatting/readability workflow, not a substitute for material code implementation. It routes to the exact `team-code-maintainer` role under the [code-readability contract](code-readability.md), using the project's formatter and proportionate scoped checks. It does not require the full `$team-dev` path for formatting-only work. When formatting is transferred from a completed code-writing task, the original writer must first freeze the assigned files; the task's existing Tester and independent Reviewer gates remain in force.
+
 Lead-only implementation requires either the user's explicit request that the Lead personally implement the change or the user's approval of a specific proposed Lead-only exception. A general request to make a change does not choose its owner. Only this approved exception replaces the separate Tester assignment: the Lead performs Tester planning and execution duties as self-check, not independent Tester evidence. A material implementation still requires independent `team-reviewer` review. If the user's no-delegation instruction conflicts with that review requirement, explain the conflict and ask for scoped direction; do not self-certify or treat an empty roster as an acceptable review. Lead-only does not waive stage evidence. If a required named role has no legitimate fit in the active catalog, pause and ask about an explicit alternative; never silently substitute a generic role or the Lead.
 
 At start, briefly record task type/risk, applicable standards, intended named roles/ownership and planned checks. At close, reconcile them with actual role-selector/handle evidence, completed checks, outcomes and gaps in the existing Work/Verification record or stage packet. These are inspectable workflow obligations, not an unbypassable runtime gate.
@@ -70,7 +72,7 @@ Apply [role routing](role-routing.md) before delegation: verify needed named rol
 
 ## 4. Execute
 
-For code changes, apply the [code comment contract](code-comments.md) while implementing and updating affected explanations.
+For code changes, apply the [code comment contract](code-comments.md) and the [code-readability contract](code-readability.md) while implementing and updating affected explanations. Follow existing formatter configuration and preserve behavior during formatting-only work.
 
 **Input:** approved work contract.
 
@@ -82,7 +84,7 @@ For documentation changes, apply the assigned document purpose while editing. In
 
 ## 5. Verify
 
-Include the code comment contract's writer self-check and, when review is assigned, semantic comment review. Record inspected scope and outcome; automated checks alone do not establish comment correctness.
+Include the code comment and readability contracts' writer self-checks and, when review is assigned, semantic review of comments and readability. Record inspected scope and outcome; automated checks alone do not establish documentation correctness or semantic equivalence.
 
 **Input:** completed work and the verification plan.
 
