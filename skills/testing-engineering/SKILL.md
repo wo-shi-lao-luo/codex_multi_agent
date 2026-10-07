@@ -5,7 +5,8 @@ description: Plan and implement focused, evidence-backed tests for changed behav
 
 # Testing engineering
 
-Use this Skill to design and verify meaningful tests. Apply the shared [execution contract](../team-core/references/execution-contract.md), [execution templates](../team-core/references/execution-templates.md), and [TDD protocol](../team-core/references/tdd-protocol.md); tests should demonstrate behavior and risk coverage, not mirror implementation details.
+Use this Skill to design and verify meaningful tests. Read the shared [execution contract](../team-core/references/execution-contract.md), [execution templates](../team-core/references/execution-templates.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md) in full; tests should demonstrate behavior and risk coverage, not mirror implementation details.
+
 
 ## When to activate
 
@@ -18,8 +19,8 @@ Do not use to impose a generic coverage target, create tests solely to increase 
 1. Find the repository's test commands, test layers, fixtures, and nearby behavioral examples.
 2. Read the Task record and Work contract. Identify changed behavior, failure paths, boundaries, integration points, and the regression that should be prevented.
    If a failing check is part of an existing diagnosis/repair loop, preserve its issue identity and result evidence under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md); a failed test run is not automatically a failed repair attempt.
-3. Choose the lowest-observation-cost adequate entrypoint and observation method for each risk under the shared [efficient test execution](../team-core/references/test-acceptance-contract.md#efficient-test-execution) rule. Practical lower-layer assertions complement, rather than replace, required E2E flows; do not force every other layer without a material risk.
-   Select test tiers and reusable evidence under that contract, including relevant-input identity, repository gates, and any authorized cost budget. When the scoped test surface is unclear and not cheap to map, request a bounded Explorer lookup; the Tester retains selection, execution and sufficiency decisions.
+3. Choose the adequate test boundary and observation method under the contract's [efficient execution and tier rules](../team-core/references/test-acceptance-contract.md#efficient-test-execution). For a standalone small change/bug, follow the [small-task rule](../team-core/references/test-acceptance-contract.md#tier-selection-reuse-and-resource-limits); include real UI/integration evidence when the symptom requires it. Do not force unrelated layers or a full suite for each fix, but honor risk expansion and repository gates. The Tester retains selection, execution and sufficiency decisions.
+4. Plan checks at the contract's iteration, first-usable-chain and named acceptance checkpoints. For deferred checks, record owner, scope/IDs, status, next trigger and flush condition; planned work is never a pass, and known failures block dependent work. If the scoped test surface is unclear and not cheap to map, request a bounded Explorer lookup.
 
 ## Build a test contract
 

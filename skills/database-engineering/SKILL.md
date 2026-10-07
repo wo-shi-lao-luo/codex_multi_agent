@@ -5,7 +5,8 @@ description: Design, implement, or review schema, migrations, SQL, indexes, tran
 
 # Database engineering
 
-Use this Skill for material data-layer work. Apply the shared [execution contract](../team-core/references/execution-contract.md) and [execution templates](../team-core/references/execution-templates.md) to turn database safety requirements into an inspectable change path.
+Use this Skill for material data-layer work. Read the shared [execution contract](../team-core/references/execution-contract.md) and [execution templates](../team-core/references/execution-templates.md) in full when establishing the Work contract; apply database-specific safety requirements to the change path.
+
 
 ## When to activate
 
@@ -36,11 +37,9 @@ Use parameterized queries and least-privilege access. A forward-only migration i
 
 ## Execute and verify
 
-Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
+Read the [code comment](../team-core/references/code-comments.md) and [code readability](../team-core/references/code-readability.md) contracts in full for assigned SQL/code/tests. Follow layered comment and per-test explanation requirements, project formatting, and the formatting-only freeze boundary; record self-check outcomes and gaps. Review-only work reports without editing.
 
-Apply the shared [code readability contract](../team-core/references/code-readability.md) to assigned SQL, code, and tests. Follow the project formatter/configuration and keep query structure readable; a formatting-only transfer preserves query/data semantics and begins only after the original writer freezes the files.
-
-Run the narrowest safe validation available: migration against a representative environment, targeted query checks, application compatibility checks, or a documented dry run. For a data mutation, preserve enough evidence to account for rows or records affected and to support recovery.
+Run the narrowest safe validation available and preserve data-change accounting/recovery evidence. For a standalone small fix, use the [small-task test rule](../team-core/references/test-acceptance-contract.md#tier-selection-reuse-and-resource-limits); data/migration risk, unknown impact and repository gates can require broader checks.
 
 Create a Verification record with the migration or query run, result, evidence, and remaining operational risk. If a planned environment or query-plan check is unavailable, state the limitation instead of presenting an unmeasured claim as fact.
 

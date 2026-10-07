@@ -2,6 +2,14 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.0.6] - 2026-10-08
+
+### Changed
+
+- Schedule relevant fast checks during iterations, affected real integration/API and key smoke checks at the first usable chain, and costly browser/Agent-driven checks at named acceptance checkpoints. Preserve full planned coverage, risk-based expansion, required fresh gates and user-only manual acceptance; deferred evidence cannot satisfy a due checkpoint.
+- Clarify bounded small-task testing: practical minimal reproduction and affected regression checks at the lowest adequate boundary, with due acceptance evidence at standalone handoff or an agreed batch checkpoint. Do not automatically require every test layer or the full suite for each fix.
+- Consolidate duplicated procedures in twelve Skill entries into shared authoritative references with explicit use-point routing and complete reads of selected resources. Preserve role, approval, TDD, E2E and independent AI-simulation assessment boundaries; these instruction changes do not establish runtime enforcement or measured token savings.
+
 ## [1.0.5] - 2026-10-07
 
 ### Added

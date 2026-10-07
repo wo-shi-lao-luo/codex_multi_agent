@@ -42,8 +42,8 @@ Expected result:
 Shared contract or compatibility concern:
 Verification:
 Persistent issue guard (when applicable; see [repair and diagnosis loop guard](repair-loop-guard.md)): acceptance/conditions/deviation identity; mode and user authorization; prior history reference; diagnostic/repair allocation; external research question/sources/applicability and local validation (when relevant); whether the single evidence-qualified ordinary extension is used; long-operation progress checkpoints; stop condition:
-Test execution choices (before implementation): entrypoint and real boundary, runner/command, observation mode and rationale, browser/visual checkpoints, and any API/integration evidence used to reduce duplicate browser permutations (see [efficient test execution](test-acceptance-contract.md#efficient-test-execution)):
-Tier/reuse plan (when applicable): target test/CASE IDs; selected tier and rationale; prior artifact input identity/provenance or rerun trigger; expansion/full-suite gates; forecast or `unknown`; user hard budget, if any:
+Test execution choices (before implementation): entrypoint and real boundary, runner/command, observation mode and rationale, browser/visual checkpoints, iteration and first-usable-chain checks, named due acceptance checkpoints, and any API/integration evidence used to reduce duplicate browser permutations (see [efficient test execution](test-acceptance-contract.md#efficient-test-execution)):
+Tier/reuse plan (when applicable): target test/CASE IDs; selected tier and rationale; prior artifact input identity/provenance or rerun trigger; deferred check owner, scope/status, next concrete trigger/checkpoint and flush condition; known failure dependencies; expansion/full-suite gates; forecast or `unknown`; user hard budget, if any:
 Recovery or rollout consideration:
 ```
 
@@ -65,7 +65,7 @@ Target viewports, states and core interactions:
 ```text
 Check performed:
 Test execution outcome: planned/skipped/timed out/failed/executed/passing distinctions, summary, retained result-artifact reference, drill-down performed or needed, and remaining gaps (see [efficient test execution](test-acceptance-contract.md#efficient-test-execution)):
-Per-batch disposition: executed | reused | skipped | blocked | failed; relevant input identity and evidence reference; actual cost or `unknown`; progress checkpoint and decision:
+Per-batch disposition: executed | reused | skipped | blocked | failed; relevant input identity and evidence reference; actual cost or `unknown`; due/progress checkpoint and decision; for deferred work, owner, scope/status, next trigger and flush condition:
 Close reconciliation: start/Work contract obligations versus actual roles, checks, outcomes and gaps:
 Invocation reconciliation: planned roles, actual selector arguments, returned handles/observed identity, deviations and user decisions
 Child lifecycle reconciliation (when applicable): original handle/selected role; handoff and open issues; write/process ownership ended or safely transferred independently of closure; reuse/close decision and documented host operation/result; exact-role queue/retry and evidence; capacity status or unknown
