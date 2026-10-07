@@ -45,6 +45,7 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `scripts/` — user-level validation, installation, and safe update helpers.
 - `scripts/deploy-user.ps1` — self-contained versioned deployment/recovery manager; installed copies live outside Skill discovery paths.
 - `docs/safe-deployment.md` — durable installation, stable snapshot, downgrade, recovery and retention guide.
+- `docs/codex-install.md` — local Codex user installation and update steps, source checks, preview, and runtime-discovery limits.
 - `tests/test-deployment.ps1` — isolated fake-home deployment and fault-injection suite; no actual installation.
 - `tests/test-documentation.ps1` — isolated existing-project adoption and readiness/ambiguity regression tests.
 - `tests/` — isolated package, installation, feedback, AI-simulation, stage-verification and project-blueprint tests.

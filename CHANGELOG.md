@@ -2,6 +2,12 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.0.5] - 2026-10-07
+
+### Added
+
+- Add a Codex-facing local installation guide and concise README entrypoints with a copyable install/update request. Clarify source selection, preview and conflict boundaries, and the difference between installed files and runtime discovery.
+
 ## [1.0.4] - 2026-10-07
 
 ### Added

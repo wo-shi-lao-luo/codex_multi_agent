@@ -21,7 +21,7 @@ $ErrorActionPreference = 'Stop'
 # Semantic checking requirements invalidate prior reviews without changing schema.
 $policyVersion = 3
 # Kit provenance is independent of review policy and runtime schema.
-$kitVersion = '1.0.4'
+$kitVersion = '1.0.5'
 $categories = @('requirements','architecture','interfaces-data','ui-ux','runtime','testing-acceptance','security-migration')
 $root = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd('/','\')
 if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'PATH: ProjectRoot must be an existing directory.' }
