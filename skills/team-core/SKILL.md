@@ -33,6 +33,8 @@ For closes of the supported workflows (`team-dev`, `team-plan`, `team-debug`, an
 
 For explicitly requested local prototyping of an AI agent or AI workflow, use `$team-ai-simulate` and read the [AI simulation contract](references/ai-simulation.md). Its local run trace is separate from the `team-core` feedback runtime and does not call that runtime. For authorized implementation of application prompts, context, model/tool protocols or AI workflow state, use the `ai-engineering` Skill and route the bounded AI-specific behavior to `team-ai-engineer`; use `team-ai-architect` only for material AI design questions, while overall architecture stays with `team-architect`.
 
+For an application's replaceable Agent/Workflow boundary, read [AI capability contract](references/ai-capability-contract.md); for live evidence and offline fixture reuse, read [AI record/replay testing](references/ai-record-replay-testing.md). These project-specific contracts do not turn local AI simulation into product testing or a production adapter.
+
 For `$team-dev` implementation work, read [test and acceptance contract](references/test-acceptance-contract.md) and [TDD protocol](references/tdd-protocol.md). Its `scripts/stage-verification.ps1` intentionally creates and validates Git-tracked verification packets inside the target project; archival occurs only after a validated, authoritative final manual status.
 
 For test planning, execution, or review in Codex workflows, apply the contract's [efficient test execution](references/test-acceptance-contract.md#efficient-test-execution) rule by default; it remains the single source for test tiers, evidence reuse, cost limits, and observation choices.

@@ -2,6 +2,8 @@
 
 This contract governs optional, local prototyping of an AI agent or workflow before a separate decision to engineer it. It defines evidence and boundaries; it is not a general workflow engine and does not call a model itself.
 
+Application implementation may separately define a replaceable Agent/Workflow capability and record/replay tests under the [AI capability contract](ai-capability-contract.md) and [AI record/replay testing contract](ai-record-replay-testing.md). Simulation traces remain prototype evidence; they are not recordings of a real product integration run.
+
 ## Where artifacts belong
 
 In a target project, keep reusable, synthetic workflow material under `docs/ai-workflows/<flow>/`:

@@ -22,6 +22,8 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `skills/team-core/scripts/format-code.ps1` and `format-code-powershell.ps1` — bounded Plan/Check/Apply adapter for supported installed formatters; its portable contract is `skills/team-core/references/formatter-tool.md`.
 - `skills/ai-engineering/` — AI application behavior Skill for authorized engineering of prompts, context, model/tool protocols and workflow state.
 - `skills/team-core/references/ai-simulation.md` — shared local simulation context, evidence, privacy and acceptance contract.
+- `skills/team-core/references/ai-capability-contract.md` and `ai-record-replay-testing.md` — project-specific Agent/Workflow replacement boundary and distinct live, record, replay and synthetic test evidence contracts.
+- `skills/team-core/templates/ai-capability/` — optional concise starting outlines for a target project's capability brief and record/replay test plan; the target project adapts or omits them to match existing authorities.
 - `skills/team-core/references/design-exploration.md` — shared risk-proportional design-depth, bounded proposal, approval and decision-reuse contract for Team planning/development.
 - `skills/team-core/scripts/ai-simulation.ps1` and `templates/ai-simulation/definition.json` — bounded definition validation, frozen source snapshots, non-replaceable call records with a mutable fail-closed terminal head, and a reusable target-project definition example.
 - `skills/team-doc-check/` — documentation readiness/adoption entrypoint; distributed Skill source, not repository discovery configuration.

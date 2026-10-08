@@ -14,6 +14,8 @@ When a failed or blocked check turns into repeated diagnosis or repair, follow t
 
 Codex development workflows assume an AI Agent may run the tests. By default, plan each check around the lowest Agent-interaction and observation-cost entrypoint that still gives reliable evidence for its risk. The optimization concerns the testing Agent's repeated actions and evidence-reading; it does not imply fewer application/model calls. Choose the execution boundary, runner, and observation method before implementation; run fast deterministic checks before costly browser interaction when practical and when dependencies allow. This is a prioritization, not a mandatory serial gate for every test.
 
+For applications that use an Agent or Workflow behind a replaceable capability boundary, also use the [AI record/replay testing contract](ai-record-replay-testing.md) to distinguish live behavior, integrated runs and offline replay. It supplements the test tiers below and does not waive required acceptance evidence.
+
 Use scripts or the repository's test harness for repeatable actions, waits, assertions, fixture setup, and cleanup. Let the runner perform repeated steps and return a concise result summary. Retain the complete trusted result artifacts needed to reproduce and audit the run; let the Agent read summaries first and open relevant evidence when a check fails, is ambiguous or unexpected, or carries material risk. Redact secrets from retained evidence. A green result does not excuse inspection of safety-sensitive effects. Report planned, skipped, timed-out, failed, executed, and passing checks distinctly; a summary is not evidence for a case the runner did not check.
 
 Choose layers by what they can observe and the risk they cover:

@@ -7,6 +7,8 @@ description: Build or review backend code using an evidence-backed workflow for 
 
 Use this Skill for material server-side work. Read the shared [execution contract](../team-core/references/execution-contract.md) and [execution templates](../team-core/references/execution-templates.md) in full when establishing the Work contract so service behavior, compatibility, and verification are explicit.
 
+When a backend consumes a replaceable Agent/Workflow capability, read the shared [AI capability contract](../team-core/references/ai-capability-contract.md) and agree the boundary with the AI owner. Keep business validation, authorization, persistence and side-effect decisions in their assigned application layer.
+
 
 ## When to activate
 

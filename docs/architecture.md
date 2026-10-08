@@ -49,6 +49,12 @@ Functional tests and rendered visual inspection are separate evidence. The Lead 
 
 The helper records supplied packets, observed outputs, mock results, state and Lead routing evidence. It cannot prove the full host prompt, actor identity without host metadata, cost when telemetry is absent, semantic acceptance, or criteria secrecy through shared files. Luna can serve as a proxy for a lightweight target; proxy success is not target-model equivalence. No code restructure of the existing executor or business runtime is required.
 
+### Replaceable application AI capabilities and record/replay tests
+
+Application business backends depend on a project-defined Agent/Workflow capability contract through an adapter; a model change stays inside the Agent/Workflow implementation. The contract may be in-process or service-based and does not prescribe a universal framework. Business authorization, validation, persistence and side-effect policy remain with the application layer that owns them. The shared sources are [`ai-capability-contract.md`](../skills/team-core/references/ai-capability-contract.md) and [`ai-record-replay-testing.md`](../skills/team-core/references/ai-record-replay-testing.md); their concise starting outlines live in `skills/team-core/templates/ai-capability/`.
+
+A representative real application run may provide separate assertions for the capability protocol, AI behavior and backend handling. Its recorded boundary interaction can later be replayed through the real consumer path, but replay does not establish live E2E or prove a replacement AI implementation. Keep the stage packet authoritative for results and preserve required TDD, manual, E2E and repository gates. This Kit adds guidance and templates only: it adds no general runtime, recorder, replay engine or production adapter.
+
 ## Optional specification boundary
 
 OpenSpec integration adds an optional external CLI boundary, not a fourth executor or a second Lead. The existing workflow stays unchanged without a project opt-in marker. See the [spec lifecycle](../skills/team-core/references/spec-lifecycle.md) and [integration contract](../skills/team-core/references/openspec-integration.md).

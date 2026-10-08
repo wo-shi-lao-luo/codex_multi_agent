@@ -61,6 +61,56 @@ foreach ($skillName in @('team-core','team-ai-simulate','ai-engineering')) {
 $aiAgentPath=Join-Path $root 'agents/team-ai-engineer.toml'
 if ((Test-Path -LiteralPath $aiAgentPath -PathType Leaf) -and -not (Get-Content -LiteralPath $aiAgentPath -Raw).Contains('ai-engineering')) { $failures.Add('team-ai-engineer must route to ai-engineering') }
 
+# AI capability guidance is one distribution unit. Resource/link guards only
+# establish discovery, never native adherence, replay safety or AI quality.
+foreach ($resource in @(
+  'skills/team-core/references/ai-capability-contract.md'
+  'skills/team-core/references/ai-record-replay-testing.md'
+  'skills/team-core/templates/ai-capability/contract-brief.md'
+  'skills/team-core/templates/ai-capability/record-replay-plan.md'
+)) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) {
+    $failures.Add("Missing AI capability resource: $resource")
+  }
+}
+foreach ($route in @(
+  @{ path = 'skills/team-core/SKILL.md'; target = 'references/ai-capability-contract.md' },
+  @{ path = 'skills/team-core/SKILL.md'; target = 'references/ai-record-replay-testing.md' },
+  @{
+    path = 'skills/ai-engineering/SKILL.md'
+    target = '../team-core/references/ai-capability-contract.md'
+  },
+  @{
+    path = 'skills/backend-engineering/SKILL.md'
+    target = '../team-core/references/ai-capability-contract.md'
+  },
+  @{
+    path = 'skills/testing-engineering/SKILL.md'
+    target = '../team-core/references/ai-record-replay-testing.md'
+  },
+  @{
+    path = 'skills/team-core/references/test-acceptance-contract.md'
+    target = 'ai-record-replay-testing.md'
+  },
+  @{
+    path = 'skills/team-core/references/ai-capability-contract.md'
+    target = '../templates/ai-capability/contract-brief.md'
+  },
+  @{
+    path = 'skills/team-core/references/ai-record-replay-testing.md'
+    target = '../templates/ai-capability/record-replay-plan.md'
+  }
+)) {
+  $path = Join-Path $root $route.path
+  $content = if (Test-Path -LiteralPath $path -PathType Leaf) {
+    Get-Content -LiteralPath $path -Raw
+  } else { $null }
+  if ([string]::IsNullOrWhiteSpace($content) -or
+      -not $content.Contains("]($($route.target))")) {
+    $failures.Add("$($route.path) must link to $($route.target)")
+  }
+}
+
 # Readability resources form one discovery unit; these checks do not prove
 # runtime role loading or that a future edit preserves application behavior.
 $readabilityResources = @(
