@@ -16,6 +16,14 @@ The main Codex thread is the Lead. It reads project instructions, decides whethe
 
 `$team-plan` and `$team-dev` choose a light check or fuller design exploration based on material risk and unresolved uncertainty, not task/file size. The Lead owns the context brief and decision; Explorer supplies bounded repository facts, Architects provide read-only proposals when a material question warrants them, and assigned Developers/Testers check only their scopes. The normative source is [`design-exploration.md`](../skills/team-core/references/design-exploration.md), linked through the shared Team contracts. Reuse the active PRD, existing Blueprint/OpenSpec where applicable, Work contract and stage packet; do not add a competing planner, design runtime or mandatory document. AI simulation actors are excluded from this design guidance. Existing acceptance, approval, target-instruction, refactor and repair/debug-budget boundaries remain unchanged.
 
+## Code readability and formatting
+
+Every assigned codewriter and tester follows the shared [code-readability contract](../skills/team-core/references/code-readability.md) alongside the existing code-comment rules. The target project's formatter/configuration takes precedence; shared line lengths are guidance when no project rule applies. For supported formatters, the team-core helper plans, checks and applies formatting to exact assigned files with established tool trust and write authority. The codewriting Agent or assigned Luna maintainer reviews what mechanical formatting does not address and runs a final formatter check after its own edits. A direct formatting-only request uses the `team-code-maintain` Lead adapter and exact `team-code-maintainer` role with proportionate scoped checks. A transfer within material feature work starts only after the original writer freezes its files, and the existing Tester/Reviewer gates remain in force. The maintainer cannot make behavior, API, control-flow, or architecture changes. See the [formatter tool guide](formatter-tool.md) for supported adapters and limits.
+
+| Module | Owner files and responsibility | Dependencies |
+| --- | --- | --- |
+| Bounded code readability (CODE-READABILITY) | `skills/team-core/scripts/format-code.ps1` and its fixed PowerShell worker select/check/apply supported formatters; `skills/team-core/references/formatter-tool.md` is the portable installed contract; `skills/team-code-maintain/SKILL.md`, `skills/team-core/references/code-readability.md`, and `agents/team-code-maintainer.toml` route safe direct and post-freeze formatting | Existing project formatter/configuration; exact literal files; explicit established tool trust and write authority; final Agent readability review and formatter check; original writer freeze and existing Tester/Reviewer gates for material work |
+
 ## UI work
 
 For new pages and visible UI changes, the Lead passes a lightweight UI brief and names one owner for the coherent page or user flow. The owner uses frontend-design for hierarchy, styling and rendered refinement alongside frontend-engineering for implementation correctness. Small demos normally stay with one implementer; independent work may still be delegated. File boundaries must include necessary shared styles or be adjusted explicitly.
@@ -40,6 +48,12 @@ Functional tests and rendered visual inspection are separate evidence. The Lead 
 | Simulation verification (SIM-VERIFY) | Existing stage verification packet and `tests/test-ai-simulation.ps1`; retain independent acceptance criteria and validate helper behavior in isolation | Tester-owned test plan/evidence; Reviewer; no live production service |
 
 The helper records supplied packets, observed outputs, mock results, state and Lead routing evidence. It cannot prove the full host prompt, actor identity without host metadata, cost when telemetry is absent, semantic acceptance, or criteria secrecy through shared files. Luna can serve as a proxy for a lightweight target; proxy success is not target-model equivalence. No code restructure of the existing executor or business runtime is required.
+
+### Replaceable application AI capabilities and record/replay tests
+
+Application business backends depend on a project-defined Agent/Workflow capability contract through an adapter; a model change stays inside the Agent/Workflow implementation. The contract may be in-process or service-based and does not prescribe a universal framework. Business authorization, validation, persistence and side-effect policy remain with the application layer that owns them. The shared sources are [`ai-capability-contract.md`](../skills/team-core/references/ai-capability-contract.md) and [`ai-record-replay-testing.md`](../skills/team-core/references/ai-record-replay-testing.md); their concise starting outlines live in `skills/team-core/templates/ai-capability/`.
+
+A representative real application run may provide separate assertions for the capability protocol, AI behavior and backend handling. Its recorded boundary interaction can later be replayed through the real consumer path, but replay does not establish live E2E or prove a replacement AI implementation. Keep the stage packet authoritative for results and preserve required TDD, manual, E2E and repository gates. This Kit adds guidance and templates only: it adds no general runtime, recorder, replay engine or production adapter.
 
 ## Optional specification boundary
 

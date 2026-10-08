@@ -56,6 +56,19 @@ try {
   }
   New-Item -ItemType Directory "$new/skills/team-core/scripts" | Out-Null
   Set-Content "$new/skills/team-core/scripts/ai-simulation.ps1" '# Synthetic new-version helper'
+  # CR-04: the readability release adds a role, an implicitly invokable Skill and core reference.
+  # Expected: deploy includes these owned assets; downgrade and stable restore remove all of them.
+  Set-Content "$new/agents/team-code-maintainer.toml" 'name = "team-code-maintainer"'
+  New-Item -ItemType Directory `
+    "$new/skills/team-code-maintain/agents", "$new/skills/team-core/references" | Out-Null
+  Set-Content "$new/skills/team-code-maintain/SKILL.md" "---`nname: team-code-maintain`ndescription: Readability fixture.`n---"
+  Set-Content "$new/skills/team-code-maintain/agents/openai.yaml" "policy:`n  allow_implicit_invocation: true"
+  Set-Content "$new/skills/team-core/references/code-readability.md" '# Synthetic readability contract'
+  $readabilityPaths = @(
+    "$fakeCodex/agents/team-code-maintainer.toml",
+    "$fakeAgents/skills/team-code-maintain",
+    "$fakeAgents/skills/team-core/references/code-readability.md"
+  )
   # Scenario: preview on empty homes. Expected: no installation or manager files are written.
   & $manager -Action Deploy -SourceRoot $old @arguments -WhatIf | Out-Null
   Assert-True (-not (Test-Path $fakeCodex) -and -not (Test-Path $fakeAgents)) 'Preview changed homes.'
@@ -75,6 +88,12 @@ try {
   New-Item -ItemType Directory "$fakeAgents/skills/personal" | Out-Null
   Set-Content "$fakeAgents/skills/personal/SKILL.md" 'personal skill'
   & $manager -Action Deploy -SourceRoot $new @arguments | Out-Null
+  # CR-04 happy: deployed readability payload. Expected: role, reference and nested metadata exist.
+  foreach ($path in $readabilityPaths) {
+    Assert-True (Test-Path -LiteralPath $path) "CR-04 missing deployed asset: $path"
+  }
+  Assert-True (Test-Path -LiteralPath "$fakeAgents/skills/team-code-maintain/agents/openai.yaml") `
+    'CR-04 missing nested Skill metadata.'
   Assert-True ((Get-Content "$management/stable.json" -Raw) -eq $stableBytes) 'Upgrade moved stable.'
   Assert-True (-not(Test-Path -LiteralPath "$fakeAgents/skills/team-simulate") -and -not(Test-Path -LiteralPath "$fakeCodex/agents/team-simulation-actor.toml")) 'SIM-09 upgrade retained old workflow/actor.'
   foreach($path in @("$fakeAgents/skills/team-ai-simulate/SKILL.md","$fakeCodex/agents/team-ai-simulation-actor-basic.toml","$fakeCodex/agents/team-ai-simulation-actor-advanced.toml","$fakeCodex/agents/team-ai-architect.toml")){
@@ -82,6 +101,10 @@ try {
   }
   # Scenario: new -> old source. Expected: new agent, whole Skill and file inside retained Skill disappear.
   & $manager -Action Deploy -SourceRoot $old @arguments | Out-Null
+  # CR-04 edge: downgrade to the earlier package. Expected: no newly owned readability residue.
+  foreach ($path in $readabilityPaths) {
+    Assert-True (-not (Test-Path -LiteralPath $path)) "CR-04 downgrade residue: $path"
+  }
   foreach ($path in @("$fakeCodex/agents/team-new.toml","$fakeAgents/skills/team-new","$fakeAgents/skills/team-fixture/new-only.md")) { Assert-True (-not (Test-Path $path)) "Residual content: $path" }
   foreach ($path in @("$fakeCodex/agents/team-ai-simulation-actor-basic.toml","$fakeCodex/agents/team-ai-simulation-actor-advanced.toml","$fakeCodex/agents/team-ai-architect.toml","$fakeCodex/agents/team-ai-engineer.toml","$fakeAgents/skills/team-ai-simulate","$fakeAgents/skills/ai-engineering","$fakeAgents/skills/team-core/scripts/ai-simulation.ps1")) {
     Assert-True (-not (Test-Path -LiteralPath $path)) "SIM-07 downgrade left residue: $path"
@@ -94,6 +117,10 @@ try {
   # Scenario: standalone rollback entry survives source checkout removal. Expected: stable restores offline.
   & $manager -Action Deploy -SourceRoot $new @arguments | Out-Null
   & "$management/rollback.ps1" -Action Restore @arguments | Out-Null
+  # CR-04 recovery: restore pinned old package offline. Expected: new readability assets disappear.
+  foreach ($path in $readabilityPaths) {
+    Assert-True (-not (Test-Path -LiteralPath $path)) "CR-04 stable restore residue: $path"
+  }
   & $manager -Action Verify @arguments | Out-Null
   Assert-True (-not (Test-Path "$fakeAgents/skills/team-new")) 'Standalone restore left new Skill.'
   Assert-True (-not(Test-Path -LiteralPath "$fakeAgents/skills/team-ai-simulate") -and -not(Test-Path -LiteralPath "$fakeCodex/agents/team-ai-architect.toml")) 'SIM-09 standalone stable restore retained major-line identities.'

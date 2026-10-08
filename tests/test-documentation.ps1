@@ -38,22 +38,63 @@ try {
   Set-Content "$sandbox/src/login.ts" '// existing login'
   # Scenario: read-only discovery before adoption. Expected: no governance files or optional category folders.
   $scan=& $script -Action Scan -ProjectRoot $sandbox | ConvertFrom-Json
+  # Scenario: the expanded checking contract is distributed. Expected: public discovery reports policy3.
+  Assert ($scan.policyVersion -eq 3) 'Documentation.Policy3: expected checking policy3.'
   Assert ($scan.adopted -eq $false -and $scan.documents.Count -eq 2) 'Wrong discovery.'
   Assert (-not (Test-Path "$sandbox/docs/governance")) 'Scan wrote files.'
   # Scenario: first adoption. Expected: existing docs/source unchanged; marker alone is not ready.
   $baselineSource=Get-Content "$sandbox/src/login.ts" -Raw
   $baselinePrd=Get-Content "$sandbox/docs/PRD/product.md" -Raw
   $baselineLegacy=Get-Content "$sandbox/docs/legacy/old.md" -Raw
-  & $script -Action Initialize -ProjectRoot $sandbox | Out-Null
+  # Scenario: an existing policy2 adoption has extra document paths and a published review.
+  # Expected: policy3 marks it stale, then fresh assessment upgrades without losing configuration/history.
+  New-Item -ItemType Directory -Path "$sandbox/notes","$sandbox/runtime" | Out-Null
+  Set-Content "$sandbox/notes/extra.md" '# Extra inspected login notes'
+  $currentScript=$script
+  $legacyScript=Join-Path $sandbox 'runtime/documentation.ps1'
+  $legacySource=(Get-Content -LiteralPath $currentScript -Raw).Replace(
+    '$policyVersion = 3', '$policyVersion = 2'
+  )
+  Set-Content -LiteralPath $legacyScript -Value $legacySource -Encoding utf8
+  Copy-Item -LiteralPath (Join-Path (Split-Path $currentScript) 'generated-artifacts.ps1') `
+    -Destination "$sandbox/runtime/generated-artifacts.ps1"
+  $script=$legacyScript
+  & $script -Action Initialize -ProjectRoot $sandbox -AdditionalPaths 'notes' | Out-Null
   Assert ((Get-Content "$sandbox/docs/PRD/product.md" -Raw) -ceq $baselinePrd) 'Adoption changed PRD.'
   Assert ((Get-Content "$sandbox/docs/legacy/old.md" -Raw) -ceq $baselineLegacy) 'Adoption changed legacy docs.'
   Assert ((Get-Content "$sandbox/src/login.ts" -Raw) -ceq $baselineSource) 'Adoption changed source.'
   Assert (-not (Test-Path "$sandbox/docs/architecture")) 'Initialization imposed optional docs.'
   Reject { & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' } 'UNCHECKED'
   Reject { & $script -Action Initialize -ProjectRoot $sandbox } 'EXISTS'
-  # Scenario: explicit semantic review. Expected: matching scope/task is reusable, unrelated task is not.
   Record (New-Review)
   & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' | Out-Null
+  $legacyState=Get-Content "$sandbox/docs/governance/documentation.json" -Raw | ConvertFrom-Json
+  Assert ($legacyState.policyVersion -eq 2) 'Legacy fixture did not publish a policy2 assessment.'
+  $legacyReportHash=(Get-FileHash "$sandbox/docs/governance/reviews/login.md").Hash
+  $legacyRecordHash=(Get-FileHash "$sandbox/docs/governance/reviews/login.json").Hash
+  $legacyIndexHash=(Get-FileHash "$sandbox/docs/governance/doc-index.md").Hash
+  $script=$currentScript
+  Reject { & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' } 'STALE'
+  Assert ((Get-FileHash "$sandbox/docs/governance/reviews/login.md").Hash -eq $legacyReportHash) `
+    'Stale validation changed the prior report.'
+  Assert ((Get-FileHash "$sandbox/docs/governance/doc-index.md").Hash -eq $legacyIndexHash) `
+    'Stale validation changed the navigation index.'
+  Record (New-Review)
+  & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' | Out-Null
+  $freshState=Get-Content "$sandbox/docs/governance/documentation.json" -Raw | ConvertFrom-Json
+  Assert ($freshState.policyVersion -eq 3 -and $freshState.schemaVersion -eq 1) `
+    'Fresh review did not preserve schema1 while upgrading policy3.'
+  Assert ($freshState.initializedAt -ceq $legacyState.initializedAt) 'Upgrade reset adoption.'
+  Assert (($freshState.additionalPaths -join ',') -ceq 'notes') 'Upgrade reset AdditionalPaths.'
+  $freshScan=& $script -Action Scan -ProjectRoot $sandbox | ConvertFrom-Json
+  Assert ('notes/extra.md' -in $freshScan.documents.path) 'Configured extra document disappeared.'
+  $archives=@(Get-ChildItem "$sandbox/docs/governance/reviews/archive" -File)
+  Assert (@($archives | Where-Object {
+    (Get-FileHash -LiteralPath $_.FullName).Hash -eq $legacyReportHash
+  }).Count -eq 1) 'Legacy report bytes were not retained.'
+  Assert (@($archives | Where-Object {
+    (Get-FileHash -LiteralPath $_.FullName).Hash -eq $legacyRecordHash
+  }).Count -eq 1) 'Legacy review record bytes were not retained.'
   # Scenario: higher-priority root instructions appear after review. Expected: inventory includes override, old review stale, bytes untouched.
   Set-Content "$sandbox/AGENTS.override.md" '# User-owned override policy'
   $overrideScan=& $script -Action Scan -ProjectRoot $sandbox | ConvertFrom-Json
@@ -111,6 +152,32 @@ try {
   Reject { & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' } 'BLOCKED'
   & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' -WorkItem styles | Out-Null
   Reject { & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' -WorkItem login } 'BLOCKED'
+  # Scenario: a same-scope PRD/guide conflict remains pending; independent styling is approved.
+  # Expected: ready cannot hide it, partial allows only styling and leaves both competing sources intact.
+  Set-Content "$sandbox/docs/PRD/product.md" 'Login session timeout: 10 minutes in production.'
+  Set-Content "$sandbox/notes/extra.md" 'Login session timeout: 30 minutes in production.'
+  $review=New-Review
+  $review.findings=@(@{
+    id='DOC-CONFLICT';kind='conflict';severity='blocking';affectedWork=@('login')
+    evidence=@('docs/PRD/product.md','notes/extra.md')
+    question='Which login condition is intended under the same scope?'
+    recommendation='Ask the user through Lead; preserve both claims until decided.'
+    resolution=@{state='pending';evidence=''}
+  })
+  $conflictPrdHash=(Get-FileHash "$sandbox/docs/PRD/product.md").Hash
+  $conflictGuideHash=(Get-FileHash "$sandbox/notes/extra.md").Hash
+  Reject { Record $review } 'READINESS'
+  $review.outcome='partial';$review.runnableWork=@('styles')
+  Record $review
+  & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' `
+    -WorkItem styles | Out-Null
+  Reject {
+    & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' -WorkItem login
+  } 'BLOCKED'
+  Assert ((Get-FileHash "$sandbox/docs/PRD/product.md").Hash -eq $conflictPrdHash) `
+    'Conflict publication changed the original PRD.'
+  Assert ((Get-FileHash "$sandbox/notes/extra.md").Hash -eq $conflictGuideHash) `
+    'Conflict publication changed the original guide.'
   # Scenario: a current PRD was never read. Expected: no ready claim, even when its category is present.
   $review=New-Review
   ($review.documents | Where-Object authority -eq prd).disposition='unavailable'

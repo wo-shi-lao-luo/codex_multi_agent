@@ -27,6 +27,7 @@ if (-not (Test-Path -LiteralPath $changelogPath)) {
 $expectedAgentProfiles = @{
   'team-architect' = @{ model = 'gpt-6.1-sol'; reasoning = 'xhigh' }
   'team-backend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-code-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
   'team-database-specialist' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
   'team-docs-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
   'team-explorer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
@@ -59,6 +60,157 @@ foreach ($skillName in @('team-core','team-ai-simulate','ai-engineering')) {
 }
 $aiAgentPath=Join-Path $root 'agents/team-ai-engineer.toml'
 if ((Test-Path -LiteralPath $aiAgentPath -PathType Leaf) -and -not (Get-Content -LiteralPath $aiAgentPath -Raw).Contains('ai-engineering')) { $failures.Add('team-ai-engineer must route to ai-engineering') }
+
+# AI capability guidance is one distribution unit. Resource/link guards only
+# establish discovery, never native adherence, replay safety or AI quality.
+foreach ($resource in @(
+  'skills/team-core/references/ai-capability-contract.md'
+  'skills/team-core/references/ai-record-replay-testing.md'
+  'skills/team-core/templates/ai-capability/contract-brief.md'
+  'skills/team-core/templates/ai-capability/record-replay-plan.md'
+)) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) {
+    $failures.Add("Missing AI capability resource: $resource")
+  }
+}
+foreach ($route in @(
+  @{ path = 'skills/team-core/SKILL.md'; target = 'references/ai-capability-contract.md' },
+  @{ path = 'skills/team-core/SKILL.md'; target = 'references/ai-record-replay-testing.md' },
+  @{
+    path = 'skills/ai-engineering/SKILL.md'
+    target = '../team-core/references/ai-capability-contract.md'
+  },
+  @{
+    path = 'skills/backend-engineering/SKILL.md'
+    target = '../team-core/references/ai-capability-contract.md'
+  },
+  @{
+    path = 'skills/testing-engineering/SKILL.md'
+    target = '../team-core/references/ai-record-replay-testing.md'
+  },
+  @{
+    path = 'skills/team-core/references/test-acceptance-contract.md'
+    target = 'ai-record-replay-testing.md'
+  },
+  @{
+    path = 'skills/team-core/references/ai-capability-contract.md'
+    target = '../templates/ai-capability/contract-brief.md'
+  },
+  @{
+    path = 'skills/team-core/references/ai-record-replay-testing.md'
+    target = '../templates/ai-capability/record-replay-plan.md'
+  }
+)) {
+  $path = Join-Path $root $route.path
+  $content = if (Test-Path -LiteralPath $path -PathType Leaf) {
+    Get-Content -LiteralPath $path -Raw
+  } else { $null }
+  if ([string]::IsNullOrWhiteSpace($content) -or
+      -not $content.Contains("]($($route.target))")) {
+    $failures.Add("$($route.path) must link to $($route.target)")
+  }
+}
+
+# Readability resources form one discovery unit; these checks do not prove
+# runtime role loading or that a future edit preserves application behavior.
+$readabilityResources = @(
+  'skills/team-code-maintain/SKILL.md'
+  'skills/team-code-maintain/agents/openai.yaml'
+  'skills/team-core/references/code-readability.md'
+  'skills/team-core/references/formatter-tool.md'
+  'skills/team-core/scripts/format-code.ps1'
+  'skills/team-core/scripts/format-code-powershell.ps1'
+  'agents/team-code-maintainer.toml'
+)
+foreach ($resource in $readabilityResources) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) {
+    $failures.Add("Missing code-readability resource: $resource")
+  }
+}
+
+$readabilitySkills = @(
+  'team-core'
+  'team-dev'
+  'team-code-maintain'
+  'team-review'
+  'code-review'
+  'frontend-engineering'
+  'backend-engineering'
+  'database-engineering'
+  'ai-engineering'
+  'testing-engineering'
+)
+foreach ($skillName in $readabilitySkills) {
+  $path = Join-Path $root "skills/$skillName/SKILL.md"
+  $target = if ($skillName -eq 'team-core') {
+    'references/code-readability.md'
+  } else {
+    '../team-core/references/code-readability.md'
+  }
+  $content = if (Test-Path -LiteralPath $path -PathType Leaf) {
+    Get-Content -LiteralPath $path -Raw
+  } else { $null }
+  if ([string]::IsNullOrWhiteSpace($content) -or -not $content.Contains("]($target)")) {
+    $failures.Add("$skillName must link to code-readability.md")
+  }
+}
+
+$executionPath = Join-Path $root 'skills/team-core/references/execution-contract.md'
+$executionContent = if (Test-Path -LiteralPath $executionPath -PathType Leaf) {
+  Get-Content -LiteralPath $executionPath -Raw
+} else { $null }
+if ([string]::IsNullOrWhiteSpace($executionContent) -or -not $executionContent.Contains('](code-readability.md)')) {
+  $failures.Add('execution-contract.md must link to code-readability.md')
+}
+
+# Inspect table cells and exact identifiers, without matching routing prose.
+$routingPath = Join-Path $root 'skills/team-core/references/role-routing.md'
+$hasMaintainerMapping = $false
+if (Test-Path -LiteralPath $routingPath -PathType Leaf) {
+  foreach ($line in Get-Content -LiteralPath $routingPath) {
+    if ($line -notmatch '^\s*\|') { continue }
+    $cells = $line.Split('|')
+    if ($cells.Count -eq 4 -and
+        $cells[1] -match '(?<![a-z0-9-])team-code-maintain(?![a-z0-9-])' -and
+        $cells[2].Contains('`team-code-maintainer`')) {
+      $hasMaintainerMapping = $true
+    }
+  }
+}
+if (-not $hasMaintainerMapping) {
+  $failures.Add('role-routing.md must map team-code-maintain to team-code-maintainer')
+}
+
+# Support the shipped policy mapping subset and unrelated interface metadata.
+# Duplicate sections/flags and flags outside policy must not enable discovery.
+$implicitRoutePath = Join-Path $root 'skills/team-code-maintain/agents/openai.yaml'
+if (Test-Path -LiteralPath $implicitRoutePath -PathType Leaf) {
+  $policyCount = 0
+  $flagCount = 0
+  $inPolicy = $false
+  $validPolicy = $true
+  foreach ($line in Get-Content -LiteralPath $implicitRoutePath) {
+    if ([string]::IsNullOrWhiteSpace($line) -or $line.TrimStart().StartsWith('#')) { continue }
+    if ($line -match '^policy\s*:') {
+      $policyCount++
+      $inPolicy = $true
+      if ($line -notmatch '^policy:\s*(?:#.*)?$') { $validPolicy = $false }
+      continue
+    }
+    if ($line -match '^\S') { $inPolicy = $false }
+    if ($line -match '^\s*allow_implicit_invocation\s*:') {
+      $flagCount++
+      if (-not $inPolicy -or $line -notmatch '^  allow_implicit_invocation:\s*true\s*(?:#.*)?$') {
+        $validPolicy = $false
+      }
+    } elseif ($inPolicy) {
+      $validPolicy = $false
+    }
+  }
+  if ($policyCount -ne 1 -or $flagCount -ne 1 -or -not $validPolicy) {
+    $failures.Add('team-code-maintain must declare one policy allow_implicit_invocation: true')
+  }
+}
 
 Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-Object {
   $entries = @{}
@@ -107,6 +259,16 @@ Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-
     }
     if ($_.BaseName -eq 'team-ai-architect' -and -not ([string]$entries['developer_instructions']).Contains('ai-engineering')) {
       $failures.Add('team-ai-architect must reference ai-engineering domain guidance')
+    }
+    if ($_.BaseName -eq 'team-code-maintainer') {
+      if ($entries.ContainsKey('sandbox_mode') -and $entries['sandbox_mode'] -ne 'workspace-write') {
+        $failures.Add('team-code-maintainer must retain writable sandbox permissions')
+      }
+      foreach ($route in @('team-code-maintain', 'code-readability.md', 'format-code.ps1')) {
+        if (-not ([string]$entries['developer_instructions']).Contains($route)) {
+          $failures.Add("team-code-maintainer must reference $route")
+        }
+      }
     }
   } else {
     $failures.Add("$($_.Name) is not part of the supported team agent profile")

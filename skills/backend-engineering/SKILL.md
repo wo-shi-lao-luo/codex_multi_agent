@@ -5,7 +5,10 @@ description: Build or review backend code using an evidence-backed workflow for 
 
 # Backend engineering
 
-Use this Skill for material server-side work. Apply the shared [execution contract](../team-core/references/execution-contract.md) and [execution templates](../team-core/references/execution-templates.md) so service behavior, compatibility, and verification are explicit.
+Use this Skill for material server-side work. Read the shared [execution contract](../team-core/references/execution-contract.md) and [execution templates](../team-core/references/execution-templates.md) in full when establishing the Work contract so service behavior, compatibility, and verification are explicit.
+
+When a backend consumes a replaceable Agent/Workflow capability, read the shared [AI capability contract](../team-core/references/ai-capability-contract.md) and agree the boundary with the AI owner. Keep business validation, authorization, persistence and side-effect decisions in their assigned application layer.
+
 
 ## When to activate
 
@@ -36,9 +39,9 @@ Preserve compatibility unless the approved task changes the contract. Keep secre
 
 ## Execute and verify
 
-Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
+Read the [code comment](../team-core/references/code-comments.md) and [code readability](../team-core/references/code-readability.md) contracts in full for assigned code/tests. Follow layered comment and per-test explanation requirements, project formatting, and the formatting-only freeze boundary; record self-check outcomes and gaps. Review-only work reports without editing.
 
-Implement the assigned boundary using repository conventions. Run focused unit, integration, contract, or job verification that demonstrates the changed success path and material failure path. Include `team-database-specialist` when the work contract reaches the data layer.
+Implement the assigned boundary using repository conventions. For a standalone small fix, use the [small-task test rule](../team-core/references/test-acceptance-contract.md#tier-selection-reuse-and-resource-limits) for affected checks and the due handoff; risk/gates still control expansion. Verify the adequate success and material failure paths; include `team-database-specialist` when work reaches the data layer.
 
 Create a Verification record with commands and outcomes, integration evidence, unavailable checks, and remaining operational risk.
 

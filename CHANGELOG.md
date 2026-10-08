@@ -2,6 +2,56 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.0.6] - 2026-10-08
+
+### Changed
+
+- Schedule relevant fast checks during iterations, affected real integration/API and key smoke checks at the first usable chain, and costly browser/Agent-driven checks at named acceptance checkpoints. Preserve full planned coverage, risk-based expansion, required fresh gates and user-only manual acceptance; deferred evidence cannot satisfy a due checkpoint.
+- Clarify bounded small-task testing: practical minimal reproduction and affected regression checks at the lowest adequate boundary, with due acceptance evidence at standalone handoff or an agreed batch checkpoint. Do not automatically require every test layer or the full suite for each fix.
+- Consolidate duplicated procedures in twelve Skill entries into shared authoritative references with explicit use-point routing and complete reads of selected resources. Preserve role, approval, TDD, E2E and independent AI-simulation assessment boundaries; these instruction changes do not establish runtime enforcement or measured token savings.
+
+## [1.0.5] - 2026-10-07
+
+### Added
+
+- Add a Codex-facing local installation guide and concise README entrypoints with a copyable install/update request. Clarify source selection, preview and conflict boundaries, and the difference between installed files and runtime discovery.
+
+## [1.0.4] - 2026-10-07
+
+### Added
+
+- Extend task-scoped documentation governance with semantic consistency checks across relevant documents. Distinguish redundant detailed rules, complementary scopes and exceptions, conflicts under the same conditions, and legitimate repetition such as navigation, bilingual counterparts and historical evidence.
+- Determine authority for each claim and scope from existing versioned sources or confirmed user decisions. Treat code/configuration as evidence of observed behavior, not approved intent; route focused Explorer, Architect and Tester evidence through the Lead. Do not create a parallel authority registry or a new finding kind.
+- Allow assigned maintainers to replace a redundant passage with a useful summary and specific reference only when its authority is clear. Preserve unique context; keep disputed claims intact for user direction and pause only dependent work. Whole-document moves/deletion, historical or acceptance edits, and target instruction writes retain their existing approval boundaries.
+- Add safe child-thread lifecycle guidance to the existing role-routing contract: reconcile roles and roster at workflow events, preserve named-role identity, require complete handoff and independent process/write ownership before a documented host close, and keep unsupported or uncertain closure distinct from capacity evidence. A confirmed close permits only a bounded retry of the same queued role; existing limits and final roster obligations remain.
+
+### Changed
+
+- Trigger semantic checks during scoped adoption, relevant document changes, material implementation changes affecting documented claims, task closure, or discovery of a related defect. This is not a full-repository sweep or background watcher.
+- Increment documentation policy to version 3 so prior scoped assessments require fresh review; retain the existing review schema and adoption configuration. Keep detailed reconciliation rules in the shared governance reference, with concise routing in `team-doc-check` and the GPT-6 Luna / high Docs Maintainer instructions.
+
+## [1.0.3] - 2026-10-07
+
+### Added
+
+- Add the PowerShell 7 `team-core/scripts/format-code.ps1` helper for bounded Plan, Check, and Apply operations over literal project-relative files. It supports Prettier, Ruff, PowerShell, and Biome when compatible with existing project configuration; it does not install tools or replace unsupported project formatters.
+- Add [the formatter tool guide](docs/formatter-tool.md) and connect the helper to the shared code-readability contract and direct code-maintenance workflow, including trust/write acknowledgements and known failure limits.
+
+### Changed
+
+- Have codewriters use supported formatter checks for assigned files, then review remaining readability with the Agent and recheck formatting after further edits. Formatting remains behavior-preserving and uses only the authority already established for the files and tooling.
+
+## [1.0.2] - 2026-10-07
+
+### Added
+
+- Add a shared code-readability contract for code authors, testers, and reviewers. Prefer each project's formatter; otherwise target 100 characters and treat lines over 120 as a review signal. Preserve meaningful strings, generated/vendor content, snapshots, and mandatory test explanations.
+- Add implicitly invokable `$team-code-maintain` and the exact `team-code-maintainer` role configured as GPT-6 Luna / medium. Direct behavior-preserving formatting uses scoped checks without requiring the full `$team-dev` lifecycle; an unavailable named role does not silently fall back.
+
+### Changed
+
+- Route codewriters, testers, and reviewers through the shared readability contract. Formatting transfers start only after the original writer freezes the files and retain the material task's existing Tester/Reviewer gates; the formatting-only boundary excludes renames, API/control-flow changes, and behavior changes.
+
 ## [1.0.1] - 2026-10-05
 
 - Add automatic, risk- and uncertainty-based design-depth checks to `$team-plan` and `$team-dev`: clear work uses a light check, while materially unresolved decisions receive bounded fuller exploration. Reuse accepted decisions unless relevant scope or evidence changes.

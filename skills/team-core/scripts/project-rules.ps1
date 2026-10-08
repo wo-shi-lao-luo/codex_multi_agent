@@ -145,7 +145,7 @@ if ($total -gt $MaxBytes) { $warnings.Add('Selected source bytes exceed MaxBytes
 # Source-byte sum is a diagnostic, not Codex's exact assembled prompt accounting.
 # No global settings are read: fallback names and limit are caller-supplied evidence.
 [ordered]@{
-  schemaVersion=1; kitVersion='1.0.1'; workingDirectory=$working
+  schemaVersion=1; kitVersion='1.0.6'; workingDirectory=$working
   fallbackNames=@($FallbackNames); maxBytes=$MaxBytes; directories=@($directories)
   candidates=@($candidates); selectedPaths=@($selected); dependencyPaths=@($dependencies)
   totalSelectedBytes=$total; exceedsMaxBytes=($total -gt $MaxBytes)

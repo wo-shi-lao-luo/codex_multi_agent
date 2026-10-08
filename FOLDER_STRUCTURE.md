@@ -15,21 +15,28 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `agents/team-ai-simulation-actor-basic.toml` and `team-ai-simulation-actor-advanced.toml` — bounded read-only AI workflow actors with the same behavior contract and basic/advanced profiles.
 - `agents/team-ai-architect.toml` — Sol/xhigh read-only AI-domain architect, separate from software-wide `team-architect`.
 - `agents/team-ai-engineer.toml` — Sol/medium implementation role for assigned AI prompts, context, model/tool protocols and workflow state.
+- `agents/team-code-maintainer.toml` — Luna/medium role for assigned, behavior-preserving code formatting after ownership is frozen.
 - `skills/` — reusable Codex Skills. Most `team-*` Skills are explicit workflow entrypoints; `team-project-rules` also routes from task-time evidence checks in `$team-plan`/`$team-dev`. `team-core` bundles their shared policy references for installation.
 - `skills/team-ai-simulate/` — explicit-only local AI agent/workflow prototyping Skill; simulation is separate from production authorization.
+- `skills/team-code-maintain/` — implicitly invokable Lead adapter for direct formatting requests and bounded post-freeze readability transfers; behavior changes remain with the original code owner.
+- `skills/team-core/scripts/format-code.ps1` and `format-code-powershell.ps1` — bounded Plan/Check/Apply adapter for supported installed formatters; its portable contract is `skills/team-core/references/formatter-tool.md`.
 - `skills/ai-engineering/` — AI application behavior Skill for authorized engineering of prompts, context, model/tool protocols and workflow state.
 - `skills/team-core/references/ai-simulation.md` — shared local simulation context, evidence, privacy and acceptance contract.
+- `skills/team-core/references/ai-capability-contract.md` and `ai-record-replay-testing.md` — project-specific Agent/Workflow replacement boundary and distinct live, record, replay and synthetic test evidence contracts.
+- `skills/team-core/templates/ai-capability/` — optional concise starting outlines for a target project's capability brief and record/replay test plan; the target project adapts or omits them to match existing authorities.
 - `skills/team-core/references/design-exploration.md` — shared risk-proportional design-depth, bounded proposal, approval and decision-reuse contract for Team planning/development.
 - `skills/team-core/scripts/ai-simulation.ps1` and `templates/ai-simulation/definition.json` — bounded definition validation, frozen source snapshots, non-replaceable call records with a mutable fail-closed terminal head, and a reusable target-project definition example.
 - `skills/team-doc-check/` — documentation readiness/adoption entrypoint; distributed Skill source, not repository discovery configuration.
 - `skills/team-project-rules/` — entrypoint for reviewing, drafting and maintaining target-project `AGENTS.md` files.
-- `skills/team-core/references/documentation-governance.md` — task-scoped sufficiency, PRD authority, ambiguity and legacy contract with runtime schema.
+- `skills/team-core/references/documentation-governance.md` — task-scoped sufficiency, topic-scoped document authority, semantic consolidation and conflict handling, ambiguity and legacy contract with runtime schema.
 - `skills/team-core/references/project-rules.md` — target-project instruction-file authority, candidate discovery, approval and maintenance contract.
 - `skills/team-core/scripts/documentation.ps1` — local document inventory, adoption, scoped review and stale-evidence detector.
 - `skills/team-core/scripts/generated-artifacts.ps1` — narrow profile-based local artifact protection and read-only Git-index checks; see `skills/team-core/references/generated-artifacts.md`.
 - `skills/team-core/references/generated-artifacts.md` — artifact profiles, durable evidence boundaries, result schema, conflict handling and caller lifecycle.
 - `skills/team-core/scripts/project-rules.ps1` — read-only discovery metadata for applicable project instruction-file candidates.
 - `skills/team-core/references/code-comments.md` — shared code-comment writing, self-check and review contract.
+- `skills/team-core/references/code-readability.md` — formatter-first code readability rules, bounded helper use, safe formatting boundaries, and writer self-check.
+- `skills/team-core/references/formatter-tool.md` — portable installed-helper interface, formatter/configuration boundaries, caller authority, result codes and failure limits.
 - `skills/team-core/references/role-routing.md` and `handoff-format.md` — named-role availability, explicit invocation evidence and final actual child-agent roster contracts.
 - `skills/frontend-design/` — implementation-oriented interface design and rendered refinement Skill, distributed by the installer.
 - `skills/team-core/references/ui-quality.md` — shared UI brief, page ownership and visual-verification contract.
@@ -40,6 +47,7 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `scripts/` — user-level validation, installation, and safe update helpers.
 - `scripts/deploy-user.ps1` — self-contained versioned deployment/recovery manager; installed copies live outside Skill discovery paths.
 - `docs/safe-deployment.md` — durable installation, stable snapshot, downgrade, recovery and retention guide.
+- `docs/codex-install.md` — local Codex user installation and update steps, source checks, preview, and runtime-discovery limits.
 - `tests/test-deployment.ps1` — isolated fake-home deployment and fault-injection suite; no actual installation.
 - `tests/test-documentation.ps1` — isolated existing-project adoption and readiness/ambiguity regression tests.
 - `tests/` — isolated package, installation, feedback, AI-simulation, stage-verification and project-blueprint tests.
@@ -54,12 +62,13 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `docs/legacy/` — confirmed superseded project documentation, preserving replacement/reason and references; no automatic age-based moves.
 - `docs/` — architecture, source-attribution notes, technical use guides, and approved system-design specifications.
 - `docs/ai-simulation.md` — target-project local simulation workflow, evidence limits and engineering handoff guide.
-- `docs/superpowers/specs/` — dated, approved architectural designs that await an implementation plan.
-- `docs/superpowers/plans/` — dated, approved implementation plans for architectural designs.
+- `docs/formatter-tool.md` — repository-facing navigation and verification-maintenance notes for the installed formatter tool; the portable Skill reference is normative.
+- `docs/superpowers/specs/` — local dated architectural designs; retained on disk but ignored by Git and absent from fresh clones.
+- `docs/superpowers/plans/` — local dated implementation plans; retained on disk but ignored by Git and absent from fresh clones.
 - `docs/release-versioning.md` — release-numbering policy for maintainers.
 - `scripts/validate-docs.ps1` — repository-only structural checks for the English/Simplified Chinese public documentation pairs; separate from package validation and installation.
 - `tests/test-bilingual-docs.ps1` — isolated regression tests for paired public-document structure, technical-value drift and read-only behavior.
-- `backlog/` — Confirmed engineering improvements deferred for later work.
+- `backlog/` — local confirmed engineering improvements deferred for later work; retained on disk but ignored by Git and absent from fresh clones.
 - `CHANGELOG.md` — public release history for this distributable kit.
 - `CHANGELOG.zh-CN.md` — complete Simplified Chinese release history paired with `CHANGELOG.md`.
 - `README.md` and `README.zh-CN.md` — default English and Simplified Chinese public entrypoints.
@@ -68,6 +77,8 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 ## Conventions
 
 Keep this repository as the source of truth. Do not edit installed copies under a user's home directory; change this repository and rerun the installer. Do not add a general-purpose agent, connector, hook, or background service without a concrete workflow need.
+
+Keep `backlog/` and `docs/superpowers/` local only. Do not force-add their contents or link required public setup/runtime instructions to them. Removing existing entries from Git tracking preserves local files; the deletion reaches the remote branch after commit and push, without erasing historical commits. Shared authoritative requirements and reusable workflow contracts belong in versioned locations outside these local-only directories.
 
 ## Archive policy
 

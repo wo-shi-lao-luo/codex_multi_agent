@@ -12,3 +12,7 @@
 ## Documentation placement
 
 Keep root README files focused on stable orientation, setup, basic commands, user-relevant limitations and navigation. Put detailed procedures and task results in their existing authoritative documents under `docs/`. Follow `docs/release-versioning.md` for release numbering and coordinated public-document updates.
+
+## User-level Codex installation
+
+Opening this repository, asking about installation, or reviewing installation documentation does not authorize changes to a user's Codex homes. Proceed with a user-level install or update only on a direct user request to install or update this Kit, and follow `docs/codex-install.md` plus `docs/safe-deployment.md`. Preview the selected source and target first; stop on unexpected source state or conflicts that require a separate choice. Do not infer permission to edit global Codex configuration or to force-replace conflicting files. Do not claim that installed files prove the active Codex session loaded a Skill or agent.

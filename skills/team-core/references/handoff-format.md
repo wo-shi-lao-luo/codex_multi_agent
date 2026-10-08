@@ -15,6 +15,8 @@ When handing off an unresolved issue, include its acceptance behavior, condition
 
 Children also report their own returned ID/task handle and any actually available role/model evidence; use `unknown` for metadata they cannot observe. Do not infer loaded identity from the assignment prompt, and do not take over the Lead's roster or spawn additional agents.
 
+Before the Lead considers reusing or closing a child, its handoff identifies outstanding issues, writes or background processes, and whether ownership has ended or can be safely transferred without relying on the thread being closed. Uncertain ownership means keep the thread open and report the blocker.
+
 ## Lead's final actual-agent roster
 
 Every Team workflow's final user-facing response includes the actual child roster, following [role routing](role-routing.md):

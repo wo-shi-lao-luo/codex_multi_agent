@@ -13,10 +13,11 @@ A small, user-level development team for Codex. It uses Codex native subagents a
 - `$team-ai-simulate <AI agent or workflow>` — explicitly prototype bounded AI behavior locally before deciding whether to engineer it.
 - `$team-doc-check <task>` — adopt or recheck project documentation and produce a scoped readiness assessment.
 - `$team-project-rules <task>` — review, draft, or maintain the target project's `AGENTS.md` guidance.
+- `$team-code-maintain <files>` — safely format assigned code or accept a completed-owner readability pass.
 
 ## Team
 
-`team-explorer`, `team-architect`, `team-ai-architect`, `team-docs-maintainer`, `team-frontend-engineer`, `team-backend-engineer`, `team-database-specialist`, `team-tester`, `team-reviewer`, `team-ai-simulation-actor-basic`, `team-ai-simulation-actor-advanced`, and `team-ai-engineer` are Codex custom agents. The basic and advanced simulation actors serve one bounded behavior node with the same restrictions; `team-ai-architect` proposes AI-domain designs, and `team-ai-engineer` implements assigned AI application behavior. The main Codex thread is the Lead and owns the task state, integration, and final answer.
+`team-explorer`, `team-architect`, `team-ai-architect`, `team-docs-maintainer`, `team-frontend-engineer`, `team-backend-engineer`, `team-database-specialist`, `team-tester`, `team-reviewer`, `team-ai-simulation-actor-basic`, `team-ai-simulation-actor-advanced`, `team-ai-engineer`, and `team-code-maintainer` are Codex custom agents. The basic and advanced simulation actors serve one bounded behavior node with the same restrictions; `team-ai-architect` proposes AI-domain designs, `team-ai-engineer` implements assigned AI application behavior, and `team-code-maintainer` handles assigned behavior-preserving formatting. The main Codex thread is the Lead and owns the task state, integration, and final answer.
 
 ## Model allocation
 
@@ -31,6 +32,7 @@ A small, user-level development team for Codex. It uses Codex native subagents a
 | AI simulation actor advanced | `gpt-6.1-sol` | medium |
 | AI architect | `gpt-6.1-sol` | xhigh |
 | AI engineer | `gpt-6.1-sol` | medium |
+| Code maintainer | `gpt-6-luna` | medium |
 
 For the Lead, select GPT-6 Astra / high in the main session. This is a recommendation, not an installed agent setting. The optional configuration fragment sets generic subagents to GPT-6.1 Sol / medium; named team roles retain their explicit profiles. Existing users who merged the old fragment must update its two `default_subagent_*` values explicitly; the installer does not merge global configuration.
 
@@ -42,22 +44,30 @@ The kit does not implement automatic model fallback. Keep previous model assignm
 
 ## Install for one user
 
-Run PowerShell 7 from this repository:
+### Human quickstart
+
+Use Codex on the machine where the Kit should be installed and share the [Kit repository](https://github.com/wo-shi-lao-luo/codex_multi_agent). You do not need to clone it manually. If Codex needs a local checkout, it should confirm a safe new destination with you first. A remote/cloud Codex session cannot install files on your computer.
+
+### Copyable request for Codex
+
+> Please install or update this Kit for the current user on this machine from https://github.com/wo-shi-lao-luo/codex_multi_agent. Read its README and `docs/codex-install.md`; if you need a local checkout, ask me to confirm a safe new destination first. Use a local executor, follow the guide, and stop if the source or a conflict is uncertain.
+
+### Manual installation (optional)
+
+From PowerShell 7 in the repository, the direct commands are:
 
 ```powershell
 .\scripts\validate.ps1
 .\scripts\install-user.ps1
 ```
 
-To safely update an existing installation after pulling a newer kit version, run:
+To update an existing installation, use:
 
 ```powershell
 .\scripts\update-user.ps1
 ```
 
-`update-user.ps1` uses the same receipt, `-WhatIf`, conflict protection, and `-Force` backup behavior as the installer. It does not modify `~/.codex/config.toml`.
-
-Install, upgrade and downgrade share one deployment manager. Receipt-owned components absent from the target are removed, including obsolete files inside retained Skills. Unknown or modified contents block replacement unless explicitly backed up with `-Force`. See [safe deployment and reusable rollback](docs/safe-deployment.md) to pin a tested stable snapshot before trying a new version, restore offline, or deploy a local Git commit without changing the checkout. Backups and the recovery manager intentionally remain outside agent/Skill discovery; project data is not rolled back.
+The [Codex installation guide](docs/codex-install.md) explains source selection, preview and discovery checks. The update entrypoint uses the same receipt, `-WhatIf`, conflict protection, and `-Force` backup behavior as the installer. It does not modify `~/.codex/config.toml`. Install, upgrade and downgrade share one deployment manager. Receipt-owned components absent from the target are removed, including obsolete files inside retained Skills. Unknown or modified contents block replacement unless explicitly backed up with `-Force`. See [safe deployment](docs/safe-deployment.md) to pin a tested stable snapshot before trying a new version, restore offline, or deploy a local Git commit without changing the checkout. Backups and the recovery manager intentionally remain outside agent/Skill discovery; project data is not rolled back.
 
 To verify the distributable package without touching your actual Codex or Skills directories, run:
 
@@ -87,13 +97,15 @@ The installer validates the kit before writing. Use `-WhatIf` to preview its act
 
 Agent names use the `team-` prefix to avoid collisions with personal agents. Historical components absent from the installation receipt are left untouched; inspect their ownership before removing them manually.
 
-Current release: `1.0.1` (focused extension to the 1.0 product line; not a stable-release declaration). Kit-owned local generated artifacts use narrow Git protection and an index check. Documentation governance metadata, index and review records stay on disk locally but are not shared through Git; a fresh checkout must establish its own adoption/review state. User-authored project documents, PRDs, Blueprint, verification packets and native specs remain versionable. Tracked local artifacts and explicit include-rule conflicts need a user decision. The kit installs no Git hooks or background watcher, and manual forced staging remains possible. See [generated-artifact Git protection](skills/team-core/references/generated-artifacts.md). The feedback runtime currently supports `$team-dev`, `$team-plan`, `$team-debug`, and `$team-review`; `$team-ai-simulate` keeps its separate bounded local run trace and does not call that runtime. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. Persistent repair loops research relevant external evidence after two ordinary failures; applicable new evidence may support one conditional extension, up to five repair attempts total. Debug research uses the existing six-round allocation. Pauses remain evidence-based and require user authorization to resume; long healthy operations have task-specific progress checkpoints, not a universal time cutoff. Test execution uses risk tiers and evidence-based reuse, with scoped Explorer discovery available when the test surface is unclear; required E2E/manual scope and repository gates remain authoritative. See [repair and diagnosis loop guard](skills/team-core/references/repair-loop-guard.md), [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [project rules](skills/team-core/references/project-rules.md), [AI simulation guide](docs/ai-simulation.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
+Current release: `1.0.6` (focused test-checkpoint and Skill-routing improvements on the 1.0 preview line; not a stable-release declaration). Kit-owned local generated artifacts use narrow Git protection and an index check. Documentation governance metadata, index and review records stay on disk locally but are not shared through Git; a fresh checkout must establish its own adoption/review state. User-authored project documents, PRDs, Blueprint, verification packets and native specs remain versionable. Tracked local artifacts and explicit include-rule conflicts need a user decision. The kit installs no Git hooks or background watcher, and manual forced staging remains possible. See [generated-artifact Git protection](skills/team-core/references/generated-artifacts.md). The feedback runtime currently supports `$team-dev`, `$team-plan`, `$team-debug`, and `$team-review`; `$team-ai-simulate` keeps its separate bounded local run trace and does not call that runtime. `$team-dev` creates and validates Git-tracked stage verification packets in target projects, using `test-first` where practical and documented alternatives where it is not. Persistent repair loops research relevant external evidence after two ordinary failures; applicable new evidence may support one conditional extension, up to five repair attempts total. Debug research uses the existing six-round allocation. Pauses remain evidence-based and require user authorization to resume; long healthy operations have task-specific progress checkpoints, not a universal time cutoff. Test execution uses risk tiers and evidence-based reuse, with scoped Explorer discovery available when the test surface is unclear; required E2E/manual scope and repository gates remain authoritative. See [repair and diagnosis loop guard](skills/team-core/references/repair-loop-guard.md), [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [code readability contract](skills/team-core/references/code-readability.md), [scoped formatter tool](docs/formatter-tool.md), [project rules](skills/team-core/references/project-rules.md), [AI simulation guide](docs/ai-simulation.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
 
 Visible UI work uses [frontend-design](skills/frontend-design/SKILL.md) alongside frontend-engineering. The [UI delivery contract](skills/team-core/references/ui-quality.md) preserves page-level goals through delegation and requires rendered inspection separate from functional tests. No extra design agent, model change or per-page design document is required. Missing browser evidence must be reported as visually unverified, not release-ready.
 
 Restart Codex if a newly installed Skill is not immediately visible.
 
 ## Operating rules
+
+Direct formatting/readability requests route through `$team-code-maintain` to `team-code-maintainer`. For supported project setups, the role uses the installed formatter helper on exact files, reviews readability left after mechanical formatting, and runs a final formatter check. Tool execution and writes use the caller's already-established trust and authorization; the helper does not install tools or silently replace unsupported project formatters. Its Skill allows per-request implicit invocation; it does not install a background formatter. This is the direct-request exception to the explicit-entrypoint rule below; other Team workflows retain their own entrypoints. This pure maintenance path does not force the full `$team-dev` lifecycle. A formatting transfer inside material feature work starts after the original writer freezes the files; that task's Tester/Reviewer gates remain in force. The later Lead-only exception is for genuinely trivial corrections incidental to other work. See the [code readability contract](skills/team-core/references/code-readability.md) and [formatter tool guide](docs/formatter-tool.md).
 
 Explicit `$team-dev` code changes, including small fixes and behavior-changing scripts/configuration/Skill instructions, default to a named implementer plus `team-tester`. Risk and material impact, not file or line count, determine independent review and specialist needs. Small tasks may shorten records but retain every applicable engineering check. Lead-only code execution requires a specific user request/approved exception; ordinary "just fix it" is not that approval, and missing roles never permit silent fallback. See [role routing](skills/team-core/references/role-routing.md) and the [minimum complete path](skills/team-core/references/execution-contract.md). Pure nonbehavior spelling/formatting edits may remain Lead-only. Start and close declarations reconcile intended roles/checks with actual evidence. These internal rules do not automatically activate Team workflows outside their explicit entrypoints.
 
@@ -105,7 +117,7 @@ Stage test plans use [manual-to-automated coverage](skills/team-core/references/
 
 ### Documentation readiness
 
-Team planning/development applies [documentation governance](skills/team-core/references/documentation-governance.md). Existing projects get scoped discovery/adoption; new/changed docs are classified and previous evidence is checked before reuse. The docs/governance marker tracks adoption, not a whole-project pass. Prefer docs/, active applicable PRDs in docs/PRD, and confirmed historical material in docs/legacy; no mandatory document set or empty category directories. Readiness depends on task information, not filenames. Ambiguous intent, conflicting authority or uncertain archive decisions are presented to the user before dependent changes; independent work may continue under an explicitly partial review. Runtime hashes detect changes but do not certify semantic sufficiency or approval. No background monitoring or automatic OpenSpec adoption occurs.
+Team planning/development applies [documentation governance](skills/team-core/references/documentation-governance.md). Existing projects get scoped discovery/adoption; new/changed docs are classified and previous evidence is checked before reuse. The docs/governance marker tracks adoption, not a whole-project pass. Prefer docs/, active applicable PRDs in docs/PRD, and confirmed historical material in docs/legacy; no mandatory document set or empty category directories. Readiness depends on task information, not filenames. Cross-document reviews distinguish redundant detail, complementary guidance, same-scope conflicts and legitimate repeated references; authority is assessed by topic and scope. Unresolved intent remains for user direction, with dependent work paused and independent work allowed to continue. Runtime hashes detect changes but do not certify semantic sufficiency or approval. Checks are task-scoped; there is no background monitoring or automatic OpenSpec adoption.
 
 At task start, when work first enters a relevant module, and when related rule/command/convention evidence changes, `$team-plan` and `$team-dev` assess applicable project instructions. The Lead brings evidence-backed, task-relevant gaps to the user with a suggested change even when the task did not mention `AGENTS.md`; missing, short, or old files alone do not trigger a proposal. Any target instruction-file write requires approval for its bounded path/rules, while ordinary code-development permission is not enough. Reuse the existing decision record to avoid repeating an unchanged proposal. See the [project-rules contract](skills/team-core/references/project-rules.md) for root/nested scope, overrides and limits; the checks add no background watcher or automatic edits.
 

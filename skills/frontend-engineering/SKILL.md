@@ -5,7 +5,8 @@ description: Build or review frontend code using an evidence-backed workflow for
 
 # Frontend engineering
 
-Use this Skill for material client-side work. Apply the shared [execution contract](../team-core/references/execution-contract.md) and [execution templates](../team-core/references/execution-templates.md) so frontend quality is defined by observable behavior, not only implementation detail.
+Use this Skill for material client-side work. Read the shared [execution contract](../team-core/references/execution-contract.md) and [execution templates](../team-core/references/execution-templates.md) in full when establishing the Work contract so frontend quality is defined by observable behavior, not only implementation detail.
+
 
 ## When to activate
 
@@ -21,9 +22,9 @@ Do not use to introduce a state library, UI library, analytics, client-side secr
 
 ## Establish the frontend work contract
 
-For visible UI changes, read the [UI delivery contract](../team-core/references/ui-quality.md) and use [frontend-design](../frontend-design/SKILL.md). Own the coherent assigned page/flow as well as its modular code. Preserve the UI brief, existing visual baseline and whole-product context. Normal spacing, typography, states and responsive polish within scope are part of implementation; request a bounded scope adjustment if shared styles are excluded.
+For visible UI changes, read the [UI delivery contract](../team-core/references/ui-quality.md) and [frontend-design](../frontend-design/SKILL.md) in full. Own the coherent assigned page/flow as well as its modular code. Preserve the UI brief, existing visual baseline and whole-product context. Normal spacing, typography, states and responsive polish within scope are part of implementation; request a bounded scope adjustment if shared styles are excluded.
 
-Use the [Project Blueprint contract](../team-core/references/project-blueprint.md) to place features in their declared modules. Classify entrypoints by framework responsibility: startup, app/router/provider roots primarily compose modules. Keep feature UI, state and requests in their owning boundary unless a documented retained-baseline exception applies. Do not refactor existing code without explicit user approval; record and respect a declined refactor.
+For a new application, multi-stage effort, or material boundary change, read the [Project Blueprint contract](../team-core/references/project-blueprint.md) in full to place features in declared modules; if not applicable, record that briefly. Classify entrypoints by framework responsibility: startup, app/router/provider roots primarily compose modules. Keep feature UI, state and requests in their owning boundary unless a documented retained-baseline exception applies. Do not refactor existing code without explicit user approval; record and respect a declined refactor.
 
 Before implementation, define:
 
@@ -40,9 +41,9 @@ Prefer simple composition and existing project patterns. Keep API contracts expl
 
 ## Execute and verify
 
-Apply the [code comment contract](../team-core/references/code-comments.md): meet its layered minimums for files, interfaces and internal business logic, and provide scenario/expected-result explanations for every in-scope test case, even simple ones. Self-check documentation against behavior and assertions; record scope, outcome, exemptions and gaps in the Verification record. For review-only work, inspect and report without editing.
+Read the [code comment](../team-core/references/code-comments.md) and [code readability](../team-core/references/code-readability.md) contracts in full for assigned code/tests. Follow layered comment and per-test explanation requirements, project formatting, and the formatting-only freeze boundary; record self-check outcomes and gaps. Review-only work reports without editing.
 
-Implement the assigned complete page/flow within its client boundary. Verify functional behavior through the narrowest meaningful layer; for visible UI changes, also perform rendered-page inspection under the UI delivery contract. Component tests are not a substitute for visual verification. Fix observed in-scope issues and inspect the affected result again.
+Implement the assigned complete page/flow within its client boundary. For a standalone small fix, use the [small-task test rule](../team-core/references/test-acceptance-contract.md#tier-selection-reuse-and-resource-limits); include real rendered/integration evidence when the symptom requires it. Verify function at the narrowest meaningful layer, while component tests never replace required rendered-page inspection. Fix observed issues and reinspect the result.
 
 Create a Verification record with checks performed, results, evidence, and any unavailable browser or device coverage. Do not call an interaction complete solely because it renders in one state.
 

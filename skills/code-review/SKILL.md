@@ -5,7 +5,8 @@ description: Independently review a change set for correctness, security, mainta
 
 # Code review
 
-Use this Skill for focused review work. Apply the shared [execution contract](../team-core/references/execution-contract.md) and [execution templates](../team-core/references/execution-templates.md); review findings must be evidence-backed and actionable.
+Use this Skill for focused review work. Read the shared [execution contract](../team-core/references/execution-contract.md), [execution templates](../team-core/references/execution-templates.md), and applicable [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md) in full; findings must be evidence-backed and actionable.
+
 
 ## When to activate
 
@@ -27,6 +28,8 @@ For an enabled OpenSpec project, apply the [spec lifecycle](../team-core/referen
 
 Apply the [code comment contract](../team-core/references/code-comments.md): check layered documentation minimums and every in-scope test's scenario/expected-result explanation against behavior and assertions. Missing mandatory explanations are contract-compliance gaps, not stylistic preferences. Record scope, outcome, exemptions and gaps; rank misleading explanations by concrete impact.
 
+Apply the [code readability contract](../team-core/references/code-readability.md) for assigned code. Judge layout against the project's existing formatter/configuration and concrete readability needs; do not turn review into a style rewrite. A formatting-only pass must preserve behavior and existing test explanations.
+
 Prioritize incorrect assumptions, broken error handling, authorization gaps, unsafe data changes, concurrency issues, compatibility breaks, and missing verification. A material finding includes:
 
 ```text
@@ -37,6 +40,8 @@ Smallest useful remediation or verification step
 ```
 
 Classify a concern without evidence as a question or uncovered risk, not as a defect.
+
+For a standalone small fix, use the [small-task test rule](../team-core/references/test-acceptance-contract.md#tier-selection-reuse-and-resource-limits): check affected evidence and its due handoff without demanding every layer/full suite by default. Preserve risk/gate overrides, complete planned coverage, manual/E2E evidence, and acceptance authority.
 
 ## Return paths
 
