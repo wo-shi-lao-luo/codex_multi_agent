@@ -32,7 +32,7 @@
 
 ## 团队成员
 
-`team-explorer`、`team-architect`、`team-ai-architect`、`team-docs-maintainer`、`team-frontend-engineer`、`team-backend-engineer`、`team-database-specialist`、`team-tester`、`team-reviewer`、`team-ai-simulation-actor-basic`、`team-ai-simulation-actor-advanced`、`team-ai-engineer` 和 `team-code-maintainer` 是 Codex 自定义智能体。基础和高级模拟角色都只负责一个受限的行为节点，并遵守相同边界；`team-ai-architect` 负责提出 AI 领域设计方案，`team-ai-engineer` 实现分配给它的应用 AI 行为，`team-code-maintainer` 负责在指定范围内进行不改变行为的格式整理。主 Codex 对话负责 Lead 工作，持有任务状态、整合结果并给出最终答复。
+`team-explorer`、`team-architect`、`team-ai-architect`、`team-docs-maintainer`、`team-frontend-engineer`、`team-backend-engineer`、`team-database-specialist`、`team-tester`、`team-ai-tester`、`team-reviewer`、`team-ai-simulation-actor-basic`、`team-ai-simulation-actor-advanced`、`team-ai-engineer` 和 `team-code-maintainer` 是 Codex 自定义智能体。基础和高级模拟角色都只负责一个受限的行为节点，并遵守相同边界；`team-ai-architect` 负责提出 AI 领域设计方案，`team-ai-engineer` 实现分配给它的应用 AI 行为，`team-ai-tester` 负责评估分配给它的应用 AI 行为和模拟用例，`team-code-maintainer` 负责在指定范围内进行不改变行为的格式整理。主 Codex 对话负责 Lead 工作，持有任务状态、整合结果并给出最终答复。
 
 ## 模型分配
 
@@ -42,6 +42,7 @@
 | 探索员 | `gpt-6-luna` | medium |
 | 文档维护者 | `gpt-6-luna` | high |
 | 前端、后端、测试 | `gpt-6.1-sol` | medium |
+| AI 测试员 | `gpt-6.1-sol` | medium |
 | 数据库专家、审查员 | `gpt-6.1-sol` | high |
 | AI 模拟角色基础档 | `gpt-6-luna` | medium |
 | AI 模拟角色高级档 | `gpt-6.1-sol` | medium |
@@ -56,6 +57,8 @@
 架构师使用 GPT-6.1 Sol / xhigh，为架构权衡投入更多推理；Astra Lead 会在实施前检查重要决策。推理强度更高并不代表效果等同于 Astra。请参阅[官方模型指南](https://developers.openai.com/api/docs/models/gpt-6.1-sol)，并用有代表性的项目评估遗漏、返工和完成时间。
 
 本工具包没有自动模型回退机制。Git 历史中的旧模型分配可作为人工恢复时的参考，但不要同时启用第二套配置。如果模型不可用或出现可复现的退化，应先查明原因并确认替代模型可用，再进行范围明确的配置修改，同时更新对应的校验器并完成验证。不要静默切换模型，也不要假定旧模型能够绕过服务中断或账号限额。
+
+当前源码检出版本还包含尚未发布的 `team-ai-tester` 和应用 AI 评估指引。在正式声明新版本之前，已发布版本仍为 `1.0.6`；这些源码更改不代表已安装版本发生变化。
 
 ## 为单个用户安装
 
@@ -122,7 +125,7 @@ agent 名称使用 `team-` 前缀，以避免与个人 agent 重名。安装收�
 
 用户直接提出代码排版或可读性整理请求时，会通过 `$team-code-maintain` 路由给 `team-code-maintainer`。对于受支持的项目配置，该角色会使用已安装的格式化工具处理指定文件，检查机械整理后仍需改进的可读性，并在后续编辑完成后再次检查格式。工具执行和文件写入沿用调用方已经获得的信任依据与权限；工具不会安装依赖，也不会静默替换项目已有但不受支持的格式化工具。该 Skill 允许按单次请求隐式触发，不会安装后台格式化器。这是对下文“显式入口”规则的直接请求例外；其他 Team 工作流仍各自依赖其入口。纯格式维护不强制执行完整 `$team-dev` 流程。若在功能开发任务中转交格式整理，须等原编写者冻结文件；该任务原有的 Tester 和 Reviewer 门槛仍然适用。后文所述 Lead 单独完成仅适用于其他工作中的极小型附带更正。详见[代码可读性约定](skills/team-core/references/code-readability.md)和[格式化工具指南](docs/formatter-tool.md)。
 
-显式调用 `$team-dev` 进行代码修改时，包括小型修复和改变行为的脚本、配置或 Skill 指令，默认由具名实现者和 `team-tester` 配合完成。独立审查和专家角色由风险及影响决定，不以文件数或行数判断。小任务可以缩短记录，但仍需完成适用的工程检查。只有用户明确要求 Lead 亲自执行代码工作，或批准具体的 Lead 单独处理例外时，Lead 才会直接改代码；普通的“直接修一下”不等于这个授权。缺少角色时不能静默改由其他角色代替。请参阅[角色分配规则](skills/team-core/references/role-routing.md)和[最小完整流程](skills/team-core/references/execution-contract.md)。单纯拼写和格式调整等不改变行为的工作可以由 Lead 直接完成。任务开始和结束时都要把计划角色、检查项与实际证据对齐。这些内部规则不会让 Team 工作流在其显式入口之外自动启用。
+显式调用 `$team-dev` 进行代码修改时，包括小型修复和改变行为的脚本、配置或 Skill 指令，默认由具名实现者和根据测试行为选择的 Tester 配合：通常为 `team-tester`；当主要测试内容是应用 AI 行为评估时可使用 `team-ai-tester`。混合任务由一个人负责阶段验证包，只有存在不同的必要测试范围时才增加第二位 Tester。独立审查和专家角色由风险及影响决定，不以文件数或行数判断。小任务可以缩短记录，但仍需完成适用的工程检查。只有用户明确要求 Lead 亲自执行代码工作，或批准具体的 Lead 单独处理例外时，Lead 才会直接改代码；普通的“直接修一下”不等于这个授权。缺少角色时不能静默改由其他角色代替。请参阅[角色分配规则](skills/team-core/references/role-routing.md)、[最小完整流程](skills/team-core/references/execution-contract.md)和[AI 评估约定](skills/team-core/references/ai-evaluation.md)。单纯拼写和格式调整等不改变行为的工作可以由 Lead 直接完成。任务开始和结束时都要把计划角色、检查项与实际证据对齐。这些内部规则不会让 Team 工作流在其显式入口之外自动启用。
 
 `$team-plan` 和 `$team-dev` 会根据重要风险和未解决的不确定性选择轻量检查或更完整的设计探索，而不是按任务或文件规模判断；除非相关新证据改变了适用范围，已确认的决定不会重复进入审批。详见共享的[设计探索约定](skills/team-core/references/design-exploration.md)。
 

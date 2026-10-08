@@ -26,6 +26,8 @@ For visible UI changes, apply the [UI delivery contract](../team-core/references
 
 For an enabled OpenSpec project, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md). Inspect intent/design/task consistency and actual assertion coverage beyond the structural link validator. Report stale snapshots, unmapped scenarios, unsupported exceptions and premature closure; do not run write operations or certify user acceptance.
 
+For application AI behavior changes, also apply the [AI evaluation contract](../team-core/references/ai-evaluation.md) when reviewing cases, judges and evidence; do not treat model-generated quality scores as proof without the required calibration and hard-gate checks.
+
 Apply the [code comment contract](../team-core/references/code-comments.md): check layered documentation minimums and every in-scope test's scenario/expected-result explanation against behavior and assertions. Missing mandatory explanations are contract-compliance gaps, not stylistic preferences. Record scope, outcome, exemptions and gaps; rank misleading explanations by concrete impact.
 
 Apply the [code readability contract](../team-core/references/code-readability.md) for assigned code. Judge layout against the project's existing formatter/configuration and concrete readability needs; do not turn review into a style rewrite. A formatting-only pass must preserve behavior and existing test explanations.

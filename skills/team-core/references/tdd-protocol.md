@@ -2,6 +2,8 @@
 
 Use this protocol with the [Test & Acceptance Contract](test-acceptance-contract.md) for every explicit `$team-dev` stage. It makes behavior-first evidence the default while allowing practical alternatives when strict TDD would be unreliable or wasteful.
 
+For application AI behavior, also apply the [AI evaluation contract](ai-evaluation.md). Plan and calibrate stochastic evaluation cases before the change and capture a baseline when authorized, but do not call a baseline Red unless the test assertion actually fails. Keep the existing tracks and packet schema; use a justified `test-after` or `manual-or-environmental` track when nondeterminism prevents reliable pre-change failure evidence.
+
 ## Select one track per material behavior
 
 | Track | Use when | Required record |

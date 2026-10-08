@@ -16,6 +16,8 @@ Do not use for a one-line factual answer, a request to implement immediately aft
 
 When the proposed product behavior includes an AI agent or workflow, identify prompts, context/history, model/tool calls, state transitions and human gates in the plan. Use `team-ai-architect` for a bounded read-only proposal when material AI-specific design choices are unresolved; `team-architect` retains software-wide structure and cross-module architecture. If the user wants to explore behavior before coding, offer the explicit `$team-ai-simulate` workflow; its prototype is a separate decision point and does not replace `$team-dev` or authorize production implementation.
 
+When the plan includes application AI behavior evaluation, read the shared [AI evaluation contract](../team-core/references/ai-evaluation.md) and identify `team-ai-tester`'s evaluation scope and evidence. Keep ordinary business, integration, UI and harness assertions assigned under shared role routing.
+
 ## Build the plan
 
 At task start, use the shared [risk-proportional design-exploration contract](../team-core/references/design-exploration.md) to choose a light check or fuller exploration from material risk and unresolved uncertainty, not task/file size. An already accepted cross-module design does not need to be reopened unless relevant evidence or scope changed. For child assignments, pass the overall goal, applicable PRD and accepted design/Blueprint revisions, non-goals, relevant constraints/evidence/decisions/unknowns, and the exact applicable shared reference; do not assume conversation or Skill inheritance. Explorer supplies bounded facts, Architects propose read-only designs when material questions require them, and no role is added without a concrete need.

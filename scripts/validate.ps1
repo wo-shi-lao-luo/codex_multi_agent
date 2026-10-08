@@ -34,6 +34,7 @@ $expectedAgentProfiles = @{
   'team-frontend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-reviewer' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
   'team-tester' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-ai-tester' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-ai-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-ai-simulation-actor-basic' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
   'team-ai-simulation-actor-advanced' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
@@ -109,6 +110,54 @@ foreach ($route in @(
       -not $content.Contains("]($($route.target))")) {
     $failures.Add("$($route.path) must link to $($route.target)")
   }
+}
+
+# AI evaluation distribution guards are not behavior-quality or native-role proof.
+foreach ($resource in @(
+  'agents/team-ai-tester.toml'
+  'skills/ai-testing-engineering/SKILL.md'
+  'skills/ai-testing-engineering/agents/openai.yaml'
+  'skills/team-core/references/ai-evaluation.md'
+)) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) {
+    $failures.Add("Missing AI evaluation resource: $resource")
+  }
+}
+foreach ($route in @(
+  @{ path = 'skills/team-core/SKILL.md'; target = 'references/ai-evaluation.md' },
+  @{
+    path = 'skills/ai-testing-engineering/SKILL.md'
+    target = '../team-core/references/ai-evaluation.md'
+  },
+  @{
+    path = 'skills/ai-engineering/SKILL.md'
+    target = '../team-core/references/ai-evaluation.md'
+  },
+  @{
+    path = 'skills/testing-engineering/SKILL.md'
+    target = '../team-core/references/ai-evaluation.md'
+  },
+  @{
+    path = 'skills/team-ai-simulate/SKILL.md'
+    target = '../team-core/references/ai-evaluation.md'
+  },
+  @{ path = 'skills/team-core/references/execution-contract.md'; target = 'ai-evaluation.md' },
+  @{ path = 'skills/team-core/references/test-acceptance-contract.md'; target = 'ai-evaluation.md' },
+  @{ path = 'skills/team-core/references/role-routing.md'; target = 'ai-evaluation.md' }
+)) {
+  $path = Join-Path $root $route.path
+  $content = if (Test-Path -LiteralPath $path -PathType Leaf) {
+    Get-Content -LiteralPath $path -Raw
+  } else { $null }
+  if ([string]::IsNullOrWhiteSpace($content) -or
+      -not $content.Contains("]($($route.target))")) {
+    $failures.Add("$($route.path) must link to $($route.target)")
+  }
+}
+$aiTesterPath = Join-Path $root 'agents/team-ai-tester.toml'
+if ((Test-Path -LiteralPath $aiTesterPath -PathType Leaf) -and
+    -not (Get-Content -LiteralPath $aiTesterPath -Raw).Contains('ai-testing-engineering')) {
+  $failures.Add('team-ai-tester must route to ai-testing-engineering')
 }
 
 # Readability resources form one discovery unit; these checks do not prove

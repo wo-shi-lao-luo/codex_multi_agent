@@ -17,13 +17,16 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `agents/team-ai-simulation-actor-basic.toml` and `team-ai-simulation-actor-advanced.toml` — bounded read-only AI workflow actors with the same behavior contract and basic/advanced profiles.
 - `agents/team-ai-architect.toml` — Sol/xhigh read-only AI-domain architect, separate from software-wide `team-architect`.
 - `agents/team-ai-engineer.toml` — Sol/medium implementation role for assigned AI prompts, context, model/tool protocols and workflow state.
+- `agents/team-ai-tester.toml` — Sol/medium specialist for assigned application AI behavior evaluation; production behavior remains with its implementation owner.
 - `agents/team-code-maintainer.toml` — Luna/medium role for assigned, behavior-preserving code formatting after ownership is frozen.
 - `skills/` — reusable Codex Skills. Most `team-*` Skills are explicit workflow entrypoints; `team-project-rules` also routes from task-time evidence checks in `$team-plan`/`$team-dev`. `team-core` bundles their shared policy references for installation.
 - `skills/team-ai-simulate/` — explicit-only local AI agent/workflow prototyping Skill; simulation is separate from production authorization.
 - `skills/team-code-maintain/` — implicitly invokable Lead adapter for direct formatting requests and bounded post-freeze readability transfers; behavior changes remain with the original code owner.
 - `skills/team-core/scripts/format-code.ps1` and `format-code-powershell.ps1` — bounded Plan/Check/Apply adapter for supported installed formatters; its portable contract is `skills/team-core/references/formatter-tool.md`.
 - `skills/ai-engineering/` — AI application behavior Skill for authorized engineering of prompts, context, model/tool protocols and workflow state.
+- `skills/ai-testing-engineering/` — AI application behavior evaluation Skill, with detailed case, rubric and evidence rules in the shared `skills/team-core/references/ai-evaluation.md`.
 - `skills/team-core/references/ai-simulation.md` — shared local simulation context, evidence, privacy and acceptance contract.
+- `skills/team-core/references/ai-evaluation.md` — application AI case design, independent judging, model/evaluator identity, stochastic baselines and bounded evidence contract.
 - `skills/team-core/references/ai-capability-contract.md` and `ai-record-replay-testing.md` — project-specific Agent/Workflow replacement boundary and distinct live, record, replay and synthetic test evidence contracts.
 - `skills/team-core/templates/ai-capability/` — optional concise starting outlines for a target project's capability brief and record/replay test plan; the target project adapts or omits them to match existing authorities.
 - `skills/team-core/references/design-exploration.md` — shared risk-proportional design-depth, bounded proposal, approval and decision-reuse contract for Team planning/development.

@@ -9,6 +9,8 @@ Use this Skill to design and verify meaningful tests. Read the shared [execution
 
 When a tested application includes a replaceable Agent/Workflow capability, read the [AI record/replay testing contract](../team-core/references/ai-record-replay-testing.md) for evidence boundaries, fixture safety and invalidation. Keep stage coverage and results in the packet; a replay is not live E2E evidence.
 
+When test scope includes application AI behavior, read the [AI evaluation contract](../team-core/references/ai-evaluation.md) and route AI-specific evaluation to `team-ai-tester`; retain deterministic business behavior and harness/package coverage according to shared role routing.
+
 
 ## When to activate
 
