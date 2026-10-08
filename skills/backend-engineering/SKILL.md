@@ -9,6 +9,8 @@ Use this Skill for material server-side work. Read the shared [execution contrac
 
 When a backend consumes a replaceable Agent/Workflow capability, read the shared [AI capability contract](../team-core/references/ai-capability-contract.md) and agree the boundary with the AI owner. Keep business validation, authorization, persistence and side-effect decisions in their assigned application layer.
 
+For a material backend contract, workflow/state, configuration or eligibility, persisted-data/job, or compatibility migration, also use the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md). Keep the existing API/architecture source and stage packet authoritative; routine backend changes without migration semantics do not need an exhaustive migration pass.
+
 
 ## When to activate
 

@@ -57,6 +57,8 @@ Application business backends depend on a project-defined Agent/Workflow capabil
 
 A representative real application run may provide separate assertions for the capability protocol, AI behavior and backend handling. Its recorded boundary interaction can later be replayed through the real consumer path, but replay does not establish live E2E or prove a replacement AI implementation. Keep the stage packet authoritative for results and preserve required TDD, manual, E2E and repository gates. This Kit adds guidance and templates only: it adds no general runtime, recorder, replay engine or production adapter.
 
+For material cross-cutting migrations beyond this replaceable AI capability, the shared [`architecture-migration.md`](../skills/team-core/references/architecture-migration.md) maps old behavior to approved target contracts, consumers, owners and verification. It is conditional guidance: the existing architecture/Blueprint source owns structure, and the stage packet owns test results and acceptance.
+
 ## Optional specification boundary
 
 OpenSpec integration adds an optional external CLI boundary, not a fourth executor or a second Lead. The existing workflow stays unchanged without a project opt-in marker. See the [spec lifecycle](../skills/team-core/references/spec-lifecycle.md) and [integration contract](../skills/team-core/references/openspec-integration.md).

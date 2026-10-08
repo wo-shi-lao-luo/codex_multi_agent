@@ -16,6 +16,8 @@ Codex development workflows assume an AI Agent may run the tests. By default, pl
 
 For applications that use an Agent or Workflow behind a replaceable capability boundary, also use the [AI record/replay testing contract](ai-record-replay-testing.md) to distinguish live behavior, integrated runs and offline replay. It supplements the test tiers below and does not waive required acceptance evidence.
 
+For a material architecture, contract, workflow/state, configuration/eligibility, persisted-data/job, or compatibility migration, also consult the conditional [architecture and contract migration guide](architecture-migration.md) for applicable boundary verification. It does not change this packet's test tiers, status schema, or acceptance authority.
+
 Use scripts or the repository's test harness for repeatable actions, waits, assertions, fixture setup, and cleanup. Let the runner perform repeated steps and return a concise result summary. Retain the complete trusted result artifacts needed to reproduce and audit the run; let the Agent read summaries first and open relevant evidence when a check fails, is ambiguous or unexpected, or carries material risk. Redact secrets from retained evidence. A green result does not excuse inspection of safety-sensitive effects. Report planned, skipped, timed-out, failed, executed, and passing checks distinctly; a summary is not evidence for a case the runner did not check.
 
 Choose layers by what they can observe and the risk they cover:

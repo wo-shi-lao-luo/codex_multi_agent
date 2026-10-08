@@ -37,6 +37,8 @@ For application AI evaluation, read [AI evaluation](references/ai-evaluation.md)
 
 For an application's replaceable Agent/Workflow boundary, read [AI capability contract](references/ai-capability-contract.md); for live evidence and offline fixture reuse, read [AI record/replay testing](references/ai-record-replay-testing.md). These project-specific contracts do not turn local AI simulation into product testing or a production adapter.
 
+For material architecture, contract, workflow/state, configuration/eligibility, persisted-data/job, or compatibility migrations, use the conditional [architecture and contract migration guide](references/architecture-migration.md). It maps old behavior to approved target contracts and verification; the Blueprint and stage packet retain their existing authority. It is unnecessary for an internal/model-only change with unchanged approved semantics.
+
 For `$team-dev` implementation work, read [test and acceptance contract](references/test-acceptance-contract.md) and [TDD protocol](references/tdd-protocol.md). Its `scripts/stage-verification.ps1` intentionally creates and validates Git-tracked verification packets inside the target project; archival occurs only after a validated, authoritative final manual status.
 
 For test planning, execution, or review in Codex workflows, apply the contract's [efficient test execution](references/test-acceptance-contract.md#efficient-test-execution) rule by default; it remains the single source for test tiers, evidence reuse, cost limits, and observation choices.

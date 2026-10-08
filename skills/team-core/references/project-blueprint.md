@@ -27,6 +27,8 @@ Composition roots (startup, application shell, router/provider roots) normally p
 
 When new work crosses an undocumented boundary, return to Contract and update the blueprint and stage mapping before coding. Routine additions inside an agreed module may proceed within task authority. Splitting, moving or reorganizing existing code still requires the explicit refactoring approval above. The read-only architect proposes boundaries; the Lead writes the document and owns the approval record.
 
+For material migrations, use the conditional [architecture and contract migration guide](architecture-migration.md) to trace old behavior to approved target contracts, consumers, owners, and tests. Keep architecture and module decisions in the Blueprint; the migration guide does not replace it.
+
 ## Stage alignment and review
 
 Before writers start, record blueprint path/revision, module IDs, allowed existing files, planned additions, affected roots with reasons, and amendment decision in the stage packet. Delegate these constraints with the task. At handoff, review the actual diff against this mapping and update the blueprint for implemented changes. Bind behavioral tests to the relevant module; passing tests alone do not demonstrate structural alignment.

@@ -56,6 +56,8 @@ When a task includes persistent diagnosis or repair, declare its mode, issue ide
 
 For new applications, multi-stage work or material boundary changes, apply the [Project Blueprint contract](project-blueprint.md) before the stage contract. Discover existing code before adopting a baseline. Existing-code structural refactoring requires explicit user approval; declining it preserves the baseline with recorded constraints. Map each stage to modules and file responsibilities, and review that mapping against the final diff.
 
+For a material architecture, contract, workflow/state, configuration/eligibility, persisted-data/job, or compatibility migration, also use the conditional [architecture and contract migration guide](architecture-migration.md). Record its applicability and trace-map location in the Work/Verification record; an unchanged internal/model-only swap does not require an exhaustive migration pass.
+
 **Input:** task record and discovery evidence.
 
 **Output:** a work contract with:

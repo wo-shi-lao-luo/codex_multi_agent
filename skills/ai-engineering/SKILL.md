@@ -11,6 +11,8 @@ Use this domain Skill when an authorized task designs, implements, tests, or rev
 
 When designing a replaceable Agent/Workflow boundary, read the [AI capability contract](../team-core/references/ai-capability-contract.md). For live application evidence and offline fixture reuse, read the [AI record/replay testing contract](../team-core/references/ai-record-replay-testing.md) with the Tester; model replacement remains inside the Agent/Workflow boundary.
 
+If an AI replacement also materially changes cross-cutting business contracts, workflow/state, configuration or eligibility, persisted data/jobs, or compatibility, apply the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md) with the existing AI capability and test contracts. An internal prompt/model change with unchanged approved semantics remains within those AI-specific contracts and does not require an exhaustive migration pass.
+
 For application AI behavior evaluation, route assigned evaluation cases and tests to `team-ai-tester` and apply the [AI evaluation contract](../team-core/references/ai-evaluation.md). Keep generic business, Kit-helper and packaging checks with the role selected by shared role routing.
 
 Use alongside the relevant domain Skill when work changes an application's AI behavior. This Skill is engineering guidance; it does not activate or authorize the optional local AI simulation workflow. If AI simulation is requested, use `$team-ai-simulate`.

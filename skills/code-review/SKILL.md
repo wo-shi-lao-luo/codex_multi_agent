@@ -22,6 +22,8 @@ For visible UI changes, apply the [UI delivery contract](../team-core/references
 2. Read the diff and enough surrounding code to trace changed inputs, outputs, error handling, authorization, data effects, concurrency, compatibility, and observable behavior.
 3. Build a Review coverage record. Identify which risks were reviewed and which need a specialized reviewer, such as database safety or test adequacy.
 
+When the change materially migrates architecture, contracts, workflow/state, configuration or eligibility, persisted data/jobs, or compatibility, apply the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md). Check the trace from existing behavior to approved target rules, actual consumers, evidence invalidation, and completion claims; the guide is unnecessary for an internal/model-only change with unchanged semantics.
+
 ## Evaluate findings
 
 For an enabled OpenSpec project, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md). Inspect intent/design/task consistency and actual assertion coverage beyond the structural link validator. Report stale snapshots, unmapped scenarios, unsupported exceptions and premature closure; do not run write operations or certify user acceptance.

@@ -6,36 +6,15 @@
 /docs/governance/.pending.json
 /openspec/.team-recovery/
 /openspec/.team-archive.lock
-/_work/generated-artifacts/
+# Repository-local task inputs and generated work only; reusable source stays versioned.
+/_work/
 # Codex Team Kit: exact local artifacts (Documentation)
 /docs/governance/documentation.json.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].tmp
 /docs/governance/doc-index.md.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].tmp
 /docs/governance/.pending.json.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].tmp
 /docs/governance/reviews/*.json.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].tmp
 /docs/governance/reviews/*.md.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].tmp
-# Codex Team Kit: exact local artifacts (Work)
-/_work/external-repair-evidence/
-# Codex Team Kit: exact local artifacts (Work)
-/_work/ai-simulation-implementation/
-# Codex Team Kit: exact local artifacts (Work)
-/_work/design-exploration/
 
 # Repository-local backlog and planning records; preserve on disk, exclude from Git.
 /backlog/
 /docs/superpowers/
-# Codex Team Kit: exact local artifacts (Work)
-/_work/code-readability/
-# Codex Team Kit: exact local artifacts (Work)
-/_work/formatter-tool/
-# Codex Team Kit: exact local artifacts (Work)
-/_work/doc-consolidation/
-# Codex Team Kit: exact local artifacts (Work)
-/_work/agent-thread-lifecycle/
-# Codex Team Kit: exact local artifacts (Work)
-/_work/codex-install-guide/
-# Codex Team Kit: exact local artifacts (Work)
-/_work/test-checkpoints/
-# Codex Team Kit: exact local artifacts (Work)
-/_work/ai-capability-contracts/
-# Codex Team Kit: exact local artifacts (Work)
-/_work/ai-evaluation/

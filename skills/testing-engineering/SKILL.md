@@ -32,6 +32,8 @@ For an enabled OpenSpec project, apply the [spec lifecycle](../team-core/referen
 
 Apply the [Project Blueprint contract](../team-core/references/project-blueprint.md) when a blueprint governs the task. Map behavioral tests to its module IDs. Before an approved existing-code refactor, capture current behavior with characterization/regression tests and baseline failures; verify behavior preservation after the move. A declined refactor retains current test entrypoints and documents coverage constraints.
 
+For a material architecture, contract, workflow/state, configuration/eligibility, persisted-data/job, or compatibility migration, also use the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md). Where applicable, test the synthetic/replay boundary through the real consumer path to its storage, state, eligibility, user operation, and final outcome. Keep deterministic software assertions separate from AI behavior evaluation and live end-to-end evidence, and follow the existing packet's test tiers and deferral rules.
+
 Create a concise test matrix:
 
 ```text

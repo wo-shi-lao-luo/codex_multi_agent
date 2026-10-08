@@ -246,18 +246,43 @@ try { $text = [Text.UTF8Encoding]::new($false,$true).GetString($bytes).TrimStart
 $lines = @($text -split '\r?\n')
 $missing = @($rules | Where-Object { $_ -cnotin $lines -and $_.TrimStart('/') -cnotin $lines })
 if ($Profile -eq 'Work' -and $missing.Count) {
-  # Reuse an ancestor's exact user-authored subtree rule when Git confirms it;
-  # provenance markers are not needed to honor already-effective project policy.
+  # Honor effective literal project policy for this task or its _work parent.
+  # Broader staging policy does not expand task ownership or the audits above.
+  $taskDirectory = [IO.Path]::GetFullPath((Join-Path $root $WorkPath))
+  $workDirectory = [IO.Path]::GetFullPath((Join-Path $root '_work'))
   for ($offset = 0; $offset + 3 -lt $ignoreFields.Count; $offset += 4) {
+    # One ignored descendant does not prove coverage of the whole owned task.
+    if ($ignoreFields[$offset + 3] -cne @($probes)[0]) { continue }
     $matchedPattern = $ignoreFields[$offset + 2]
-    if ($matchedPattern.StartsWith('!') -or -not $matchedPattern.EndsWith('/') -or $matchedPattern -match '[*?\[]') { continue }
+    if ($matchedPattern.StartsWith('!') -or -not $matchedPattern.EndsWith('/') -or
+        $matchedPattern -match '[*?\[\\]') { continue }
     $source = $ignoreFields[$offset]
     $sourcePath = if ([IO.Path]::IsPathRooted($source)) { $source } else { Join-Path $gitRoot $source }
-    $covered = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $sourcePath) $matchedPattern.Trim('/')))
-    if ($covered -eq [IO.Path]::GetFullPath((Join-Path $root $WorkPath))) { $missing = @(); break }
+    $sourcePath = [IO.Path]::GetFullPath($sourcePath)
+    if (-not $policyFiles.Contains($sourcePath)) { continue }
+    $literal = $matchedPattern.Trim('/')
+    if (-not $matchedPattern.StartsWith('/') -and -not $literal.Contains('/')) {
+      # A bare directory basename can match below its ignore file, including
+      # a nested ProjectRoot; anchored and multi-segment rules cannot.
+      $covered = if ($literal -ceq (Split-Path -Leaf $taskDirectory)) {
+        $taskDirectory
+      } elseif ($literal -ceq '_work') {
+        $workDirectory
+      } else { continue }
+    } else {
+      $covered = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $sourcePath) $literal))
+    }
+    $sourceDirectory = Split-Path -Parent $sourcePath
+    if (-not $covered.StartsWith(
+        $sourceDirectory + [IO.Path]::DirectorySeparatorChar,
+        [StringComparison]::OrdinalIgnoreCase)) { continue }
+    if ($covered -eq $taskDirectory -or $covered -eq $workDirectory) {
+      $missing = @()
+      break
+    }
   }
 }
-if ($Profile -eq 'Work' -and $actual.Count -gt 0 -and $missing.Count) { throw 'ARTIFACTS: Nonempty WorkPath ownership is uncertain without its exact existing ignore rule; user decision required.' }
+if ($Profile -eq 'Work' -and $actual.Count -gt 0 -and $missing.Count) { throw 'ARTIFACTS: Nonempty WorkPath ownership is uncertain without an accepted existing ignore rule; user decision required.' }
 if ($missing.Count) {
   $eol = if ($text.Contains("`r`n")) { "`r`n" } else { "`n" }
   $separator = if ($bytes.Length -gt 0 -and -not $text.EndsWith("`n")) { $eol } else { '' }

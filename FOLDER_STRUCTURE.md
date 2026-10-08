@@ -30,6 +30,7 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `skills/team-core/references/ai-capability-contract.md` and `ai-record-replay-testing.md` — project-specific Agent/Workflow replacement boundary and distinct live, record, replay and synthetic test evidence contracts.
 - `skills/team-core/templates/ai-capability/` — optional concise starting outlines for a target project's capability brief and record/replay test plan; the target project adapts or omits them to match existing authorities.
 - `skills/team-core/references/design-exploration.md` — shared risk-proportional design-depth, bounded proposal, approval and decision-reuse contract for Team planning/development.
+- `skills/team-core/references/architecture-migration.md` — conditional, cross-cutting map for material architecture, contract, workflow/state, configuration/eligibility, persisted-data/job, and compatibility migrations; existing Blueprint and stage packets remain authoritative.
 - `skills/team-core/scripts/ai-simulation.ps1` and `templates/ai-simulation/definition.json` — bounded definition validation, frozen source snapshots, non-replaceable call records with a mutable fail-closed terminal head, and a reusable target-project definition example.
 - `skills/team-doc-check/` — documentation readiness/adoption entrypoint; distributed Skill source, not repository discovery configuration.
 - `skills/team-project-rules/` — entrypoint for reviewing, drafting and maintaining target-project `AGENTS.md` files.
@@ -74,6 +75,7 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `scripts/validate-docs.ps1` — repository-only structural checks for the English/Simplified Chinese public documentation pairs; separate from package validation and installation.
 - `tests/test-bilingual-docs.ps1` — isolated regression tests for paired public-document structure, technical-value drift and read-only behavior.
 - `backlog/` — local confirmed engineering improvements deferred for later work; retained on disk but ignored by Git and absent from fresh clones.
+- `_work/` — repository-local task inputs, logs, temporary runners, scenarios and generated intermediates; retained on disk, ignored by Git and absent from fresh clones.
 - `CHANGELOG.md` — public release history for this distributable kit.
 - `CHANGELOG.zh-CN.md` — complete Simplified Chinese release history paired with `CHANGELOG.md`.
 - `README.md` and `README.zh-CN.md` — default English and Simplified Chinese public entrypoints.
@@ -84,6 +86,8 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 Keep this repository as the source of truth. Do not edit installed copies under a user's home directory; change this repository and rerun the installer. Do not add a general-purpose agent, connector, hook, or background service without a concrete workflow need.
 
 Keep `backlog/` and `docs/superpowers/` local only. Do not force-add their contents or link required public setup/runtime instructions to them. Removing existing entries from Git tracking preserves local files; the deletion reaches the remote branch after commit and push, without erasing historical commits. Shared authoritative requirements and reusable workflow contracts belong in versioned locations outside these local-only directories.
+
+Keep task work under one explicitly owned `_work/<task>/` subtree. Reusable tests, helper source and authoritative documents belong in `tests/`, `scripts/` or `docs/`, as appropriate. The root `/_work/` ignore policy preserves local files; it does not delete them, remove tracked files from the index, grant ownership of sibling tasks, or authorize cleanup.
 
 ## Archive policy
 

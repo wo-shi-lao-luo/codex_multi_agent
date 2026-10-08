@@ -38,6 +38,8 @@ When returning a confirmed finding for implementation, link it to the owning iss
 
 When a Blueprint governs the project, read the [Project Blueprint contract](../team-core/references/project-blueprint.md) in full. Compare the diff to declared modules/file responsibilities and explicit refactor approval; respect declined/deferred decisions. Structural review is semantic, not document-validation alone.
 
+For a material migration, also use the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md) to review old-rule-to-target traceability, affected consumers and owners, compatibility/state transitions, invalidated evidence, and separate component/product/verification completion claims.
+
 Read [execution templates](../team-core/references/execution-templates.md) and [TDD protocol](../team-core/references/tdd-protocol.md) in full when creating review coverage and assessing test traceability. Read the [handoff format](../team-core/references/handoff-format.md) in full before final handoff; read [feedback recording](../team-core/references/feedback-recording.md) in full only after that handoff is prepared.
 
 1. Record the exact review scope, baseline, and stated intent. Inspect the actual diff and enough surrounding code to understand behavior.

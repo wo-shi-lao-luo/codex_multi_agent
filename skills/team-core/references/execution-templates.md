@@ -29,6 +29,7 @@ Lead-only authority/approved exception evidence, if applicable:
 Source versus active tool profile expectations and unavailable-role user decisions:
 Blueprint applicability and evidence:
 Blueprint path/revision and module IDs (when applicable):
+Architecture/contract migration (when applicable): applicability, scope, trace-map location, and unresolved decisions:
 Existing baseline and retained constraints:
 Refactor decision, approved scope, and user evidence:
 Allowed files, planned additions, and composition-root exceptions:
@@ -71,6 +72,7 @@ Invocation reconciliation: planned roles, actual selector arguments, returned ha
 Child lifecycle reconciliation (when applicable): original handle/selected role; handoff and open issues; write/process ownership ended or safely transferred independently of closure; reuse/close decision and documented host operation/result; exact-role queue/retry and evidence; capacity status or unknown
 Documentation semantic check: assigned purpose/placement, factual alignment, duplication, affected links/indexes, bounded repairs and escalations:
 Documentation alignment and changed-evidence reassessment:
+Migration close (when applicable): component/product status; not-implemented and implemented-but-unverified transitions; verified evidence; deferred owner/status/trigger/flush condition/dependency restriction (see [architecture and contract migration guide](architecture-migration.md)):
 Result:
 Evidence:
 Remaining risk or unavailable check:
