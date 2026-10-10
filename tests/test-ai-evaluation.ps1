@@ -4,6 +4,7 @@
 param()
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/package-test.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $shell = (Get-Process -Id $PID).Path
 $temporaryParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
@@ -46,40 +47,24 @@ function Assert-Condition {
 }
 
 function Invoke-Validation {
-  # The copied public CLI must return its real exit status and diagnostics.
-  $output = & $shell -NoProfile -File (Join-Path $testRoot 'scripts/validate.ps1') 2>&1
+  # Observe the copied CLI exit and retain both output streams for diagnostics.
+  $result = Invoke-TestProcess -FilePath $shell -ArgumentList @(
+    '-NoProfile', '-File', (Join-Path $testRoot 'scripts/validate.ps1')
+  )
   return [pscustomobject]@{
-    Passed = ($LASTEXITCODE -eq 0)
-    Output = ($output -join "`n")
+    Passed = ($result.Exit -eq 0)
+    Output = ($result.Out + $result.Error)
   }
 }
 
 function Get-Fingerprint {
-  # Relative file names/hashes detect mutations, additions and deletions.
-  return ((Get-ChildItem -LiteralPath $testRoot -File -Recurse | ForEach-Object {
-    $relative = [IO.Path]::GetRelativePath($testRoot, $_.FullName)
-    "$relative|$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash)"
-  } | Sort-Object) -join "`n")
+  # Relative names and complete hashes detect content changes, additions and deletions.
+  return Get-TestFingerprint -Root $testRoot
 }
 
 try {
-  New-Item -ItemType Directory -Path $testRoot | Out-Null
-  foreach ($directory in @('agents', 'skills', 'scripts', 'config')) {
-    Copy-Item -LiteralPath (Join-Path $root $directory) -Destination $testRoot -Recurse
-  }
-  # Include public link dependencies, excluding private governance/history traces.
-  $docsRoot = Join-Path $root 'docs'
-  foreach ($document in Get-ChildItem -LiteralPath $docsRoot -File -Recurse) {
-    $relative = [IO.Path]::GetRelativePath($docsRoot, $document.FullName) -replace '\\', '/'
-    if ($relative -match '^(governance|superpowers)/') { continue }
-    $destination = Join-Path $testRoot "docs/$relative"
-    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
-    Copy-Item -LiteralPath $document.FullName -Destination $destination
-  }
-  Copy-Item -LiteralPath (Join-Path $root 'VERSION') -Destination $testRoot
-  foreach ($document in Get-ChildItem -LiteralPath $root -Filter '*.md' -File) {
-    Copy-Item -LiteralPath $document.FullName -Destination $testRoot
-  }
+  Copy-TestPackage -SourceRoot $root -DestinationRoot $testRoot `
+    -Profile PublicDocs -IncludeConfig $true
 
   # Scenario AE-01: finalized source includes the new approved AI Tester profile.
   # Expected: admit complete source, retain ordinary Tester and mutate no inputs.
@@ -193,16 +178,10 @@ try {
   # Scenario: success or failure must not leave owned temporary package copies.
   # Expected: validate exact OS-temp child/prefix before deletion; fixture absent.
   $resolvedRoot = [IO.Path]::GetFullPath($testRoot)
-  $resolvedParent = [IO.Path]::GetFullPath((Split-Path -Parent $resolvedRoot))
-  if ($resolvedParent.TrimEnd([char]'\', [char]'/') -ne
-      $temporaryParent.TrimEnd([char]'\', [char]'/') -or
-      -not [IO.Path]::GetFileName($resolvedRoot).StartsWith(
-        'codex-multi-agent-ai-evaluation-test-'
-      )) {
-    throw "Refusing cleanup outside owned fixture: $resolvedRoot"
-  }
-  if (Test-Path -LiteralPath $resolvedRoot) {
-    Remove-Item -LiteralPath $resolvedRoot -Recurse -Force
+  try {
+    Remove-TestSandbox -Path $testRoot -Prefix 'codex-multi-agent-ai-evaluation-test-'
+  } catch {
+    throw "Refusing cleanup outside owned fixture: $resolvedRoot. $($_.Exception.Message)"
   }
   Assert-Condition (-not (Test-Path -LiteralPath $resolvedRoot)) 'Fixture cleanup failed.'
   Write-Host 'Isolated AI evaluation directory removed.'

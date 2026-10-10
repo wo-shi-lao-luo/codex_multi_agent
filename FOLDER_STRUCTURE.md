@@ -68,6 +68,7 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `tests/test-deployment.ps1` — isolated fake-home deployment and fault-injection suite; no actual installation.
 - `tests/test-documentation.ps1` — isolated existing-project adoption and readiness/ambiguity regression tests.
 - `tests/` — isolated package, installation, feedback, AI-simulation, stage-verification and project-blueprint tests.
+- `tests/helpers/` — shared test-only process capture, bounded package copying, complete fingerprints and owned sandbox cleanup; scenarios remain in their suites.
 - `tests/fixtures/` — controlled CLI doubles for transport and partial-failure regression tests; never production runtimes.
 - `docs/verification/active/` — implementation verification records awaiting maintainer review; not automated manual acceptance.
 - `docs/verification/active/role-invocation.md` — role-routing regression evidence, actual invocation roster and pending human checks for the bounded workflow correction.

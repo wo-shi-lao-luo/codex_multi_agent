@@ -7,6 +7,7 @@ param(
   [switch]$ReleaseOnly, [switch]$GitSafetyOnly, [switch]$InstallCopyOnly
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/package-test.ps1')
 $repo = Split-Path -Parent $PSScriptRoot
 $helper = Join-Path $repo 'skills/team-core/scripts/git-delivery.ps1'
 
@@ -30,25 +31,11 @@ function Assert([bool]$Condition, [string]$Message) {
 # Execute literal arguments without shell interpolation or user Git configuration.
 # The caller receives stdout/stderr/exit separately; only fixture Git commands mutate.
 function Run-Native([string]$Exe, [string[]]$Arguments) {
-  $start = [Diagnostics.ProcessStartInfo]::new($Exe)
-  $start.UseShellExecute = $false
-  $start.RedirectStandardOutput = $true
-  $start.RedirectStandardError = $true
-  $start.Environment['GIT_CONFIG_GLOBAL'] = if ($IsWindows) { 'NUL' } else { '/dev/null' }
-  $start.Environment['GIT_CONFIG_NOSYSTEM'] = '1'
-  $start.Environment['GIT_OPTIONAL_LOCKS'] = '0'
-  foreach ($argument in $Arguments) { $start.ArgumentList.Add($argument) }
-  $process = [Diagnostics.Process]::Start($start)
-  $stdout = $process.StandardOutput.ReadToEndAsync()
-  $stderr = $process.StandardError.ReadToEndAsync()
-  $process.WaitForExit()
-  $result = [pscustomobject]@{
-    Exit = $process.ExitCode
-    Out = $stdout.GetAwaiter().GetResult()
-    Error = $stderr.GetAwaiter().GetResult()
+  return Invoke-TestProcess -FilePath $Exe -ArgumentList $Arguments -Environment @{
+    GIT_CONFIG_GLOBAL = if ($IsWindows) { 'NUL' } else { '/dev/null' }
+    GIT_CONFIG_NOSYSTEM = '1'
+    GIT_OPTIONAL_LOCKS = '0'
   }
-  $process.Dispose()
-  return $result
 }
 
 # Fixture-only Git operations fail loudly; no test Git mutation targets the source repo.
@@ -84,11 +71,7 @@ function New-Repo([string]$Name, [switch]$Unborn) {
 # Include .git objects, refs, logs, config, index and worktree bytes. A read-only helper
 # must preserve the complete file manifest, not merely leave `git status` unchanged.
 function Snapshot([string]$Root) {
-  return (@(Get-ChildItem -LiteralPath $Root -Recurse -Force -File | ForEach-Object {
-    $relative = [IO.Path]::GetRelativePath($Root, $_.FullName)
-    $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
-    "$relative`t$hash"
-  } | Sort-Object -CaseSensitive) -join "`n")
+  return Get-TestFingerprint -Root $Root
 }
 
 # Check public JSON/exit semantics and byte preservation for every invocation,
@@ -416,15 +399,8 @@ try {
     )) { Assert ($profile.Contains($entry)) "GD06a: profile contract missing $entry" }
 
     $package = Join-Path $sandbox 'package'
-    New-Item -ItemType Directory -Force $package | Out-Null
-    foreach ($item in @('agents', 'skills', 'scripts', 'VERSION', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md')) {
-      Copy-Item -LiteralPath (Join-Path $repo $item) -Destination $package -Recurse -Force
-    }
-    foreach ($relative in @('docs/formatter-tool.md', 'docs/verification/active/formatter-tool.md')) {
-      $destination = Join-Path $package $relative
-      New-Item -ItemType Directory -Force (Split-Path -Parent $destination) | Out-Null
-      Copy-Item -LiteralPath (Join-Path $repo $relative) -Destination $destination
-    }
+    Copy-TestPackage -SourceRoot $repo -DestinationRoot $package `
+      -Profile Narrow -IncludeConfig $false
     $validator = Join-Path $package 'scripts/validate.ps1'
     $valid = Run-Native $pwshExe @('-NoProfile', '-File', $validator)
     Assert ($valid.Exit -eq 0) "GD06a: intact copied package rejected: $($valid.Out) $($valid.Error)"
@@ -488,16 +464,8 @@ try {
     # Reuse the approved controlled package boundary: required distributable units
     # and validator-linked formatter docs, excluding other owners' local work trees.
     $sourceFixture = Join-Path $sandbox 'install-source'
-    New-Item -ItemType Directory -Force $sourceFixture | Out-Null
-    foreach ($item in @('agents', 'skills', 'scripts', 'config', 'VERSION',
-      'CHANGELOG.md', 'CHANGELOG.zh-CN.md')) {
-      Copy-Item -LiteralPath (Join-Path $repo $item) -Destination $sourceFixture -Recurse -Force
-    }
-    foreach ($relative in @('docs/formatter-tool.md', 'docs/verification/active/formatter-tool.md')) {
-      $destination = Join-Path $sourceFixture $relative
-      New-Item -ItemType Directory -Force (Split-Path -Parent $destination) | Out-Null
-      Copy-Item -LiteralPath (Join-Path $repo $relative) -Destination $destination
-    }
+    Copy-TestPackage -SourceRoot $repo -DestinationRoot $sourceFixture `
+      -Profile Narrow -IncludeConfig $true
     $installed = Run-Native $pwshExe @(
       '-NoProfile', '-File', (Join-Path $sourceFixture 'scripts/install-user.ps1'),
       '-CodexHome', $codexFixture, '-AgentsHome', $agentsFixture
@@ -528,10 +496,9 @@ try {
   Write-Output "Git delivery checks passed: $script:checksRun read-only invocations."
 } finally {
   # Cleanup is limited to the exact GUID root created above, never user or source data.
-  $resolved = [IO.Path]::GetFullPath($sandbox)
-  Assert ($resolved.StartsWith($tempParent, [StringComparison]::OrdinalIgnoreCase) -and
-    (Split-Path -Leaf $resolved) -match '^codex-delivery-test-[a-f0-9]{32}$') (
-    'Unsafe fixture cleanup target.'
-  )
-  if (Test-Path -LiteralPath $resolved) { Remove-Item -LiteralPath $resolved -Recurse -Force }
+  try {
+    Remove-TestSandbox -Path $sandbox -Prefix 'codex-delivery-test-'
+  } catch {
+    throw "Unsafe fixture cleanup target. $($_.Exception.Message)"
+  }
 }

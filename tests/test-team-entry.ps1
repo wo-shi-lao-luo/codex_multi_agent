@@ -9,6 +9,7 @@ param(
   [switch]$InstallOnly
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/package-test.ps1')
 $repo = Split-Path -Parent $PSScriptRoot
 $assets = @(
   'skills/team/SKILL.md', 'skills/team/agents/openai.yaml',
@@ -73,25 +74,9 @@ $script:validatorChecks = 0
 # Run literal argv with independent pipes; no shell expansion or actual user-home
 # defaults. The installed wrapper receives explicit fixture paths when used.
 function Run-Script([string]$Path, [string[]]$Arguments = @()) {
-  $start = [Diagnostics.ProcessStartInfo]::new($pwshExe)
-  $start.UseShellExecute = $false
-  $start.RedirectStandardOutput = $true
-  $start.RedirectStandardError = $true
-  $start.Environment['GIT_OPTIONAL_LOCKS'] = '0'
-  foreach ($argument in @('-NoProfile', '-File', $Path) + $Arguments) {
-    $start.ArgumentList.Add($argument)
-  }
-  $process = [Diagnostics.Process]::Start($start)
-  $stdout = $process.StandardOutput.ReadToEndAsync()
-  $stderr = $process.StandardError.ReadToEndAsync()
-  $process.WaitForExit()
-  $result = [pscustomobject]@{
-    Exit = $process.ExitCode
-    Out = $stdout.GetAwaiter().GetResult()
-    Error = $stderr.GetAwaiter().GetResult()
-  }
-  $process.Dispose()
-  return $result
+  return Invoke-TestProcess -FilePath $pwshExe -ArgumentList (
+    @('-NoProfile', '-File', $Path) + $Arguments
+  ) -Environment @{ GIT_OPTIONAL_LOCKS = '0' }
 }
 
 # Writes only owned test data, including synthetic preimplementation candidates.
@@ -104,16 +89,8 @@ function Fixture([string]$Relative, [string]$Body) {
 # Controlled package boundary excludes unrelated owners' ignored local work trees.
 # Actual source bytes are copied unchanged; formatter guide/packet are validator links.
 function Copy-Package {
-  New-Item -ItemType Directory -Force $package | Out-Null
-  foreach ($item in @('agents', 'skills', 'scripts', 'config', 'VERSION',
-    'CHANGELOG.md', 'CHANGELOG.zh-CN.md')) {
-    Copy-Item -LiteralPath (Join-Path $repo $item) -Destination $package -Recurse -Force
-  }
-  foreach ($relative in @('docs/formatter-tool.md', 'docs/verification/active/formatter-tool.md')) {
-    $target = Join-Path $package $relative
-    New-Item -ItemType Directory -Force (Split-Path -Parent $target) | Out-Null
-    Copy-Item -LiteralPath (Join-Path $repo $relative) -Destination $target
-  }
+  Copy-TestPackage -SourceRoot $repo -DestinationRoot $package `
+    -Profile Narrow -IncludeConfig $true
 }
 
 # Invoke the actual copied consumer and retain failure diagnostics. Validator
@@ -129,10 +106,7 @@ function Validate-Package([bool]$ExpectedValid, [string]$Scenario) {
 
 # Exact file manifest detects unintended validator writes as well as failed restoration.
 function Package-Identity {
-  return (@(Get-ChildItem -LiteralPath $package -Recurse -Force -File | ForEach-Object {
-    $path = [IO.Path]::GetRelativePath($package, $_.FullName)
-    "$path`t$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash)"
-  } | Sort-Object -CaseSensitive) -join "`n")
+  return Get-TestFingerprint -Root $package
 }
 
 try {
@@ -280,11 +254,9 @@ This fixture establishes no native behavior or installation acceptance.
   Write-Output "Team entry package tests passed: $script:validatorChecks validator checks."
 } finally {
   # Cleanup only the exact GUID fixture root created by this invocation.
-  $resolved = [IO.Path]::GetFullPath($sandbox)
-  $actualParent = [IO.Path]::GetDirectoryName($resolved).TrimEnd('\', '/')
-  Assert ($actualParent -eq $tempParent.TrimEnd('\', '/') -and
-    (Split-Path -Leaf $resolved) -match '^codex-team-entry-test-[a-f0-9]{32}$') (
-    'Unsafe Team entry fixture cleanup target.'
-  )
-  if (Test-Path -LiteralPath $resolved) { Remove-Item -LiteralPath $resolved -Recurse -Force }
+  try {
+    Remove-TestSandbox -Path $sandbox -Prefix 'codex-team-entry-test-'
+  } catch {
+    throw "Unsafe Team entry fixture cleanup target. $($_.Exception.Message)"
+  }
 }

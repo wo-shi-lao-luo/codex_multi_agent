@@ -4,6 +4,7 @@
 [CmdletBinding()]
 param([switch]$RedOnly, [switch]$InstallOnly)
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/package-test.ps1')
 $repo = Split-Path -Parent $PSScriptRoot
 $assets = @(
   'skills/team-core/references/web-engineering.md',
@@ -59,39 +60,16 @@ $script:checks = 0
 # Start the copied real consumer with literal argv and captured independent pipes.
 # Explicit fake-home arguments are mandatory for installer calls below.
 function Run-Script([string]$Path, [string[]]$Arguments = @()) {
-  $start = [Diagnostics.ProcessStartInfo]::new($pwshExe)
-  $start.UseShellExecute = $false
-  $start.RedirectStandardOutput = $true
-  $start.RedirectStandardError = $true
-  foreach ($argument in @('-NoProfile', '-File', $Path) + $Arguments) {
-    $start.ArgumentList.Add($argument)
-  }
-  $process = [Diagnostics.Process]::Start($start)
-  $stdout = $process.StandardOutput.ReadToEndAsync()
-  $stderr = $process.StandardError.ReadToEndAsync()
-  $process.WaitForExit()
-  $result = [pscustomobject]@{
-    Exit = $process.ExitCode
-    Out = $stdout.GetAwaiter().GetResult()
-    Error = $stderr.GetAwaiter().GetResult()
-  }
-  $process.Dispose()
-  return $result
+  return Invoke-TestProcess -FilePath $pwshExe -ArgumentList (
+    @('-NoProfile', '-File', $Path) + $Arguments
+  )
 }
 
 # Copy exact authoritative package bytes, excluding all foreign/local Work trees.
 # Formatter documents are required existing validator links, not invented fixtures.
 function Copy-Package {
-  New-Item -ItemType Directory -Force $package | Out-Null
-  foreach ($item in @('agents', 'skills', 'scripts', 'config', 'VERSION',
-    'CHANGELOG.md', 'CHANGELOG.zh-CN.md')) {
-    Copy-Item -LiteralPath (Join-Path $repo $item) -Destination $package -Recurse -Force
-  }
-  foreach ($relative in @('docs/formatter-tool.md', 'docs/verification/active/formatter-tool.md')) {
-    $target = Join-Path $package $relative
-    New-Item -ItemType Directory -Force (Split-Path -Parent $target) | Out-Null
-    Copy-Item -LiteralPath (Join-Path $repo $relative) -Destination $target
-  }
+  Copy-TestPackage -SourceRoot $repo -DestinationRoot $package `
+    -Profile Narrow -IncludeConfig $true
 }
 
 # The actual validator must match expected validity; retain diagnostics on mismatch.
@@ -106,10 +84,7 @@ function Validate-Package([bool]$ExpectedValid, [string]$Scenario) {
 
 # Full file manifest detects unintended consumer writes and incomplete restoration.
 function Package-Identity {
-  return (@(Get-ChildItem -LiteralPath $package -Recurse -Force -File | ForEach-Object {
-    "$([IO.Path]::GetRelativePath($package, $_.FullName))`t" +
-      (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
-  } | Sort-Object -CaseSensitive) -join "`n")
+  return Get-TestFingerprint -Root $package
 }
 
 try {
@@ -157,11 +132,9 @@ try {
   Write-Output "Web engineering package tests passed: $script:checks validator checks, $($routes.Count) routes."
 } finally {
   # Delete only this invocation's validated GUID root, never repository or user homes.
-  $resolved = [IO.Path]::GetFullPath($sandbox)
-  Assert ([IO.Path]::GetDirectoryName($resolved).TrimEnd('\', '/') -eq
-    $tempParent.TrimEnd('\', '/') -and
-    (Split-Path -Leaf $resolved) -match '^codex-web-engineering-test-[a-f0-9]{32}$') (
-    'Unsafe web engineering cleanup target.'
-  )
-  if (Test-Path -LiteralPath $resolved) { Remove-Item -LiteralPath $resolved -Recurse -Force }
+  try {
+    Remove-TestSandbox -Path $sandbox -Prefix 'codex-web-engineering-test-'
+  } catch {
+    throw "Unsafe web engineering cleanup target. $($_.Exception.Message)"
+  }
 }
