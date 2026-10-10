@@ -74,8 +74,8 @@ function Get-ModelSignals {
   return @($rows.ToArray())
 }
 
-# Release history must have strict version/date headings, ordered matching sections and item
-# counts. Category mapping supports idiomatic Chinese headings, not arbitrary inferred meaning.
+# Published history keeps strict version/date headings; one optional undated Unreleased
+# section may precede it. Compare both kinds without treating pending items as a release.
 function Get-ReleaseSignals {
   param([string]$Name, [string]$Prose, [string]$Version)
   $categories = @{ Added='added'; '新增'='added'; Changed='changed'; '变更'='changed'; Removed='removed'; '移除'='removed'; Fixed='fixed'; '修复'='fixed'; Deprecated='deprecated'; '弃用'='deprecated'; Security='security'; '安全'='security' }
@@ -83,16 +83,21 @@ function Get-ReleaseSignals {
   $current = $null
   foreach ($line in ($Prose -split "`n")) {
     if ($line -match '^##\s+') {
-      if ($line -notmatch '^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})\s*$') {
+      if ($line -cmatch '^## \[Unreleased\]\s*$') {
+        if ($releases.Count -gt 0) { $failures.Add("$Name Unreleased must appear once, before published releases.") }
+        $releaseVersion = 'Unreleased'
+        $releaseDate = ''
+      } elseif ($line -match '^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})\s*$') {
+        $releaseVersion = $Matches[1]
+        $releaseDate = $Matches[2]
+        $parsedDate = [datetime]::MinValue
+        if (-not [datetime]::TryParseExact($releaseDate, 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::None, [ref]$parsedDate)) {
+          $failures.Add("$Name release $releaseVersion has an invalid calendar date.")
+        }
+      } else {
         $failures.Add("$Name has a malformed release heading: $line")
         $current = $null
         continue
-      }
-      $releaseVersion = $Matches[1]
-      $releaseDate = $Matches[2]
-      $parsedDate = [datetime]::MinValue
-      if (-not [datetime]::TryParseExact($releaseDate, 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::None, [ref]$parsedDate)) {
-        $failures.Add("$Name release $releaseVersion has an invalid calendar date.")
       }
       $current = @{ Version=$releaseVersion; Date=$releaseDate; Sections=[System.Collections.Generic.List[string]]::new(); Counts=[System.Collections.Generic.List[int]]::new(); BulletCount=0 }
       $releases.Add($current)
@@ -106,8 +111,9 @@ function Get-ReleaseSignals {
       if ($current.Counts.Count -gt 0) { $current.Counts[$current.Counts.Count - 1]++ }
     }
   }
-  if ($releases.Count -eq 0) { $failures.Add("$Name has no release headings.") }
-  elseif ($releases[0].Version -cne $Version) { $failures.Add("$Name first release must match VERSION $Version.") }
+  $published = @($releases | Where-Object { $_.Version -cne 'Unreleased' })
+  if ($published.Count -eq 0) { $failures.Add("$Name has no published release headings.") }
+  elseif ($published[0].Version -cne $Version) { $failures.Add("$Name first release must match VERSION $Version.") }
   $seen = @{}
   foreach ($release in $releases) {
     if ($seen.ContainsKey($release.Version)) { $failures.Add("$Name repeats release $($release.Version).") }
