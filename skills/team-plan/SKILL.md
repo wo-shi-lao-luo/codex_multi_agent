@@ -12,6 +12,8 @@ Act as the Lead. This workflow owns **Context → Discover → Contract → Hand
 
 Use for a feature, refactor, integration, or technical change that needs repository evidence, an agreed design, ordered work, or an ownership decision before implementation.
 
+When Team is explicitly invoked or task-matched to engineering work, the shared [workflow routing](../team-core/references/workflow-routing.md) may select this planning mode when the request needs a plan. The user does not need to invoke `$team-plan` separately. Direct `$team-plan` remains supported and retains the boundaries below.
+
 Do not use for a one-line factual answer, a request to implement immediately after a sufficient approved plan, or a review of an existing change set; route those to the appropriate direct workflow.
 
 When the proposed product behavior includes an AI agent or workflow, identify prompts, context/history, model/tool calls, state transitions and human gates in the plan. Follow [ai-engineering](../ai-engineering/SKILL.md) to select the simplest sufficient execution shape and pass only applicable shared design guides with the bounded handoff. Use `team-ai-architect` for a read-only proposal only when material AI-specific choices remain unresolved; `team-architect` retains software-wide structure and cross-module architecture. Simulation is optional and explicit; it is not a prerequisite or production authorization.

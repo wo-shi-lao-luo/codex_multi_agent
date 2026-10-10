@@ -14,7 +14,15 @@ Act as the Lead. Read the shared [execution contract](../team-core/references/ex
 
 Use for a branch, diff, pull request, staged change, or specified change set that needs independent review coverage.
 
+When Team is explicitly invoked or task-matched to engineering work, shared [workflow routing](../team-core/references/workflow-routing.md) may select this review mode when the user requests assessment of a reviewable scope. Do not require a separate `$team-review` command. This does not authorize edits or delivery actions.
+
 Do not use without a reviewable scope. Do not convert a review into a refactor, a style pass, or an implementation task.
+
+When the request also expresses Git delivery intent, use
+[$team-delivery-check](../team-delivery-check/SKILL.md) under the
+[Git delivery contract](../team-core/references/git-delivery.md) for the exact
+delivery scope and policy. Code review alone does not activate that route, certify
+delivery readiness, or authorize a Git action.
 
 ## Establish coverage
 

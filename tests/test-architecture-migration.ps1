@@ -4,6 +4,7 @@
 param()
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/package-test.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $shell = (Get-Process -Id $PID).Path
 $temporaryParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
@@ -43,42 +44,31 @@ function Assert-Condition {
 function Get-Fingerprint {
   # Include relative paths and bytes so additions, removals and edits are observed.
   param([string]$Directory)
-  return ((Get-ChildItem -LiteralPath $Directory -File -Recurse | ForEach-Object {
-    $relative = [IO.Path]::GetRelativePath($Directory, $_.FullName)
-    "$relative|$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash)"
-  } | Sort-Object) -join "`n")
+  return Get-TestFingerprint -Root $Directory
 }
 
 function Invoke-Validation {
-  # Observe the copied CLI exit/diagnostics and enforce its read-only contract.
+  # Observe the copied CLI exit and retain both output streams for diagnostics.
   $before = Get-Fingerprint $testRoot
-  $output = & $shell -NoProfile -File (Join-Path $testRoot 'scripts/validate.ps1') 2>&1
-  $passed = $LASTEXITCODE -eq 0
+  $result = Invoke-TestProcess -FilePath $shell -ArgumentList @(
+    '-NoProfile', '-File', (Join-Path $testRoot 'scripts/validate.ps1')
+  )
   Assert-Condition ((Get-Fingerprint $testRoot) -eq $before) 'Validator mutated fixture.'
-  return [pscustomobject]@{ Passed = $passed; Output = ($output -join "`n") }
+  return [pscustomobject]@{
+    Passed = ($result.Exit -eq 0)
+    Output = ($result.Out + $result.Error)
+  }
 }
 
 $sourceFiles = @{}
 try {
-  New-Item -ItemType Directory -Path $testRoot | Out-Null
+  Copy-TestPackage -SourceRoot $root -DestinationRoot $testRoot `
+    -Profile PublicDocs -IncludeConfig $true
+  # Preserve the independent final source-byte proof for the distributable roots.
   foreach ($directory in @('agents', 'skills', 'scripts', 'config')) {
-    Copy-Item -LiteralPath (Join-Path $root $directory) -Destination $testRoot -Recurse
     foreach ($file in Get-ChildItem -LiteralPath (Join-Path $root $directory) -File -Recurse) {
       $sourceFiles[$file.FullName] = (Get-FileHash -LiteralPath $file.FullName).Hash
     }
-  }
-  # Copy public local-link dependencies, never private governance or design history.
-  $docsRoot = Join-Path $root 'docs'
-  foreach ($document in Get-ChildItem -LiteralPath $docsRoot -File -Recurse) {
-    $relative = [IO.Path]::GetRelativePath($docsRoot, $document.FullName) -replace '\\', '/'
-    if ($relative -match '^(governance|superpowers)/') { continue }
-    $destination = Join-Path $testRoot "docs/$relative"
-    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
-    Copy-Item -LiteralPath $document.FullName -Destination $destination
-  }
-  Copy-Item -LiteralPath (Join-Path $root 'VERSION') -Destination $testRoot
-  foreach ($document in Get-ChildItem -LiteralPath $root -Filter '*.md' -File) {
-    Copy-Item -LiteralPath $document.FullName -Destination $testRoot
   }
 
   # AM-01: finalized guidance and every intended direct route exist before mutation.
@@ -171,16 +161,10 @@ try {
       (Get-FileHash -LiteralPath $_).Hash -ne $sourceFiles[$_]
   })
   $resolvedRoot = [IO.Path]::GetFullPath($testRoot)
-  $resolvedParent = [IO.Path]::GetFullPath((Split-Path -Parent $resolvedRoot))
-  if ($resolvedParent.TrimEnd([char]'\', [char]'/') -ne
-      $temporaryParent.TrimEnd([char]'\', [char]'/') -or
-      -not [IO.Path]::GetFileName($resolvedRoot).StartsWith(
-        'codex-multi-agent-architecture-migration-test-'
-      )) {
-    throw "Refusing cleanup outside owned fixture: $resolvedRoot"
-  }
-  if (Test-Path -LiteralPath $resolvedRoot) {
-    Remove-Item -LiteralPath $resolvedRoot -Recurse -Force
+  try {
+    Remove-TestSandbox -Path $testRoot -Prefix 'codex-multi-agent-architecture-migration-test-'
+  } catch {
+    throw "Refusing cleanup outside owned fixture: $resolvedRoot. $($_.Exception.Message)"
   }
   Assert-Condition (-not (Test-Path -LiteralPath $resolvedRoot)) 'Fixture cleanup failed.'
   Assert-Condition ($sourceChanged.Count -eq 0) (

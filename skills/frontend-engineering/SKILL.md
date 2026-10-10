@@ -7,6 +7,8 @@ description: Build or review frontend code using an evidence-backed workflow for
 
 Use this Skill for material client-side work. Read the shared [execution contract](../team-core/references/execution-contract.md) and [execution templates](../team-core/references/execution-templates.md) in full when establishing the Work contract so frontend quality is defined by observable behavior, not only implementation detail.
 
+When actual client state, asynchronous data, persistence, interaction, accessibility, or performance risk warrants extra domain checks, select the relevant parts of the shared [risk-proportional web engineering guide](../team-core/references/web-engineering.md), not every linked reference. Use [state and data boundaries](references/state-data.md) and [usability/performance](references/usability-performance.md) only for affected behavior; these guides do not mandate a library or a blanket audit.
+
 
 ## When to activate
 

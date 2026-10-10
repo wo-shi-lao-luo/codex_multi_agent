@@ -5,11 +5,20 @@ description: Internal reference bundle for Codex Multi-Agent Kit team workflows.
 
 # Team core
 
+For the recommended `$team` entry, whether explicitly invoked or task-matched to engineering work, read [workflow routing](references/workflow-routing.md). It selects and composes existing user-facing workflows without creating a router role or changing their contracts; direct entrypoints and user opt-out remain authoritative. Ordinary factual consultation does not enter a full lifecycle.
+
+When a user intends a Git commit, push, pull request, merge, release or installation
+source assessment, route through [$team-delivery-check](../team-delivery-check/SKILL.md)
+and read [Git delivery checking](references/git-delivery.md). This conditional
+read-only check does not activate for every code edit or replace code review.
+
 For every Team workflow, read [role routing](references/role-routing.md): preflight needed roles against the active tool catalog, explicitly select named roles without silent generic fallback, reconcile actual calls and show the final actual-agent roster under [handoff format](references/handoff-format.md). Source profiles and task labels are not runtime identity evidence.
 
 Before planning/implementation and when project docs change, read [documentation governance](references/documentation-governance.md). It assigns document content responsibilities and placement, requires bounded evidence-backed corrections discovered during authorized edits, and preserves active PRD authority, optional categories and user decisions on ambiguity. Its docs/governance marker tracks adoption and scoped review evidence; `scripts/documentation.ps1` detects evidence changes without resolving semantics or moving legacy docs.
 
 For `$team-plan` and `$team-dev`, use [risk-proportional design exploration](references/design-exploration.md) to choose a light check or fuller exploration from material risk and uncertainty, not task size. The Lead supplies the bounded context and applicable reference to children; read-only Architects propose, while assigned Developers/Testers check only their scopes. This is not an extra user-approval gate for already accepted decisions.
+
+For actual frontend/backend boundaries, use [risk-proportional web engineering](references/web-engineering.md) as a selective map to the relevant client/service references. It supplements—not replaces—domain Skills, project policy, existing role/packet/TDD contracts, or authorization gates; do not read every linked guide by default.
 
 When a Team workflow generates Kit-owned local files in a target Git repository, read the [generated-artifact Git protection contract](references/generated-artifacts.md). It defines narrow profile-based protection, exact task work paths, index checks, conflict handling, the local governance runtime bundle, and formal project evidence that remains versionable.
 
@@ -29,7 +38,7 @@ This is a supporting Skill, not a user-facing workflow entrypoint. Team workflow
 
 For persistent failures being diagnosed or repaired, apply the shared [repair and diagnosis loop guard](references/repair-loop-guard.md). It defines acceptance-based issue identity, cumulative bounded attempts, evidence-triggered external research, the single conditional ordinary repair extension, pause evidence and human-authorized resume; workflow Skills route into it rather than duplicating its thresholds.
 
-For closes of the supported workflows (`team-dev`, `team-plan`, `team-debug`, and `team-review`), read [feedback recording](references/feedback-recording.md). It defines the minimal, local acceptance record and the conditions under which the installed runtime may be called. The runtime lives at `scripts/feedback-runtime.ps1`; it does not write inside a business repository or make any external request. Other `team-*` workflows do not call it unless explicitly added to the accepted schema and routing.
+For supported `team-dev`, `team-plan`, `team-debug`, and `team-review` closes, including one primary mode selected through `$team`, read [feedback recording](references/feedback-recording.md). A `$team` task may create at most one record under its final supported primary mode; it does not add a `team` schema value. Integrated debug/review phases are not separate closes. Consultation and standalone special-adapter workflows do not call the runtime. The runtime lives at `scripts/feedback-runtime.ps1`; it does not write inside a business repository or make any external request.
 
 For explicitly requested local prototyping of an AI agent or AI workflow, use `$team-ai-simulate` and read the [AI simulation contract](references/ai-simulation.md). Its local run trace is separate from the `team-core` feedback runtime and does not call that runtime. For authorized implementation of application prompts, context, model/tool protocols or AI workflow state, use the `ai-engineering` Skill and route the bounded AI-specific behavior to `team-ai-engineer`; use `team-ai-architect` only for material AI design questions, while overall architecture stays with `team-architect`. `ai-engineering` selects the simplest sufficient execution shape and conditionally routes the shared [workflow](references/ai-workflow-design.md), [instruction](references/ai-instruction-design.md), [context](references/ai-context-design.md) and [tool](references/ai-tool-design.md) guides.
 

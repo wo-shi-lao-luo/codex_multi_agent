@@ -19,9 +19,14 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `agents/team-ai-engineer.toml` — Sol/medium implementation role for assigned AI prompts, context, model/tool protocols and workflow state.
 - `agents/team-ai-tester.toml` — Sol/medium specialist for assigned application AI behavior evaluation; production behavior remains with its implementation owner.
 - `agents/team-code-maintainer.toml` — Luna/medium role for assigned, behavior-preserving code formatting after ownership is frozen.
-- `skills/` — reusable Codex Skills. Most `team-*` Skills are explicit workflow entrypoints; `team-project-rules` also routes from task-time evidence checks in `$team-plan`/`$team-dev`. `team-core` bundles their shared policy references for installation.
+- `agents/team-delivery-checker.toml` — Luna/high read-only role for conditional Git delivery policy and evidence assessment.
+- `skills/` — reusable Codex Skills. `$team` is the recommended unified composition entry, available for task-matched engineering requests and explicit invocation; other `team-*` Skills remain direct workflow entrypoints. `team-project-rules` also routes from task-time evidence checks in `$team-plan`/`$team-dev`. `team-core` bundles shared contracts and routing references for installation.
+- `skills/team/` — unified Lead entrypoint for task-matched engineering work or explicit `$team`; it selects or composes existing workflows without a new role or runtime.
+- `skills/team/agents/openai.yaml` — metadata permits best-effort automatic Team selection and explicit invocation; it does not guarantee host selection or loading.
+- `skills/team-core/references/workflow-routing.md` — single source for `$team` mode selection, composition and links to existing adapters; domain contracts remain in their existing Skills/references.
 - `skills/team-ai-simulate/` — explicit-only local AI agent/workflow prototyping Skill; simulation is separate from production authorization.
 - `skills/team-code-maintain/` — implicitly invokable Lead adapter for direct formatting requests and bounded post-freeze readability transfers; behavior changes remain with the original code owner.
+- `skills/team-delivery-check/` — conditional Lead adapter for read-only delivery checks when commit, push, pull request, merge, release, or installation-source intent is clear.
 - `skills/team-core/scripts/format-code.ps1` and `format-code-powershell.ps1` — bounded Plan/Check/Apply adapter for supported installed formatters; its portable contract is `skills/team-core/references/formatter-tool.md`.
 - `skills/ai-engineering/` — AI application behavior Skill for authorized engineering of prompts, context, model/tool protocols and workflow state.
 - `skills/ai-testing-engineering/` — AI application behavior evaluation Skill, with detailed case, rubric and evidence rules in the shared `skills/team-core/references/ai-evaluation.md`.
@@ -36,9 +41,11 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `skills/team-doc-check/` — documentation readiness/adoption entrypoint; distributed Skill source, not repository discovery configuration.
 - `skills/team-project-rules/` — entrypoint for reviewing, drafting and maintaining target-project `AGENTS.md` files.
 - `skills/team-core/references/documentation-governance.md` — task-scoped sufficiency, topic-scoped document authority, semantic consolidation and conflict handling, ambiguity and legacy contract with runtime schema.
+- `skills/team-core/references/git-delivery.md` — operation-specific Git scope, project-policy authority, evidence freshness, semantic reporting, and read-only collector limits.
 - `skills/team-core/references/project-rules.md` — target-project instruction-file authority, candidate discovery, approval and maintenance contract.
 - `skills/team-core/scripts/documentation.ps1` — local document inventory, adoption, scoped review and stale-evidence detector.
 - `skills/team-core/scripts/generated-artifacts.ps1` — narrow profile-based local artifact protection and read-only Git-index checks; see `skills/team-core/references/generated-artifacts.md`.
+- `skills/team-core/scripts/git-delivery.ps1` — bounded PowerShell 7 collection of local Git delivery evidence; it does not stage, alter refs, access remotes, or execute delivery.
 - `skills/team-core/references/generated-artifacts.md` — artifact profiles, durable evidence boundaries, result schema, conflict handling and caller lifecycle.
 - `skills/team-core/scripts/project-rules.ps1` — read-only discovery metadata for applicable project instruction-file candidates.
 - `skills/team-core/references/code-comments.md` — shared code-comment writing, self-check and review contract.
@@ -47,6 +54,9 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `skills/team-core/references/role-routing.md` and `handoff-format.md` — named-role availability, explicit invocation evidence and final actual child-agent roster contracts.
 - `skills/frontend-design/` — implementation-oriented interface design and rendered refinement Skill, distributed by the installer.
 - `skills/team-core/references/ui-quality.md` — shared UI brief, page ownership and visual-verification contract.
+- `skills/team-core/references/web-engineering.md` — selective risk map for actual frontend/backend boundaries; it routes to relevant references without adding a workflow or blanket audit.
+- `skills/frontend-engineering/references/state-data.md` and `usability-performance.md` — conditional frontend state/data and interaction/performance guidance.
+- `skills/backend-engineering/references/service-reliability.md` — conditional API, job, dependency, retry, and side-effect reliability guidance.
 - `skills/team-core/references/spec-lifecycle.md` and `openspec-integration.md` — optional specification lifecycle and pinned external CLI contract.
 - `skills/team-core/scripts/openspec-*.ps1` and `spec-traceability.ps1` — optional CLI boundary, safe paths, input snapshots and evidence-link checks.
 - `skills/team-core/templates/openspec/` — independently authored native-schema configuration, copied only on explicit project enablement.
@@ -58,6 +68,7 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `tests/test-deployment.ps1` — isolated fake-home deployment and fault-injection suite; no actual installation.
 - `tests/test-documentation.ps1` — isolated existing-project adoption and readiness/ambiguity regression tests.
 - `tests/` — isolated package, installation, feedback, AI-simulation, stage-verification and project-blueprint tests.
+- `tests/helpers/` — shared test-only process capture, bounded package copying, complete fingerprints and owned sandbox cleanup; scenarios remain in their suites.
 - `tests/fixtures/` — controlled CLI doubles for transport and partial-failure regression tests; never production runtimes.
 - `docs/verification/active/` — implementation verification records awaiting maintainer review; not automated manual acceptance.
 - `docs/verification/active/role-invocation.md` — role-routing regression evidence, actual invocation roster and pending human checks for the bounded workflow correction.
