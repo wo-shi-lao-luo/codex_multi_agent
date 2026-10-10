@@ -38,6 +38,16 @@ For new pages and visible UI changes, the Lead passes a lightweight UI brief and
 
 Functional tests and rendered visual inspection are separate evidence. The Lead checks the final integrated page's evidence, and missing browser access remains an explicit unverified state. Agent inspection never replaces user manual acceptance. See the [UI delivery contract](../skills/team-core/references/ui-quality.md). This workflow does not claim measured visual improvement until a matched-task comparison is actually run.
 
+## Risk-proportional web engineering
+
+For actual frontend/backend work, `skills/team-core/references/web-engineering.md` maps risk in the changed boundary to selected client or service guidance. Frontend state/data, usability/performance, and backend reliability references are conditional; they preserve the existing Work contract, role selection, stage packet, test tiers, and approval boundaries. Real data, permissions, exposure, or side effects remain relevant even in a demo, while isolated fake-data work does not automatically inherit production hardening. The shared guide is progressive disclosure, not a new lifecycle or a requirement to read every linked document.
+
+| Area | Conditional source | Scope |
+| --- | --- | --- |
+| Shared selection | `skills/team-core/references/web-engineering.md` | Selects relevant client/service risks and evidence within existing workflow contracts. |
+| Frontend | `skills/frontend-engineering/references/state-data.md`; `usability-performance.md` | State ownership, asynchronous data, affected interaction/accessibility behavior, or a measured performance concern. |
+| Backend | `skills/backend-engineering/references/service-reliability.md` | Actual API/job contracts, authorization, retries, idempotency, concurrency, partial failure, or recovery. |
+
 ## Data work
 
 `team-database-specialist` owns SQL safety, schema design, migrations, indexing, query plans, transaction boundaries, and data-change rollback. It is invoked only when data-layer changes are material.

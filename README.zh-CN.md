@@ -68,6 +68,8 @@
 
 当任务明确涉及提交、推送、拉取请求、合并、发布或安装源码时，`$team-delivery-check` 会根据项目策略和当前证据检查对应的 Git 范围。交付意图明确时可触发该检查；普通编辑或代码审查本身不会触发。辅助脚本只读收集机械证据，`ready-for-review` 不代表语义审查通过，也不授权执行 Git 操作。详见 [Git 交付检查约定](skills/team-core/references/git-delivery.md)。
 
+前端和后端指引会按实际客户端或服务端风险选择检查，目前已在源码中提供，尚未随当前版本发布。即使任务只是 demo，真实数据、权限和副作用仍需按风险处理；而仅使用静态假数据的任务，不会自动套用整套生产加固要求。详见[共享 Web 工程指引](skills/team-core/references/web-engineering.md)，以及按需选用的[前端状态与数据](skills/frontend-engineering/references/state-data.md)和[后端服务可靠性](skills/backend-engineering/references/service-reliability.md)参考。
+
 ## 应用 AI 开发与架构变更
 
 在你自己的应用中开发 AI 智能体或工作流时，[ai-engineering](skills/ai-engineering/SKILL.md) 会按任务需要选择共享指引，分别处理[工作流形态](skills/team-core/references/ai-workflow-design.md)、[指令与可复用 Skills](skills/team-core/references/ai-instruction-design.md)、[上下文组装与保留](skills/team-core/references/ai-context-design.md)，以及[工具契约与副作用](skills/team-core/references/ai-tool-design.md)。只读取当前任务需要的指引。这些内容帮助定义目标应用的行为；Codex 开发用的 Skills 和文件链接不会自动传给目标应用的模型。

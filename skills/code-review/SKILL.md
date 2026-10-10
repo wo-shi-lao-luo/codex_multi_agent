@@ -7,6 +7,8 @@ description: Independently review a change set for correctness, security, mainta
 
 Use this Skill for focused review work. Read the shared [execution contract](../team-core/references/execution-contract.md), [execution templates](../team-core/references/execution-templates.md), and applicable [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md) in full; findings must be evidence-backed and actionable.
 
+For an affected web client or service boundary, select relevant checks from [risk-proportional web engineering](../team-core/references/web-engineering.md) and inspect the same concrete risks carried by the Work contract and packet. Do not infer a broad audit from the framework or demo label.
+
 
 ## When to activate
 

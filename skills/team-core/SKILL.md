@@ -18,6 +18,8 @@ Before planning/implementation and when project docs change, read [documentation
 
 For `$team-plan` and `$team-dev`, use [risk-proportional design exploration](references/design-exploration.md) to choose a light check or fuller exploration from material risk and uncertainty, not task size. The Lead supplies the bounded context and applicable reference to children; read-only Architects propose, while assigned Developers/Testers check only their scopes. This is not an extra user-approval gate for already accepted decisions.
 
+For actual frontend/backend boundaries, use [risk-proportional web engineering](references/web-engineering.md) as a selective map to the relevant client/service references. It supplements—not replaces—domain Skills, project policy, existing role/packet/TDD contracts, or authorization gates; do not read every linked guide by default.
+
 When a Team workflow generates Kit-owned local files in a target Git repository, read the [generated-artifact Git protection contract](references/generated-artifacts.md). It defines narrow profile-based protection, exact task work paths, index checks, conflict handling, the local governance runtime bundle, and formal project evidence that remains versionable.
 
 During `$team-plan` and `$team-dev` preflight, assess applicable target-project instruction coverage at task start, on first entry to a relevant module, and when relevant instruction/command/convention evidence changes. Read the [project-rules contract](references/project-rules.md) for evidence-based proposals, approval scope, deduplication, and candidate discovery. A material gap is presented by the Lead even without an explicit instruction-file request. This workflow checkpoint does not add a background watcher or automatic edit.

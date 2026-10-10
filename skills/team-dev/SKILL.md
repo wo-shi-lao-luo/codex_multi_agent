@@ -7,6 +7,8 @@ description: Run a bounded, evidence-backed Codex development workflow for a fea
 
 Act as the Lead. This workflow owns the full shared [execution contract](../team-core/references/execution-contract.md): **Context → Discover → Contract → Execute → Verify → Handoff**.
 
+For frontend/backend changes, use the shared [risk-proportional web engineering guide](../team-core/references/web-engineering.md) only to select guidance relevant to the actual client, service, data, and side-effect boundaries. Pass the same material risks to the assigned Developer, Tester, and Reviewer within the existing Work contract and packet; this adds no role or workflow stage.
+
 
 ## When to activate
 

@@ -11,6 +11,8 @@ When a backend consumes a replaceable Agent/Workflow capability, read the shared
 
 For a material backend contract, workflow/state, configuration or eligibility, persisted-data/job, or compatibility migration, also use the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md). Keep the existing API/architecture source and stage packet authoritative; routine backend changes without migration semantics do not need an exhaustive migration pass.
 
+For an actual service/API, job, dependency, persisted mutation, or external side effect, select applicable checks from the shared [risk-proportional web engineering guide](../team-core/references/web-engineering.md) and [service reliability guide](references/service-reliability.md). Match depth to the real boundary; this does not impose production hardening on isolated or fake-data work.
+
 
 ## When to activate
 

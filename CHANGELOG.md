@@ -6,6 +6,9 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 ### Added
 
+- Add a shared risk-proportional web engineering guide that selects relevant client or service checks without creating a new workflow, blanket audit, or default test round.
+- Add conditional frontend references for state/data and usability/performance, plus backend service-reliability guidance for actual API, job, and side-effect boundaries; examples do not mandate frameworks, dependencies, or metrics.
+- Route existing frontend, backend, testing, review, and Team development Skills to the shared guidance and add bilingual public navigation; existing roles, packets, and acceptance gates remain authoritative.
 - Enable best-effort task-matched selection of the unified `$team` entry when the user asks Codex to carry out engineering work, while preserving explicit invocation. Direct-workflow choices and opt-out win, ordinary factual questions stay direct, and selection grants no permissions or bypasses no gates.
 - Add the explicit `$team` Skill as a recommended entry that selects or composes existing Team workflows for the current task, while preserving direct entrypoints and each workflow's permissions and gates.
 - Add a shared workflow-routing contract for intent-, authorization-, evidence-, and risk-based selection. It creates no router role or runtime and keeps special adapters conditional.

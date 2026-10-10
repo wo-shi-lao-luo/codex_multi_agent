@@ -54,6 +54,9 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `skills/team-core/references/role-routing.md` and `handoff-format.md` — named-role availability, explicit invocation evidence and final actual child-agent roster contracts.
 - `skills/frontend-design/` — implementation-oriented interface design and rendered refinement Skill, distributed by the installer.
 - `skills/team-core/references/ui-quality.md` — shared UI brief, page ownership and visual-verification contract.
+- `skills/team-core/references/web-engineering.md` — selective risk map for actual frontend/backend boundaries; it routes to relevant references without adding a workflow or blanket audit.
+- `skills/frontend-engineering/references/state-data.md` and `usability-performance.md` — conditional frontend state/data and interaction/performance guidance.
+- `skills/backend-engineering/references/service-reliability.md` — conditional API, job, dependency, retry, and side-effect reliability guidance.
 - `skills/team-core/references/spec-lifecycle.md` and `openspec-integration.md` — optional specification lifecycle and pinned external CLI contract.
 - `skills/team-core/scripts/openspec-*.ps1` and `spec-traceability.ps1` — optional CLI boundary, safe paths, input snapshots and evidence-link checks.
 - `skills/team-core/templates/openspec/` — independently authored native-schema configuration, copied only on explicit project enablement.
