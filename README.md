@@ -2,7 +2,22 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A small, user-level development team for Codex. It uses Codex native subagents and Skills; it does not require ECC, OMX, a task daemon, or another agent harness at runtime.
+A small, user-level development team for Codex. Give it a development goal; the Lead coordinates planning, implementation, testing, and review through native Codex subagents and Skills. It does not require ECC, OMX, a task daemon, or another agent harness at runtime.
+
+## Start here
+
+Use this Kit when you want repeatable development handoffs instead of writing a new coordination prompt for every task. You can also start with planning or a read-only review.
+
+| Your next task | Start with |
+| --- | --- |
+| Understand a change before editing | `$team-plan <goal>` |
+| Implement a feature with verification | `$team-dev <goal>` |
+| Check a branch or diff | `$team-review <scope>` |
+| Investigate a failure with an unclear cause | `$team-debug <symptom>` |
+
+**First visit:** [install with Codex](docs/codex-install.md), then follow the [first-task walkthrough](docs/first-task.md). The walkthrough includes a small development exercise, acceptance checks, and a way to report where you got stuck.
+
+The Kit is on the 1.0 preview line. Model availability and permissions depend on your Codex account and client. Its instructions and validators do not guarantee runtime behavior, lower costs, or better results; inspect the actual changes and verification evidence.
 
 ## Entry points
 

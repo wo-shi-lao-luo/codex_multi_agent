@@ -1,0 +1,40 @@
+name: Installation or first-task help / 安装与首次任务求助
+description: Tell us which step blocked your first use / 说明首次使用卡在哪一步
+title: "[First use] "
+body:
+  - type: markdown
+    attributes:
+      value: "Please redact secrets and private project data. 请勿提交凭据或私有项目内容。"
+  - type: input
+    id: version
+    attributes:
+      label: Kit source and version / 工具包源码与版本
+      description: "Tag, commit, or branch; do not assume installed files match the current source. / 标签、提交或分支；请勿假定安装内容等于当前源码。"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Codex client and operating system / 客户端与操作系统
+    validations:
+      required: true
+  - type: dropdown
+    id: step
+    attributes:
+      label: Where did you stop? / 卡在哪一步？
+      options:
+        - Source selection / 选择源码
+        - Installation preview / 安装预览
+        - Installation or update / 安装或更新
+        - Skill or agent discovery / 发现 Skill 或智能体
+        - Model availability / 模型可用性
+        - First task / 首次任务
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Expected result and actual result / 预期与实际结果
+      description: "Include a short redacted error and steps to reproduce. / 附上简短的脱敏错误与复现步骤。"
+    validations:
+      required: true

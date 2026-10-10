@@ -10,6 +10,8 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 
 ## Directory map
 
+- `.github/ISSUE_TEMPLATE/` — optional bilingual first-use support and usage-feedback forms; no automatic telemetry.
+
 - `agents/` — native Codex custom-agent TOML files.
 - `agents/team-docs-maintainer.toml` — Luna/high documentation specialist; bounded assigned-doc maintenance and evidence-backed findings.
 - `agents/team-ai-simulation-actor-basic.toml` and `team-ai-simulation-actor-advanced.toml` — bounded read-only AI workflow actors with the same behavior contract and basic/advanced profiles.
