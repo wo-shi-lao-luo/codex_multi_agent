@@ -2,7 +2,7 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
-## [Unreleased]
+## [1.0.8] - 2026-10-10
 
 ### Added
 
@@ -16,6 +16,10 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 - Add the `team-delivery-check` Skill and `team-delivery-checker` role for conditional, read-only assessment of planned commit, push, pull request, merge, release, and installation-source operations against project policy and current evidence.
 - Add the shared Git delivery contract for operation-specific scope, explicit branch/base/target intent, policy discovery, evidence freshness, and the boundary between delivery checks and code review or installation execution.
 - Add a PowerShell 7 Git evidence collector that inspects the actual index or complete outgoing range and reports bounded mechanical status without staging, changing refs, contacting a remote, or authorizing delivery. `ready-for-review` remains distinct from the checker's semantic `pass`, `blocked`, or `needs-user-decision` result.
+
+### Changed
+
+- Refactor test support so six consumers share bounded process capture, package copying, fingerprints, and temporary-directory cleanup while preserving their scenarios and flags. This is a focused tooling extension on the existing 1.0 preview line; it does not claim token or runtime gains and does not declare a stable release.
 
 ## [1.0.7] - 2026-10-10
 

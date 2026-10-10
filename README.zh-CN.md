@@ -64,11 +64,11 @@
 
 本工具包没有自动模型回退机制。Git 历史中的旧模型分配可作为人工恢复时的参考，但不要同时启用第二套配置。如果模型不可用或出现可复现的退化，应先查明原因并确认替代模型可用，再进行范围明确的配置修改，同时更新对应的校验器并完成验证。不要静默切换模型，也不要假定旧模型能够绕过服务中断或账号限额。
 
-`1.0.7` 包含下文介绍的 AI 开发、评估与迁移指引，完整版本记录见[更新日志](CHANGELOG.zh-CN.md)。Git 交付检查和统一 `$team` 入口目前都只存在于尚未发布的源码中；当前发布版本仍是 `1.0.7`。从源码安装时，请用安装收据中的源码提交号和软件包摘要确认实际安装内容，不能只看版本号。
+`1.0.8` 包含统一 `$team` 入口、Git 交付检查、按风险选择检查的 Web 工程指引，以及下文介绍的 AI 开发、评估与迁移指引；完整版本记录见[更新日志](CHANGELOG.zh-CN.md)。该版本仍属于 1.0 预览产品线，不代表宣告稳定版。从源码安装时，请用安装收据中的源码提交号和软件包摘要确认实际安装内容，不能只看版本号。
 
 当任务明确涉及提交、推送、拉取请求、合并、发布或安装源码时，`$team-delivery-check` 会根据项目策略和当前证据检查对应的 Git 范围。交付意图明确时可触发该检查；普通编辑或代码审查本身不会触发。辅助脚本只读收集机械证据，`ready-for-review` 不代表语义审查通过，也不授权执行 Git 操作。详见 [Git 交付检查约定](skills/team-core/references/git-delivery.md)。
 
-前端和后端指引会按实际客户端或服务端风险选择检查，目前已在源码中提供，尚未随当前版本发布。即使任务只是 demo，真实数据、权限和副作用仍需按风险处理；而仅使用静态假数据的任务，不会自动套用整套生产加固要求。详见[共享 Web 工程指引](skills/team-core/references/web-engineering.md)，以及按需选用的[前端状态与数据](skills/frontend-engineering/references/state-data.md)和[后端服务可靠性](skills/backend-engineering/references/service-reliability.md)参考。
+前端和后端指引会按实际客户端或服务端风险选择检查。即使任务只是 demo，真实数据、权限和副作用仍需按风险处理；而仅使用静态假数据的任务，不会自动套用整套生产加固要求。详见[共享 Web 工程指引](skills/team-core/references/web-engineering.md)，以及按需选用的[前端状态与数据](skills/frontend-engineering/references/state-data.md)和[后端服务可靠性](skills/backend-engineering/references/service-reliability.md)参考。
 
 ## 应用 AI 开发与架构变更
 
@@ -133,7 +133,7 @@
 
 agent 名称使用 `team-` 前缀，以避免与个人 agent 重名。安装收据没有记录的历史组件会保留原样；手动删除前应先确认其归属。
 
-当前版本: `1.0.7`（1.0 预览产品线上的 AI 开发与评估指引、迁移完整性检查及首次使用引导；不代表宣告稳定版）。工具包自有的本地产物采用范围明确的 Git 保护，并检查实际索引。文档治理元数据、导航索引和审查记录保留在当前检出目录中，但不会通过 Git 共享；新检出的仓库需要根据现有文档自行建立采用及审查状态。用户编写的项目文档、PRD、蓝图、阶段验证包和原生规格仍可纳入版本控制。已跟踪的本地产物或与用户显式包含规则冲突的情况需要用户决定如何处理。工具包不会安装 Git hook 或后台监控，用户仍可手动强制暂存。详见[生成产物 Git 保护约定](skills/team-core/references/generated-artifacts.md)。反馈运行时目前支持 `$team-dev`、`$team-plan`、`$team-debug` 和 `$team-review`；`$team-ai-simulate` 使用单独的本地运行记录，不调用该运行时。`$team-dev` 会在目标项目中创建并校验由 Git 跟踪的阶段验证包；条件允许时使用 `test-first`，否则记录采用的替代路径。普通修复失败两次后，工作流会查找相关外部证据；适用的新证据最多可支持一次有条件的扩展，修复总次数不超过五次。Debug 模式的资料检索计入原有六轮诊断额度。暂停依据证据进行；恢复需要用户授权。正常推进的长时间操作按任务设置进度检查点，不设统一时间上限。测试执行采用风险分层和基于证据的结果复用；测试范围不清楚时可定向请 Explorer 查找，但 E2E/人工覆盖和仓库门禁仍具有约束力。请参阅[修复与诊断循环约定](skills/team-core/references/repair-loop-guard.md)、[反馈记录规则](skills/team-core/references/feedback-recording.md)、[测试与验收约定](skills/team-core/references/test-acceptance-contract.md)、[TDD 流程](skills/team-core/references/tdd-protocol.md)、[代码注释约定](skills/team-core/references/code-comments.md)、[代码可读性约定](skills/team-core/references/code-readability.md)、[代码格式化工具](docs/formatter-tool.md)、[项目指引约定](skills/team-core/references/project-rules.md)、[AI 模拟指南](docs/ai-simulation.md)、[版本规则](docs/release-versioning.md)和[更新日志](CHANGELOG.zh-CN.md)。0.1.0 版本还将 `sql-safety` 更名为 `database-engineering`，并将 `test-strategy` 更名为 `testing-engineering`。历史 Skill 目录如果未记录在安装收据中，会保持不变；由收据管理且已停用的 Skills 会与所选目标版本保持一致。
+当前版本: `1.0.8`（1.0 预览产品线上的统一 `$team` 入口、Git 交付检查、按风险选择检查的 Web 指引、共享测试支持、AI 开发与评估指引、迁移完整性检查及首次使用引导；不代表宣告稳定版）。工具包自有的本地产物采用范围明确的 Git 保护，并检查实际索引。文档治理元数据、导航索引和审查记录保留在当前检出目录中，但不会通过 Git 共享；新检出的仓库需要根据现有文档自行建立采用及审查状态。用户编写的项目文档、PRD、蓝图、阶段验证包和原生规格仍可纳入版本控制。已跟踪的本地产物或与用户显式包含规则冲突的情况需要用户决定如何处理。工具包不会安装 Git hook 或后台监控，用户仍可手动强制暂存。详见[生成产物 Git 保护约定](skills/team-core/references/generated-artifacts.md)。反馈运行时目前支持 `$team-dev`、`$team-plan`、`$team-debug` 和 `$team-review`；`$team-ai-simulate` 使用单独的本地运行记录，不调用该运行时。`$team-dev` 会在目标项目中创建并校验由 Git 跟踪的阶段验证包；条件允许时使用 `test-first`，否则记录采用的替代路径。普通修复失败两次后，工作流会查找相关外部证据；适用的新证据最多可支持一次有条件的扩展，修复总次数不超过五次。Debug 模式的资料检索计入原有六轮诊断额度。暂停依据证据进行；恢复需要用户授权。正常推进的长时间操作按任务设置进度检查点，不设统一时间上限。测试执行采用风险分层和基于证据的结果复用；测试范围不清楚时可定向请 Explorer 查找，但 E2E/人工覆盖和仓库门禁仍具有约束力。请参阅[修复与诊断循环约定](skills/team-core/references/repair-loop-guard.md)、[反馈记录规则](skills/team-core/references/feedback-recording.md)、[测试与验收约定](skills/team-core/references/test-acceptance-contract.md)、[TDD 流程](skills/team-core/references/tdd-protocol.md)、[代码注释约定](skills/team-core/references/code-comments.md)、[代码可读性约定](skills/team-core/references/code-readability.md)、[代码格式化工具](docs/formatter-tool.md)、[项目指引约定](skills/team-core/references/project-rules.md)、[AI 模拟指南](docs/ai-simulation.md)、[版本规则](docs/release-versioning.md)和[更新日志](CHANGELOG.zh-CN.md)。0.1.0 版本还将 `sql-safety` 更名为 `database-engineering`，并将 `test-strategy` 更名为 `testing-engineering`。历史 Skill 目录如果未记录在安装收据中，会保持不变；由收据管理且已停用的 Skills 会与所选目标版本保持一致。
 
 涉及可见界面的工作会将 [frontend-design](skills/frontend-design/SKILL.md) 与 frontend-engineering 配合使用。[UI 交付约定](skills/team-core/references/ui-quality.md)会保留页面级目标，明确完整页面或流程的负责人，并要求将渲染检查与功能测试分别留证。无需为此增加专门的设计智能体、改变模型或为每个页面单独编写设计文档。缺少浏览器证据时，必须注明尚未进行视觉验证，不能称为已可发布。
 
