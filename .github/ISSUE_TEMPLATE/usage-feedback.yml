@@ -1,0 +1,35 @@
+name: First-task feedback / 首次任务反馈
+description: Share whether you finished a real task / 分享真实任务的完成情况
+title: "[Usage] "
+body:
+  - type: markdown
+    attributes:
+      value: "Optional feedback; no credentials or private code. 自愿反馈，请勿提交凭据或私有代码。"
+  - type: input
+    id: version
+    attributes:
+      label: Kit source, Codex client, and operating system / 工具包源码、客户端与操作系统
+    validations:
+      required: true
+  - type: textarea
+    id: task
+    attributes:
+      label: What did you try? / 尝试了什么任务？
+      description: "Name the entrypoint and describe the task briefly. / 说明使用入口，简述任务。"
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Result / 结果
+      options:
+        - Installed; first task completed / 已安装，首次任务完成
+        - Installed; first task blocked / 已安装，首次任务受阻
+        - Could not finish installation / 未完成安装
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Checks, actual roles, and friction / 检查、实际角色与困难
+      description: "A short redacted summary is enough. Tell us what was actually verified. / 简短脱敏摘要即可，请说明实际验证了什么。"
