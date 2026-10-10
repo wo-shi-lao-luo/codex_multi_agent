@@ -25,6 +25,7 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `skills/team-core/scripts/format-code.ps1` and `format-code-powershell.ps1` — bounded Plan/Check/Apply adapter for supported installed formatters; its portable contract is `skills/team-core/references/formatter-tool.md`.
 - `skills/ai-engineering/` — AI application behavior Skill for authorized engineering of prompts, context, model/tool protocols and workflow state.
 - `skills/ai-testing-engineering/` — AI application behavior evaluation Skill, with detailed case, rubric and evidence rules in the shared `skills/team-core/references/ai-evaluation.md`.
+- `skills/team-core/references/ai-workflow-design.md`, `ai-instruction-design.md`, `ai-context-design.md`, and `ai-tool-design.md` — conditional application AI design guides routed by `ai-engineering`; existing capability, simulation, record/replay and evaluation contracts remain authoritative for their scopes.
 - `skills/team-core/references/ai-simulation.md` — shared local simulation context, evidence, privacy and acceptance contract.
 - `skills/team-core/references/ai-evaluation.md` — application AI case design, independent judging, model/evaluator identity, stochastic baselines and bounded evidence contract.
 - `skills/team-core/references/ai-capability-contract.md` and `ai-record-replay-testing.md` — project-specific Agent/Workflow replacement boundary and distinct live, record, replay and synthetic test evidence contracts.

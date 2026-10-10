@@ -26,7 +26,7 @@ For UI changes, read the [UI delivery contract](../team-core/references/ui-quali
 
 When the review includes an AI workflow or simulation, read the [AI simulation contract](../team-core/references/ai-simulation.md) in full and use `ai-engineering` when relevant. Check context, model identity, mock/real boundaries and prototype-versus-production claims.
 
-When reviewing application AI behavior or its evaluation evidence, also read the [AI evaluation contract](../team-core/references/ai-evaluation.md). Use `team-ai-tester` for independent AI-case/evaluation coverage when needed; keep overall independent change review with `team-reviewer` and route distinct software risks through shared role routing.
+When reviewing application AI behavior or its evaluation evidence, also read the [AI evaluation contract](../team-core/references/ai-evaluation.md) and follow [ai-engineering](../ai-engineering/SKILL.md) for applicable design guidance. Trace approved design through the authoritative prompt/workflow source and actual runtime selection, context assembly, invocation and tool-result path to focused evidence. A file or Codex Skill link does not prove target-runtime availability. Classify gaps as design/instruction, assembly, tool/runtime, model or evaluator evidence. Use `team-ai-tester` for independent AI-case/evaluation coverage when needed; keep overall independent change review with `team-reviewer` and route distinct software risks through shared role routing.
 
 The `team-reviewer` remains the independent review owner. Request `team-ai-architect` only when a material AI-specific design question needs a bounded read-only assessment; involve `team-architect` for overall software-architecture boundaries and let the Lead coordinate cross-boundary findings.
 

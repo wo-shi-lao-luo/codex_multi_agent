@@ -16,6 +16,8 @@ Start with the approved requirements and existing authoritative prompt, workflow
 
 Choose cases for the actual execution shape: one call, multi-turn dialogue, retained context, workflow nodes, tools, retries, cancellation or handoff as applicable. For each case and workflow node, specify its purpose, expected result, exact relevant input/context/state and history supplied, state transition, reset/cleanup, tool outcomes and observable evidence. Do not assume all conversation history is sent or that separate cases start fresh without an explicit reset. Apply existing per-test comment requirements. Cover representative success plus relevant missing/invalid context, malformed outputs, unsafe or refused actions, tool errors, partial completion, repeated/out-of-order events and termination boundaries.
 
+When changing instruction/reference selection or context assembly, assert that the intended revision and selected fields reach the actual call path, including missing, stale, truncated or unavailable-reference behavior as applicable. Prefer trace/intermediate evidence to locate selection, assembly and routing defects, paired with outcome evidence for user-visible behavior. A prompt-file or selector-only check does not prove the model received the content. Exercise tool result handling at the application boundary; fixture replay alone does not prove live model selection.
+
 Record the tested product model/Agent/Workflow and relevant prompt, context, tool, contract and environment revisions when known. Keep these distinct from the evaluation judge model and the Codex testing Agent's model. Source configuration is not proof of what ran; unavailable identities, usage or cost remain `unknown`.
 
 ## Use layered oracles
@@ -38,7 +40,7 @@ Choose bounded repeats based on observed variability and decision risk. Preserve
 
 When useful, reuse the prior [record/replay contract](ai-record-replay-testing.md): old output fixtures can verify backend handling, but cannot prove a changed model, prompt, context, Agent or Workflow still behaves correctly. Use the existing [AI simulation contract](ai-simulation.md) only for its prototype workflow; a prototype trace is not application runtime evidence.
 
-Classify a surprising result as a possible product behavior defect, evaluation/rubric defect, environment or integration issue, or unclear requirement. State the observed evidence and uncertainty to the Lead; do not silently edit product behavior, thresholds, fixtures, or user expectations to resolve ambiguity.
+Classify a surprising result as a possible instruction/design, reference-selection/context-assembly, tool/runtime, model-variability, evaluator/rubric, environment/integration, or unclear-requirement issue. State the observed evidence and uncertainty to the Lead; do not silently edit product behavior, thresholds, fixtures, or user expectations to resolve ambiguity. Compare baseline and variants only when the question and budget justify it, holding unrelated context, tools, cases and scoring steady where possible; do not infer quality or cost improvement without matched observations and reliable telemetry.
 
 ## Keep scope, checkpoints and records bounded
 
