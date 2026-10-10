@@ -2,8 +2,11 @@
 
 The Lead classifies a request before delegating.
 
+When the Team entry is explicitly invoked or task-matched to engineering work, use the [shared workflow-routing contract](workflow-routing.md) to choose the applicable existing mode from intent, authorization, evidence, and risk. The user need not invoke a second Skill. This does not change role requirements or permission boundaries; no router child is created. A simple factual consultation may need no role call.
+
 | Condition | Roles |
 |---|---|
+| Clear intent to check a commit, push, pull request, merge, release or installation source | `team-delivery-checker` through `$team-delivery-check` and [Git delivery checking](git-delivery.md). Exact active-role preflight applies; the checker is read-only and the Lead retains separately authorized actions. Ordinary edits/code review do not activate this route. |
 | Code-changing `$team-dev` task, including a small bounded change | One exact named domain implementer plus the Tester role selected for the behavior under test: `team-tester` by default, or `team-ai-tester` when application AI behavior evaluation is the primary test need. The selected Tester prepares the concise coverage/verification plan and verifies afterward, with non-overlapping file ownership. |
 | Explicit `$team-code-maintain` request for code formatting/readability, or an authorized post-freeze formatting transfer | `team-code-maintainer` using the [code-readability contract](code-readability.md); the Lead supplies exact file ownership and formatter/check scope. Direct formatting-only work uses proportionate scoped checks, while a transfer inside material code work retains its existing Tester and Reviewer gates. |
 | Design depth or material requirements/boundaries are uncertain in `$team-plan`/`$team-dev` | Apply [risk-proportional design exploration](design-exploration.md). Lead decides light versus full from consequences and uncertainty, not task/file size. Use Explorer for bounded facts, the relevant read-only Architect for material design proposals, and assigned Developer/Tester only for scoped checks; do not force all roles or options. |

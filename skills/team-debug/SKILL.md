@@ -12,6 +12,8 @@ Act as the Lead. This workflow emphasizes **Context → Discover → Contract** 
 
 Use for a failing test, unexpected behavior, regression, performance symptom, data inconsistency, or integration failure whose cause is not established.
 
+When Team is explicitly invoked or task-matched to engineering work, shared [workflow routing](../team-core/references/workflow-routing.md) may select this investigation mode when diagnosis is requested or authorized and the cause remains uncertain. A second `$team-debug` command is not required. Investigation does not authorize a repair; keep the diagnostic allocation and stop gates below.
+
 Do not use when the root cause and safe fix are already evidenced, or when the request is only to review an existing diff. Route data consistency, query, transaction, or migration symptoms to `team-database-specialist`.
 
 For uncertain application AI behavior, use the [AI evaluation contract](../team-core/references/ai-evaluation.md) and involve `team-ai-tester` for bounded evaluation evidence; keep software integration, environment and deterministic business checks with their appropriate owners.

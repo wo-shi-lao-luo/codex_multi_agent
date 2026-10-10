@@ -2,9 +2,9 @@
 
 ## Purpose and boundary
 
-The supported explicit workflows (`team-dev`, `team-plan`, `team-debug`, and `team-review`) may create a small, local run record after their normal user-facing handoff is prepared. The record is evidence for improving this kit; it is not a source-code backup, task tracker, background service, or substitute for the user-facing handoff. Other `team-*` workflows, including `team-ai-simulate`, do not call this runtime unless their workflow is deliberately added to its accepted schema and routing.
+The supported primary workflows (`team-dev`, `team-plan`, `team-debug`, and `team-review`) may create a small, local run record after their normal user-facing handoff is prepared. When Team is selected explicitly or by task matching, it may select one of these supported workflows and record at most one result under that existing workflow value at final close; it does not add a `team` value. Integrated debug/review phases are not separate closes. Consultation and standalone special adapters, including `team-ai-simulate`, do not call this runtime. The record is evidence for improving this kit; it is not a source-code backup, task tracker, background service, or substitute for the user-facing handoff.
 
-Only explicit team workflows participate. Do not create a record for ordinary conversations or silently introduce a project-local file, Git change, connector, or external request.
+A supported primary workflow may participate through its direct entry or when selected by the Team entry, explicitly or through task matching. Unsupported standalone adapters do not participate. Do not create a record for ordinary conversations or consultations, and do not silently introduce a project-local file, Git change, connector, or external request. If feedback recording is unavailable, treat that as a nonblocking reporting risk; it does not authorize arbitrary home/configuration/install writes.
 
 ## Record only minimal, redacted facts
 

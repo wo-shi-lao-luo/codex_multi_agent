@@ -10,6 +10,7 @@
 
 | 接下来要做什么 | 使用入口 |
 | --- | --- |
+| 让 Lead 按任务选择合适的团队流程 | `$team <goal>` |
 | 修改前先理清方案 | `$team-plan <goal>` |
 | 实现功能并验证 | `$team-dev <goal>` |
 | 检查分支或差异 | `$team-review <scope>` |
@@ -21,6 +22,7 @@
 
 ## 工作流入口
 
+- `$team <goal>` — 推荐的统一入口。用户提出要实际开展工程工作时，Codex 可能按任务匹配选择 `$team`；也可以显式调用。Lead 会按意图、授权、证据和风险选择或组合已有流程，不需要再输入第二条工作流命令。小型修复、只运行测试和指定范围的维护也可能适用；普通事实或解释性问题不会进入完整流程。用户明确选择的工作流或退出 Team 的要求优先。自动选择取决于宿主和模型匹配，并非加载保证；显式调用 `$team` 仍是可靠的备用方式。入口只适用于当前任务及直接相关的后续工作。详见[工作流路由约定](skills/team-core/references/workflow-routing.md)。
 - `$team-dev <goal>` — 规划、实现、测试、审查并汇报开发任务。
 - `$team-plan <goal>` — 制定可供决策的计划，不编辑代码。
 - `$team-review <scope>` — 并行审查分支、代码差异或变更集。
@@ -29,10 +31,13 @@
 - `$team-doc-check <task>` — 采用或重新检查项目文档，并生成针对当前任务的就绪度评估。
 - `$team-project-rules <task>` — 检查、起草或维护目标项目的 `AGENTS.md` 指引。
 - `$team-code-maintain <files>` — 安全整理指定代码，或接手已完成编写者工作后的可读性调整。
+- `$team-delivery-check <operation>` — 根据项目策略和当前证据检查计划中的提交、推送、拉取请求、合并、发布或安装源码。
 
 ## 团队成员
 
-`team-explorer`、`team-architect`、`team-ai-architect`、`team-docs-maintainer`、`team-frontend-engineer`、`team-backend-engineer`、`team-database-specialist`、`team-tester`、`team-ai-tester`、`team-reviewer`、`team-ai-simulation-actor-basic`、`team-ai-simulation-actor-advanced`、`team-ai-engineer` 和 `team-code-maintainer` 是 Codex 自定义智能体。基础和高级模拟角色都只负责一个受限的行为节点，并遵守相同边界；`team-ai-architect` 负责提出 AI 领域设计方案，`team-ai-engineer` 实现分配给它的应用 AI 行为，`team-ai-tester` 负责评估分配给它的应用 AI 行为和模拟用例，`team-code-maintainer` 负责在指定范围内进行不改变行为的格式整理。主 Codex 对话负责 Lead 工作，持有任务状态、整合结果并给出最终答复。
+`team-explorer`、`team-architect`、`team-ai-architect`、`team-docs-maintainer`、`team-frontend-engineer`、`team-backend-engineer`、`team-database-specialist`、`team-tester`、`team-ai-tester`、`team-reviewer`、`team-ai-simulation-actor-basic`、`team-ai-simulation-actor-advanced`、`team-ai-engineer`、`team-code-maintainer` 和 `team-delivery-checker` 是 Codex 自定义智能体。基础和高级模拟角色都只负责一个受限的行为节点，并遵守相同边界；`team-ai-architect` 负责提出 AI 领域设计方案，`team-ai-engineer` 实现分配给它的应用 AI 行为，`team-ai-tester` 负责评估分配给它的应用 AI 行为和模拟用例，`team-code-maintainer` 负责在指定范围内进行不改变行为的格式整理，`team-delivery-checker` 则检查 Git 交付范围、项目策略和证据，不修改 Git 或执行交付操作。主 Codex 对话负责 Lead 工作，持有任务状态、整合结果并给出最终答复。
+
+`$team` 是由 Lead 使用的 Skill 入口，不是新增的自定义智能体或模型分配。原有各流程入口仍可直接使用。
 
 ## 模型分配
 
@@ -49,6 +54,7 @@
 | AI 架构师 | `gpt-6.1-sol` | xhigh |
 | AI 工程师 | `gpt-6.1-sol` | medium |
 | 代码维护者 | `gpt-6-luna` | medium |
+| Git 交付检查员 | `gpt-6-luna` | high |
 
 主 Lead 建议使用 GPT-6 Astra / high。这是建议，不是已安装的智能体设置。可选配置片段将通用子智能体设为 GPT-6.1 Sol / medium；具名团队角色保留各自显式配置。已经合并旧配置片段的用户需要手动更新其中两个 `default_subagent_*` 值；安装器不会合并全局配置。
 
@@ -58,7 +64,9 @@
 
 本工具包没有自动模型回退机制。Git 历史中的旧模型分配可作为人工恢复时的参考，但不要同时启用第二套配置。如果模型不可用或出现可复现的退化，应先查明原因并确认替代模型可用，再进行范围明确的配置修改，同时更新对应的校验器并完成验证。不要静默切换模型，也不要假定旧模型能够绕过服务中断或账号限额。
 
-`1.0.7` 包含下文介绍的 AI 开发、评估与迁移指引，完整版本记录见[更新日志](CHANGELOG.zh-CN.md)。从源码安装时，请用安装收据中的源码提交号和软件包摘要确认实际安装内容，不能只看版本号。
+`1.0.7` 包含下文介绍的 AI 开发、评估与迁移指引，完整版本记录见[更新日志](CHANGELOG.zh-CN.md)。Git 交付检查和统一 `$team` 入口目前都只存在于尚未发布的源码中；当前发布版本仍是 `1.0.7`。从源码安装时，请用安装收据中的源码提交号和软件包摘要确认实际安装内容，不能只看版本号。
+
+当任务明确涉及提交、推送、拉取请求、合并、发布或安装源码时，`$team-delivery-check` 会根据项目策略和当前证据检查对应的 Git 范围。交付意图明确时可触发该检查；普通编辑或代码审查本身不会触发。辅助脚本只读收集机械证据，`ready-for-review` 不代表语义审查通过，也不授权执行 Git 操作。详见 [Git 交付检查约定](skills/team-core/references/git-delivery.md)。
 
 ## 应用 AI 开发与架构变更
 
@@ -131,9 +139,9 @@ agent 名称使用 `team-` 前缀，以避免与个人 agent 重名。安装收�
 
 ## 工作约定
 
-用户直接提出代码排版或可读性整理请求时，会通过 `$team-code-maintain` 路由给 `team-code-maintainer`。对于受支持的项目配置，该角色会使用已安装的格式化工具处理指定文件，检查机械整理后仍需改进的可读性，并在后续编辑完成后再次检查格式。工具执行和文件写入沿用调用方已经获得的信任依据与权限；工具不会安装依赖，也不会静默替换项目已有但不受支持的格式化工具。该 Skill 允许按单次请求隐式触发，不会安装后台格式化器。这是对下文“显式入口”规则的直接请求例外；其他 Team 工作流仍各自依赖其入口。纯格式维护不强制执行完整 `$team-dev` 流程。若在功能开发任务中转交格式整理，须等原编写者冻结文件；该任务原有的 Tester 和 Reviewer 门槛仍然适用。后文所述 Lead 单独完成仅适用于其他工作中的极小型附带更正。详见[代码可读性约定](skills/team-core/references/code-readability.md)和[格式化工具指南](docs/formatter-tool.md)。
+用户直接提出代码排版或可读性整理请求时，会通过 `$team-code-maintain` 路由给 `team-code-maintainer`。对于受支持的项目配置，该角色会使用已安装的格式化工具处理指定文件，检查机械整理后仍需改进的可读性，并在后续编辑完成后再次检查格式。工具执行和文件写入沿用调用方已经获得的信任依据与权限；工具不会安装依赖，也不会静默替换项目已有但不受支持的格式化工具。该 Skill 可按单次请求隐式触发，但不会安装后台格式化器。`$team-delivery-check` 也有条件式例外：明确的提交、推送、拉取请求、合并、发布或安装源码意图可触发只读评估；普通编辑或代码审查本身不会触发。统一入口 `$team` 可按工程任务进行匹配，也可由用户显式调用；普通问题保持直接回答，用户明确选择的工作流或退出 Team 的要求优先。选择只适用于当前任务及直接相关的后续工作，不会扩大权限或跳过门槛。用户明确要求只运行现有测试时，可按有限范围进行验证，不必安排生产代码编写者，也不应凭空编造待审查的差异。纯格式维护不强制执行完整 `$team-dev` 流程。若在功能开发任务中转交格式整理，须等原编写者冻结文件；该任务原有的 Tester 和 Reviewer 门槛仍然适用。后文所述 Lead 单独完成仅适用于其他工作中的极小型附带更正。详见[代码可读性约定](skills/team-core/references/code-readability.md)和[格式化工具指南](docs/formatter-tool.md)。
 
-显式调用 `$team-dev` 进行代码修改时，包括小型修复和改变行为的脚本、配置或 Skill 指令，默认由具名实现者和根据测试行为选择的 Tester 配合：通常为 `team-tester`；当主要测试内容是应用 AI 行为评估时可使用 `team-ai-tester`。混合任务由一个人负责阶段验证包，只有存在不同的必要测试范围时才增加第二位 Tester。独立审查和专家角色由风险及影响决定，不以文件数或行数判断。小任务可以缩短记录，但仍需完成适用的工程检查。只有用户明确要求 Lead 亲自执行代码工作，或批准具体的 Lead 单独处理例外时，Lead 才会直接改代码；普通的“直接修一下”不等于这个授权。缺少角色时不能静默改由其他角色代替。请参阅[角色分配规则](skills/team-core/references/role-routing.md)、[最小完整流程](skills/team-core/references/execution-contract.md)和[AI 评估约定](skills/team-core/references/ai-evaluation.md)。单纯拼写和格式调整等不改变行为的工作可以由 Lead 直接完成。任务开始和结束时都要把计划角色、检查项与实际证据对齐。这些内部规则不会让 Team 工作流在其显式入口之外自动启用。
+通过 `$team-dev` 或 Team 所选开发流程修改代码时，包括小型修复和改变行为的脚本、配置或 Skill 指令，默认由具名实现者和根据测试行为选择的 Tester 配合：通常为 `team-tester`；当主要测试内容是应用 AI 行为评估时可使用 `team-ai-tester`。混合任务由一个人负责阶段验证包，只有存在不同的必要测试范围时才增加第二位 Tester。独立审查和专家角色由风险及影响决定，不以文件数或行数判断。小任务可以缩短记录，但仍需完成适用的工程检查。只有用户明确要求 Lead 亲自执行代码工作，或批准具体的 Lead 单独处理例外时，Lead 才会直接改代码；普通的“直接修一下”不等于这个授权。缺少角色时不能静默改由其他角色代替。请参阅[角色分配规则](skills/team-core/references/role-routing.md)、[最小完整流程](skills/team-core/references/execution-contract.md)和[AI 评估约定](skills/team-core/references/ai-evaluation.md)。单纯拼写和格式调整等不改变行为的工作可以由 Lead 直接完成。任务开始和结束时都要把计划角色、检查项与实际证据对齐。统一 `$team` 入口可按任务匹配或显式调用；用户直接选择的工作流和退出 Team 的要求优先。`$team-code-maintain` 与 `$team-delivery-check` 保留各自的条件式触发边界。
 
 `$team-plan` 和 `$team-dev` 会根据重要风险和未解决的不确定性选择轻量检查或更完整的设计探索，而不是按任务或文件规模判断；除非相关新证据改变了适用范围，已确认的决定不会重复进入审批。详见共享的[设计探索约定](skills/team-core/references/design-exploration.md)。
 

@@ -12,11 +12,19 @@ Act as the Lead. This workflow owns the full shared [execution contract](../team
 
 Use when the user wants a coordinated implementation, not merely advice, a plan, or a review. For code-changing work, including small bounded tasks, default to one exact named domain implementer and the Tester role selected through shared role routing: `team-tester` generally, or `team-ai-tester` when application AI behavior evaluation is the primary test need. The selected Tester prepares the stage packet's concise coverage plan before implementation and verifies afterward, with separate test and production-file ownership. Every material implementation also receives an independent `team-reviewer` review. Small scope reduces role count and record size, not applicable process obligations. Pure consultation and read-only work do not inherit this implementation-role minimum. Truly nonbehavior typo/format corrections may be Lead-owned; behavior-changing Skills, policies or agent-routing/configuration that govern the harness remain implementation work. Ordinary application scripts/configuration follow their domain. Classify risk by impact and boundary, not file or line count.
 
+When Team is explicitly invoked or task-matched to engineering work, shared [workflow routing](../team-core/references/workflow-routing.md) may select this mode only when implementation is authorized and fits the current intent and evidence. Do not require a second `$team-dev` command. Selection does not waive this workflow's roles, documentation, packet, TDD, verification, review, or approval gates.
+
 For application AI behavior—including prompt sources, model calls, context/history, tool protocols, agent roles and workflow state—route the bounded production files to `team-ai-engineer` using [ai-engineering](../ai-engineering/SKILL.md). Pass the approved goal and decisions with only the applicable guides that Skill selects. Ask `team-ai-architect` for a bounded read-only proposal only when material AI-specific design choices need it; `team-architect` retains overall software architecture. Keep generic API/service/authentication/job infrastructure with `team-backend-engineer` and agree shared interfaces before parallel work. `$team-ai-simulate` is an optional, explicit prototype workflow; a simulation result alone does not authorize production implementation.
 
 When the stage needs application AI behavior evaluation, route those cases/tests to `team-ai-tester` using the [AI evaluation contract](../team-core/references/ai-evaluation.md). The selected Tester role owns the canonical packet; add `team-tester` only for distinct required software assertions, and use ordinary `team-tester` for Kit/helper/package changes.
 
 Do not use this workflow to create a task daemon, push branches, merge pull requests, or alter external systems unless the user explicitly asks.
+
+When the user intends a commit, push, pull request, merge, release or installation
+source delivery, route the bounded read-only assessment through
+[$team-delivery-check](../team-delivery-check/SKILL.md) and the
+[Git delivery contract](../team-core/references/git-delivery.md). Ordinary edits do
+not trigger this route; delivery execution still needs its own authority.
 
 ## Establish the work
 

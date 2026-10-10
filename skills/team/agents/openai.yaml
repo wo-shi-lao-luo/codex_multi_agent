@@ -1,0 +1,6 @@
+interface:
+  display_name: "Team"
+  short_description: "Route engineering work through the right Team workflow."
+  default_prompt: "Use $team to route this task through the appropriate Team workflow."
+policy:
+  allow_implicit_invocation: true

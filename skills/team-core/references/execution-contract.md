@@ -124,3 +124,5 @@ Every `team-*` workflow Skill that applies this contract should state:
 4. which return paths apply to its task type.
 
 Domain Skills add the standards needed inside Discover, Contract, Execute, and Verify. They do not redefine the common lifecycle.
+
+The `$team` entry, explicitly invoked or task-matched to engineering work, selects or composes these existing adapters under [workflow routing](workflow-routing.md). Selection does not require a second user command and does not waive the selected adapter's entry conditions, stages, evidence, roles, or approvals. Do not create a new lifecycle or reset accepted decisions or task history.

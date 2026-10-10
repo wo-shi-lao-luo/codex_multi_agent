@@ -28,6 +28,7 @@ $expectedAgentProfiles = @{
   'team-architect' = @{ model = 'gpt-6.1-sol'; reasoning = 'xhigh' }
   'team-backend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-code-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
+  'team-delivery-checker' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
   'team-database-specialist' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
   'team-docs-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
   'team-explorer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
@@ -39,6 +40,105 @@ $expectedAgentProfiles = @{
   'team-ai-simulation-actor-basic' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
   'team-ai-simulation-actor-advanced' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-ai-architect' = @{ model = 'gpt-6.1-sol'; reasoning = 'xhigh' }
+}
+
+# The thin entry adds discoverable contracts, not an executable intent router.
+# Keep every direct entry available and check concrete links rather than wording.
+$directTeamEntries = @(
+  'team-plan', 'team-dev', 'team-debug', 'team-review', 'team-doc-check',
+  'team-project-rules', 'team-code-maintain', 'team-delivery-check', 'team-ai-simulate'
+)
+$teamEntryResources = @(
+  'skills/team/SKILL.md'
+  'skills/team/agents/openai.yaml'
+  'skills/team-core/references/workflow-routing.md'
+)
+foreach ($entry in $directTeamEntries) {
+  $teamEntryResources += "skills/$entry/SKILL.md"
+}
+foreach ($resource in $teamEntryResources) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) {
+    $failures.Add("Missing unified Team resource: $resource")
+  }
+}
+$teamEntryRoutes = @(
+  @{
+    path = 'skills/team/SKILL.md'
+    target = '../team-core/references/workflow-routing.md'
+  }
+  @{
+    path = 'skills/team/SKILL.md'
+    target = '../team-core/references/execution-contract.md'
+  }
+  @{
+    path = 'skills/team-core/SKILL.md'
+    target = 'references/workflow-routing.md'
+  }
+  @{
+    path = 'skills/team-core/references/role-routing.md'
+    target = 'workflow-routing.md'
+  }
+)
+foreach ($entry in $directTeamEntries) {
+  $teamEntryRoutes += @{
+    path = 'skills/team-core/references/workflow-routing.md'
+    target = "../../$entry/SKILL.md"
+  }
+}
+foreach ($reference in @('repair-loop-guard.md','feedback-recording.md','role-routing.md')) {
+  $teamEntryRoutes += @{
+    path = 'skills/team-core/references/workflow-routing.md'
+    target = $reference
+  }
+}
+foreach ($route in $teamEntryRoutes) {
+  $path = Join-Path $root $route.path
+  $content = if (Test-Path -LiteralPath $path -PathType Leaf) {
+    Get-Content -LiteralPath $path -Raw
+  } else { $null }
+  if ([string]::IsNullOrWhiteSpace($content) -or
+      -not $content.Contains("]($($route.target))")) {
+    $failures.Add("$($route.path) must link to $($route.target)")
+  }
+}
+
+# Delivery guards establish package integrity, not semantic/runtime acceptance.
+foreach ($resource in @(
+  'agents/team-delivery-checker.toml'
+  'skills/team-delivery-check/SKILL.md'
+  'skills/team-core/references/git-delivery.md'
+  'skills/team-core/scripts/git-delivery.ps1'
+)) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) {
+    $failures.Add("Missing Git delivery resource: $resource")
+  }
+}
+foreach ($skillName in @('team-core','team-dev','team-review','team-delivery-check')) {
+  $path = Join-Path $root "skills/$skillName/SKILL.md"
+  $target = if ($skillName -eq 'team-core') {
+    'references/git-delivery.md'
+  } else { '../team-core/references/git-delivery.md' }
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or
+      -not (Get-Content -LiteralPath $path -Raw).Contains("]($target)")) {
+    $failures.Add("$skillName must link to git-delivery.md")
+  }
+}
+foreach ($skillName in @('team-core','team-dev','team-review')) {
+  $path = Join-Path $root "skills/$skillName/SKILL.md"
+  if ((Test-Path -LiteralPath $path -PathType Leaf) -and
+      -not (Get-Content -LiteralPath $path -Raw).Contains('](../team-delivery-check/SKILL.md)')) {
+    $failures.Add("$skillName must conditionally route to team-delivery-check")
+  }
+}
+$deliveryRouting = Join-Path $root 'skills/team-core/references/role-routing.md'
+if ((Test-Path -LiteralPath $deliveryRouting -PathType Leaf) -and
+    -not (Get-Content -LiteralPath $deliveryRouting -Raw).Contains('](git-delivery.md)')) {
+  $failures.Add('role-routing must link to git-delivery.md')
+}
+$deliveryPolicy = Join-Path $root 'skills/team-delivery-check/agents/openai.yaml'
+if ((Test-Path -LiteralPath $deliveryPolicy -PathType Leaf) -and
+    (Get-Content -LiteralPath $deliveryPolicy -Raw) -match 'allow_implicit_invocation\s*:\s*false') {
+  $failures.Add('team-delivery-check must permit implicit invocation')
 }
 
 # New workflow assets must be shipped together; routing prose is not execution proof.
@@ -274,8 +374,13 @@ if (-not $hasMaintainerMapping) {
 
 # Support the shipped policy mapping subset and unrelated interface metadata.
 # Duplicate sections/flags and flags outside policy must not enable discovery.
-$implicitRoutePath = Join-Path $root 'skills/team-code-maintain/agents/openai.yaml'
-if (Test-Path -LiteralPath $implicitRoutePath -PathType Leaf) {
+$invocationPolicies = @(
+  @{ skill = 'team-code-maintain'; expected = 'true' }
+  @{ skill = 'team'; expected = 'true' }
+)
+foreach ($invocationPolicy in $invocationPolicies) {
+  $implicitRoutePath = Join-Path $root "skills/$($invocationPolicy.skill)/agents/openai.yaml"
+  if (-not (Test-Path -LiteralPath $implicitRoutePath -PathType Leaf)) { continue }
   $policyCount = 0
   $flagCount = 0
   $inPolicy = $false
@@ -291,7 +396,9 @@ if (Test-Path -LiteralPath $implicitRoutePath -PathType Leaf) {
     if ($line -match '^\S') { $inPolicy = $false }
     if ($line -match '^\s*allow_implicit_invocation\s*:') {
       $flagCount++
-      if (-not $inPolicy -or $line -notmatch '^  allow_implicit_invocation:\s*true\s*(?:#.*)?$') {
+      $expectedFlag = '^  allow_implicit_invocation:\s*' +
+        $invocationPolicy.expected + '\s*(?:#.*)?$'
+      if (-not $inPolicy -or $line -notmatch $expectedFlag) {
         $validPolicy = $false
       }
     } elseif ($inPolicy) {
@@ -299,7 +406,9 @@ if (Test-Path -LiteralPath $implicitRoutePath -PathType Leaf) {
     }
   }
   if ($policyCount -ne 1 -or $flagCount -ne 1 -or -not $validPolicy) {
-    $failures.Add('team-code-maintain must declare one policy allow_implicit_invocation: true')
+    $failures.Add(
+      "$($invocationPolicy.skill) must declare one policy allow_implicit_invocation: $($invocationPolicy.expected)"
+    )
   }
 }
 
@@ -342,7 +451,7 @@ Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-
     }
     # Actors and the AI design specialist observe bounded evidence; they are not
     # production writers. A stronger actor model must not broaden its permissions.
-    if ($_.BaseName -in @('team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect') -and $entries['sandbox_mode'] -ne 'read-only') {
+    if ($_.BaseName -in @('team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect','team-delivery-checker') -and $entries['sandbox_mode'] -ne 'read-only') {
       $failures.Add("$($_.Name) must declare read-only sandbox mode")
     }
     if ($_.BaseName -in @('team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect') -and -not ([string]$entries['developer_instructions']).Contains('team-ai-simulate')) {
@@ -350,6 +459,13 @@ Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-
     }
     if ($_.BaseName -eq 'team-ai-architect' -and -not ([string]$entries['developer_instructions']).Contains('ai-engineering')) {
       $failures.Add('team-ai-architect must reference ai-engineering domain guidance')
+    }
+    if ($_.BaseName -eq 'team-delivery-checker') {
+      foreach ($route in @('team-delivery-check', 'git-delivery.md', 'git-delivery.ps1')) {
+        if (-not ([string]$entries['developer_instructions']).Contains($route)) {
+          $failures.Add("team-delivery-checker must reference $route")
+        }
+      }
     }
     if ($_.BaseName -eq 'team-code-maintainer') {
       if ($entries.ContainsKey('sandbox_mode') -and $entries['sandbox_mode'] -ne 'workspace-write') {
