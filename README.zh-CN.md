@@ -32,7 +32,7 @@
 
 ## 团队成员
 
-`team-explorer`、`team-architect`、`team-ai-architect`、`team-docs-maintainer`、`team-frontend-engineer`、`team-backend-engineer`、`team-database-specialist`、`team-tester`、`team-reviewer`、`team-ai-simulation-actor-basic`、`team-ai-simulation-actor-advanced`、`team-ai-engineer` 和 `team-code-maintainer` 是 Codex 自定义智能体。基础和高级模拟角色都只负责一个受限的行为节点，并遵守相同边界；`team-ai-architect` 负责提出 AI 领域设计方案，`team-ai-engineer` 实现分配给它的应用 AI 行为，`team-code-maintainer` 负责在指定范围内进行不改变行为的格式整理。主 Codex 对话负责 Lead 工作，持有任务状态、整合结果并给出最终答复。
+`team-explorer`、`team-architect`、`team-ai-architect`、`team-docs-maintainer`、`team-frontend-engineer`、`team-backend-engineer`、`team-database-specialist`、`team-tester`、`team-ai-tester`、`team-reviewer`、`team-ai-simulation-actor-basic`、`team-ai-simulation-actor-advanced`、`team-ai-engineer` 和 `team-code-maintainer` 是 Codex 自定义智能体。基础和高级模拟角色都只负责一个受限的行为节点，并遵守相同边界；`team-ai-architect` 负责提出 AI 领域设计方案，`team-ai-engineer` 实现分配给它的应用 AI 行为，`team-ai-tester` 负责评估分配给它的应用 AI 行为和模拟用例，`team-code-maintainer` 负责在指定范围内进行不改变行为的格式整理。主 Codex 对话负责 Lead 工作，持有任务状态、整合结果并给出最终答复。
 
 ## 模型分配
 
@@ -42,6 +42,7 @@
 | 探索员 | `gpt-6-luna` | medium |
 | 文档维护者 | `gpt-6-luna` | high |
 | 前端、后端、测试 | `gpt-6.1-sol` | medium |
+| AI 测试员 | `gpt-6.1-sol` | medium |
 | 数据库专家、审查员 | `gpt-6.1-sol` | high |
 | AI 模拟角色基础档 | `gpt-6-luna` | medium |
 | AI 模拟角色高级档 | `gpt-6.1-sol` | medium |
@@ -56,6 +57,16 @@
 架构师使用 GPT-6.1 Sol / xhigh，为架构权衡投入更多推理；Astra Lead 会在实施前检查重要决策。推理强度更高并不代表效果等同于 Astra。请参阅[官方模型指南](https://developers.openai.com/api/docs/models/gpt-6.1-sol)，并用有代表性的项目评估遗漏、返工和完成时间。
 
 本工具包没有自动模型回退机制。Git 历史中的旧模型分配可作为人工恢复时的参考，但不要同时启用第二套配置。如果模型不可用或出现可复现的退化，应先查明原因并确认替代模型可用，再进行范围明确的配置修改，同时更新对应的校验器并完成验证。不要静默切换模型，也不要假定旧模型能够绕过服务中断或账号限额。
+
+`1.0.7` 包含下文介绍的 AI 开发、评估与迁移指引，完整版本记录见[更新日志](CHANGELOG.zh-CN.md)。从源码安装时，请用安装收据中的源码提交号和软件包摘要确认实际安装内容，不能只看版本号。
+
+## 应用 AI 开发与架构变更
+
+在你自己的应用中开发 AI 智能体或工作流时，[ai-engineering](skills/ai-engineering/SKILL.md) 会按任务需要选择共享指引，分别处理[工作流形态](skills/team-core/references/ai-workflow-design.md)、[指令与可复用 Skills](skills/team-core/references/ai-instruction-design.md)、[上下文组装与保留](skills/team-core/references/ai-context-design.md)，以及[工具契约与副作用](skills/team-core/references/ai-tool-design.md)。只读取当前任务需要的指引。这些内容帮助定义目标应用的行为；Codex 开发用的 Skills 和文件链接不会自动传给目标应用的模型。
+
+专门的 [ai-testing-engineering](skills/ai-testing-engineering/SKILL.md) Skill 和 `team-ai-tester` 负责应用 AI 行为评估；确定性代码和集成边界仍由普通软件测试验证。独立审查会从已批准意图，追踪到权威指令或工作流源码、实际运行时组装和调用，以及验证证据；仅通过静态检查不能证明模型遵循了指引或结果有所改善。
+
+重要的架构、契约或工作流变更使用[迁移完整性指引](skills/team-core/references/architecture-migration.md)，检查受影响的调用方、状态与完成门槛、配置、数据和兼容性。完成汇报要区分组件完成与产品迁移完成，并列明待验证项。指引复用项目已有权威来源和阶段包；内部变更若不改变行为和契约，无需执行全面迁移检查。
 
 ## 为单个用户安装
 
@@ -112,7 +123,7 @@
 
 agent 名称使用 `team-` 前缀，以避免与个人 agent 重名。安装收据没有记录的历史组件会保留原样；手动删除前应先确认其归属。
 
-当前版本: `1.0.6`（1.0 预览产品线上的测试检查点与 Skill 路由改进；不代表宣告稳定版）。工具包自有的本地产物采用范围明确的 Git 保护，并检查实际索引。文档治理元数据、导航索引和审查记录保留在当前检出目录中，但不会通过 Git 共享；新检出的仓库需要根据现有文档自行建立采用及审查状态。用户编写的项目文档、PRD、蓝图、阶段验证包和原生规格仍可纳入版本控制。已跟踪的本地产物或与用户显式包含规则冲突的情况需要用户决定如何处理。工具包不会安装 Git hook 或后台监控，用户仍可手动强制暂存。详见[生成产物 Git 保护约定](skills/team-core/references/generated-artifacts.md)。反馈运行时目前支持 `$team-dev`、`$team-plan`、`$team-debug` 和 `$team-review`；`$team-ai-simulate` 使用单独的本地运行记录，不调用该运行时。`$team-dev` 会在目标项目中创建并校验由 Git 跟踪的阶段验证包；条件允许时使用 `test-first`，否则记录采用的替代路径。普通修复失败两次后，工作流会查找相关外部证据；适用的新证据最多可支持一次有条件的扩展，修复总次数不超过五次。Debug 模式的资料检索计入原有六轮诊断额度。暂停依据证据进行；恢复需要用户授权。正常推进的长时间操作按任务设置进度检查点，不设统一时间上限。测试执行采用风险分层和基于证据的结果复用；测试范围不清楚时可定向请 Explorer 查找，但 E2E/人工覆盖和仓库门禁仍具有约束力。请参阅[修复与诊断循环约定](skills/team-core/references/repair-loop-guard.md)、[反馈记录规则](skills/team-core/references/feedback-recording.md)、[测试与验收约定](skills/team-core/references/test-acceptance-contract.md)、[TDD 流程](skills/team-core/references/tdd-protocol.md)、[代码注释约定](skills/team-core/references/code-comments.md)、[代码可读性约定](skills/team-core/references/code-readability.md)、[代码格式化工具](docs/formatter-tool.md)、[项目指引约定](skills/team-core/references/project-rules.md)、[AI 模拟指南](docs/ai-simulation.md)、[版本规则](docs/release-versioning.md)和[更新日志](CHANGELOG.zh-CN.md)。0.1.0 版本还将 `sql-safety` 更名为 `database-engineering`，并将 `test-strategy` 更名为 `testing-engineering`。历史 Skill 目录如果未记录在安装收据中，会保持不变；由收据管理且已停用的 Skills 会与所选目标版本保持一致。
+当前版本: `1.0.7`（1.0 预览产品线上的 AI 开发与评估指引、迁移完整性检查及首次使用引导；不代表宣告稳定版）。工具包自有的本地产物采用范围明确的 Git 保护，并检查实际索引。文档治理元数据、导航索引和审查记录保留在当前检出目录中，但不会通过 Git 共享；新检出的仓库需要根据现有文档自行建立采用及审查状态。用户编写的项目文档、PRD、蓝图、阶段验证包和原生规格仍可纳入版本控制。已跟踪的本地产物或与用户显式包含规则冲突的情况需要用户决定如何处理。工具包不会安装 Git hook 或后台监控，用户仍可手动强制暂存。详见[生成产物 Git 保护约定](skills/team-core/references/generated-artifacts.md)。反馈运行时目前支持 `$team-dev`、`$team-plan`、`$team-debug` 和 `$team-review`；`$team-ai-simulate` 使用单独的本地运行记录，不调用该运行时。`$team-dev` 会在目标项目中创建并校验由 Git 跟踪的阶段验证包；条件允许时使用 `test-first`，否则记录采用的替代路径。普通修复失败两次后，工作流会查找相关外部证据；适用的新证据最多可支持一次有条件的扩展，修复总次数不超过五次。Debug 模式的资料检索计入原有六轮诊断额度。暂停依据证据进行；恢复需要用户授权。正常推进的长时间操作按任务设置进度检查点，不设统一时间上限。测试执行采用风险分层和基于证据的结果复用；测试范围不清楚时可定向请 Explorer 查找，但 E2E/人工覆盖和仓库门禁仍具有约束力。请参阅[修复与诊断循环约定](skills/team-core/references/repair-loop-guard.md)、[反馈记录规则](skills/team-core/references/feedback-recording.md)、[测试与验收约定](skills/team-core/references/test-acceptance-contract.md)、[TDD 流程](skills/team-core/references/tdd-protocol.md)、[代码注释约定](skills/team-core/references/code-comments.md)、[代码可读性约定](skills/team-core/references/code-readability.md)、[代码格式化工具](docs/formatter-tool.md)、[项目指引约定](skills/team-core/references/project-rules.md)、[AI 模拟指南](docs/ai-simulation.md)、[版本规则](docs/release-versioning.md)和[更新日志](CHANGELOG.zh-CN.md)。0.1.0 版本还将 `sql-safety` 更名为 `database-engineering`，并将 `test-strategy` 更名为 `testing-engineering`。历史 Skill 目录如果未记录在安装收据中，会保持不变；由收据管理且已停用的 Skills 会与所选目标版本保持一致。
 
 涉及可见界面的工作会将 [frontend-design](skills/frontend-design/SKILL.md) 与 frontend-engineering 配合使用。[UI 交付约定](skills/team-core/references/ui-quality.md)会保留页面级目标，明确完整页面或流程的负责人，并要求将渲染检查与功能测试分别留证。无需为此增加专门的设计智能体、改变模型或为每个页面单独编写设计文档。缺少浏览器证据时，必须注明尚未进行视觉验证，不能称为已可发布。
 
@@ -122,7 +133,7 @@ agent 名称使用 `team-` 前缀，以避免与个人 agent 重名。安装收�
 
 用户直接提出代码排版或可读性整理请求时，会通过 `$team-code-maintain` 路由给 `team-code-maintainer`。对于受支持的项目配置，该角色会使用已安装的格式化工具处理指定文件，检查机械整理后仍需改进的可读性，并在后续编辑完成后再次检查格式。工具执行和文件写入沿用调用方已经获得的信任依据与权限；工具不会安装依赖，也不会静默替换项目已有但不受支持的格式化工具。该 Skill 允许按单次请求隐式触发，不会安装后台格式化器。这是对下文“显式入口”规则的直接请求例外；其他 Team 工作流仍各自依赖其入口。纯格式维护不强制执行完整 `$team-dev` 流程。若在功能开发任务中转交格式整理，须等原编写者冻结文件；该任务原有的 Tester 和 Reviewer 门槛仍然适用。后文所述 Lead 单独完成仅适用于其他工作中的极小型附带更正。详见[代码可读性约定](skills/team-core/references/code-readability.md)和[格式化工具指南](docs/formatter-tool.md)。
 
-显式调用 `$team-dev` 进行代码修改时，包括小型修复和改变行为的脚本、配置或 Skill 指令，默认由具名实现者和 `team-tester` 配合完成。独立审查和专家角色由风险及影响决定，不以文件数或行数判断。小任务可以缩短记录，但仍需完成适用的工程检查。只有用户明确要求 Lead 亲自执行代码工作，或批准具体的 Lead 单独处理例外时，Lead 才会直接改代码；普通的“直接修一下”不等于这个授权。缺少角色时不能静默改由其他角色代替。请参阅[角色分配规则](skills/team-core/references/role-routing.md)和[最小完整流程](skills/team-core/references/execution-contract.md)。单纯拼写和格式调整等不改变行为的工作可以由 Lead 直接完成。任务开始和结束时都要把计划角色、检查项与实际证据对齐。这些内部规则不会让 Team 工作流在其显式入口之外自动启用。
+显式调用 `$team-dev` 进行代码修改时，包括小型修复和改变行为的脚本、配置或 Skill 指令，默认由具名实现者和根据测试行为选择的 Tester 配合：通常为 `team-tester`；当主要测试内容是应用 AI 行为评估时可使用 `team-ai-tester`。混合任务由一个人负责阶段验证包，只有存在不同的必要测试范围时才增加第二位 Tester。独立审查和专家角色由风险及影响决定，不以文件数或行数判断。小任务可以缩短记录，但仍需完成适用的工程检查。只有用户明确要求 Lead 亲自执行代码工作，或批准具体的 Lead 单独处理例外时，Lead 才会直接改代码；普通的“直接修一下”不等于这个授权。缺少角色时不能静默改由其他角色代替。请参阅[角色分配规则](skills/team-core/references/role-routing.md)、[最小完整流程](skills/team-core/references/execution-contract.md)和[AI 评估约定](skills/team-core/references/ai-evaluation.md)。单纯拼写和格式调整等不改变行为的工作可以由 Lead 直接完成。任务开始和结束时都要把计划角色、检查项与实际证据对齐。这些内部规则不会让 Team 工作流在其显式入口之外自动启用。
 
 `$team-plan` 和 `$team-dev` 会根据重要风险和未解决的不确定性选择轻量检查或更完整的设计探索，而不是按任务或文件规模判断；除非相关新证据改变了适用范围，已确认的决定不会重复进入审批。详见共享的[设计探索约定](skills/team-core/references/design-exploration.md)。
 

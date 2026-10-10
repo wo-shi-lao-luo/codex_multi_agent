@@ -9,6 +9,8 @@ Use this Skill to design and verify meaningful tests. Read the shared [execution
 
 When a tested application includes a replaceable Agent/Workflow capability, read the [AI record/replay testing contract](../team-core/references/ai-record-replay-testing.md) for evidence boundaries, fixture safety and invalidation. Keep stage coverage and results in the packet; a replay is not live E2E evidence.
 
+When test scope includes application AI behavior, read the [AI evaluation contract](../team-core/references/ai-evaluation.md) and route AI-specific evaluation to `team-ai-tester`; retain deterministic business behavior and harness/package coverage according to shared role routing.
+
 
 ## When to activate
 
@@ -29,6 +31,8 @@ Do not use to impose a generic coverage target, create tests solely to increase 
 For an enabled OpenSpec project, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md). Map requirement/scenario and task IDs to CASE IDs in the existing stage packet, cover changes/removals with regression evidence, and reassess results whenever the specification snapshot changes. Keep test results only in packets; the association index stores links, not duplicate outcomes. Agent verification never fabricates user acceptance.
 
 Apply the [Project Blueprint contract](../team-core/references/project-blueprint.md) when a blueprint governs the task. Map behavioral tests to its module IDs. Before an approved existing-code refactor, capture current behavior with characterization/regression tests and baseline failures; verify behavior preservation after the move. A declined refactor retains current test entrypoints and documents coverage constraints.
+
+For a material architecture, contract, workflow/state, configuration/eligibility, persisted-data/job, or compatibility migration, also use the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md). Where applicable, test the synthetic/replay boundary through the real consumer path to its storage, state, eligibility, user operation, and final outcome. Keep deterministic software assertions separate from AI behavior evaluation and live end-to-end evidence, and follow the existing packet's test tiers and deferral rules.
 
 Create a concise test matrix:
 

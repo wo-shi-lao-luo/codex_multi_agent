@@ -14,7 +14,9 @@ Use for a feature, refactor, integration, or technical change that needs reposit
 
 Do not use for a one-line factual answer, a request to implement immediately after a sufficient approved plan, or a review of an existing change set; route those to the appropriate direct workflow.
 
-When the proposed product behavior includes an AI agent or workflow, identify prompts, context/history, model/tool calls, state transitions and human gates in the plan. Use `team-ai-architect` for a bounded read-only proposal when material AI-specific design choices are unresolved; `team-architect` retains software-wide structure and cross-module architecture. If the user wants to explore behavior before coding, offer the explicit `$team-ai-simulate` workflow; its prototype is a separate decision point and does not replace `$team-dev` or authorize production implementation.
+When the proposed product behavior includes an AI agent or workflow, identify prompts, context/history, model/tool calls, state transitions and human gates in the plan. Follow [ai-engineering](../ai-engineering/SKILL.md) to select the simplest sufficient execution shape and pass only applicable shared design guides with the bounded handoff. Use `team-ai-architect` for a read-only proposal only when material AI-specific choices remain unresolved; `team-architect` retains software-wide structure and cross-module architecture. Simulation is optional and explicit; it is not a prerequisite or production authorization.
+
+When the plan includes application AI behavior evaluation, read the shared [AI evaluation contract](../team-core/references/ai-evaluation.md) and identify `team-ai-tester`'s evaluation scope and evidence. Keep ordinary business, integration, UI and harness assertions assigned under shared role routing.
 
 ## Build the plan
 
@@ -31,6 +33,8 @@ Check for `openspec/team-integration.json`. If present, read the [spec lifecycle
 For UI work, read and apply the [UI delivery contract](../team-core/references/ui-quality.md) in full. Include a lightweight brief, coherent page/flow ownership, baseline resources, shared-style scope, and separate functional/rendered verification. Do not reduce the product goal to component tickets or add a design-document approval gate.
 
 For a new application, multi-stage effort, or material boundary change, read the [Project Blueprint contract](../team-core/references/project-blueprint.md) in full and assess its gate before breaking work into stages. Distinguish inspected facts from proposals and use its mapping. If not applicable, record that briefly. Planning does not authorize code moves; structural refactoring requires explicit user approval and a retained-baseline option.
+
+For a material architecture, contract, workflow/state, configuration/eligibility, persisted-data/job, or compatibility migration, use the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md) to map old rules to approved target semantics, actual consumers, owners, and tests. Keep module structure in the Blueprint and acceptance evidence in the existing packet; do not impose an exhaustive migration pass on an internal/model-only change with unchanged approved semantics.
 
 Read [role routing](../team-core/references/role-routing.md) and [file ownership](../team-core/references/file-ownership.md) in full before delegation or assigning ownership. Read [execution templates](../team-core/references/execution-templates.md), the [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md), and [TDD protocol](../team-core/references/tdd-protocol.md) in full when forming the Work contract and preliminary test plan. Read the [handoff format](../team-core/references/handoff-format.md) in full when preparing the plan handoff; read [feedback recording](../team-core/references/feedback-recording.md) in full after that handoff is prepared.
 

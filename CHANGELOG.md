@@ -2,6 +2,21 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.0.7] - 2026-10-10
+
+### Added
+
+- Add the dedicated `team-ai-tester` role and `ai-testing-engineering` Skill for application AI behavior evaluation, with shared case, rubric, independent-judging, model/evaluator identity and bounded-evidence guidance. Preserve ordinary software testing for deterministic behavior and integration boundaries; prototype simulation remains a separate explicit workflow.
+- Add conditional application AI design guides for workflow shape, instructions and reusable Skills, context assembly/retention, and tool contracts/side effects. Distinguish development-time Skills from context actually supplied to an application's model, and verify selected sources through the real assembly/call path.
+- Add cross-cutting architecture-migration guidance for affected contracts, consumers, workflow/completion gates, configuration, persisted state and compatibility. Reuse existing authorities and acceptance packets; distinguish component completion, product migration completion and pending evidence.
+- Add a bilingual README starting section, a first-task walkthrough, and optional installation-help and usage-feedback issue forms. Feedback is voluntary; no automatic telemetry is introduced.
+
+### Changed
+
+- Route planning, development, simulation assessment and review to the relevant AI design/evaluation contracts. Mixed software/AI tasks retain one canonical packet owner and add another Tester only for distinct required coverage. Review approved intent, canonical source, actual assembly/calls and independent evidence rather than treating file presence as runtime proof.
+- Simplify Work artifact protection to the existing root `/_work/` ignore policy. Preserve local files and user-directed handling of already tracked content or explicit include-rule conflicts; add no automatic untracking, hooks or background watchers.
+- Synchronize public capability descriptions and release records in both languages. Allow an optional leading Unreleased section in the repository documentation validator, with isolated tests for bilingual drift and invalid layouts. Version this enhancement as `1.0.7` on the existing preview line; preserve earlier release history and do not declare stable status.
+
 ## [1.0.6] - 2026-10-08
 
 ### Changed

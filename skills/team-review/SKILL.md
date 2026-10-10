@@ -26,6 +26,8 @@ For UI changes, read the [UI delivery contract](../team-core/references/ui-quali
 
 When the review includes an AI workflow or simulation, read the [AI simulation contract](../team-core/references/ai-simulation.md) in full and use `ai-engineering` when relevant. Check context, model identity, mock/real boundaries and prototype-versus-production claims.
 
+When reviewing application AI behavior or its evaluation evidence, also read the [AI evaluation contract](../team-core/references/ai-evaluation.md) and follow [ai-engineering](../ai-engineering/SKILL.md) for applicable design guidance. Trace approved design through the authoritative prompt/workflow source and actual runtime selection, context assembly, invocation and tool-result path to focused evidence. A file or Codex Skill link does not prove target-runtime availability. Classify gaps as design/instruction, assembly, tool/runtime, model or evaluator evidence. Use `team-ai-tester` for independent AI-case/evaluation coverage when needed; keep overall independent change review with `team-reviewer` and route distinct software risks through shared role routing.
+
 The `team-reviewer` remains the independent review owner. Request `team-ai-architect` only when a material AI-specific design question needs a bounded read-only assessment; involve `team-architect` for overall software-architecture boundaries and let the Lead coordinate cross-boundary findings.
 
 Read and apply the [code comment contract](../team-core/references/code-comments.md) in full. Compare required layered comments and per-test explanations with behavior/assertions; report missing obligations as contract gaps, not stylistic preferences.
@@ -36,10 +38,12 @@ When returning a confirmed finding for implementation, link it to the owning iss
 
 When a Blueprint governs the project, read the [Project Blueprint contract](../team-core/references/project-blueprint.md) in full. Compare the diff to declared modules/file responsibilities and explicit refactor approval; respect declined/deferred decisions. Structural review is semantic, not document-validation alone.
 
+For a material migration, also use the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md) to review old-rule-to-target traceability, affected consumers and owners, compatibility/state transitions, invalidated evidence, and separate component/product/verification completion claims.
+
 Read [execution templates](../team-core/references/execution-templates.md) and [TDD protocol](../team-core/references/tdd-protocol.md) in full when creating review coverage and assessing test traceability. Read the [handoff format](../team-core/references/handoff-format.md) in full before final handoff; read [feedback recording](../team-core/references/feedback-recording.md) in full only after that handoff is prepared.
 
 1. Record the exact review scope, baseline, and stated intent. Inspect the actual diff and enough surrounding code to understand behavior.
-2. Build a Review coverage record. Choose independent read-only roles only where they add distinct coverage: `team-reviewer` for correctness and maintainability, `team-tester` for verification gaps, `team-database-specialist` for material data changes, and `team-explorer` for unfamiliar areas.
+2. Build a Review coverage record. Choose independent read-only roles only where they add distinct coverage: `team-reviewer` for correctness and maintainability, the role-selected Tester (`team-tester` or `team-ai-tester`) for verification gaps within its scope, `team-database-specialist` for material data changes, and `team-explorer` for unfamiliar areas.
 3. Give each reviewer a bounded question, requested evidence, and file scope. Follow [adaptive child-thread concurrency](../team-core/references/role-routing.md#adaptive-child-thread-concurrency); review tasks may use fewer roles when that gives sufficient independent coverage.
 4. Audit behavior-to-test traceability where a stage packet exists: test-first rows need Red/Green/refactor evidence; non-test-first rows need a concrete reason and alternative evidence. Treat unsupported exceptions and material regression gaps as verification findings.
 5. De-duplicate findings. A finding needs impact, evidence, a precise file reference, and a concrete failure mode or missing verification.

@@ -2,7 +2,10 @@
 # own artifact creation; these tests only create fixtures and inspect Git-visible outcomes.
 #requires -Version 7.0
 [CmdletBinding()]
-param([switch]$RedOnly, [switch]$NestedWorkOnly, [switch]$BundleRedOnly, [switch]$BundleConflictOnly, [switch]$BundleCloneOnly)
+param(
+  [switch]$RedOnly, [switch]$NestedWorkOnly, [switch]$BundleRedOnly,
+  [switch]$BundleConflictOnly, [switch]$BundleCloneOnly, [switch]$WorkPolicyOnly
+)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $helper = Join-Path $repo 'skills/team-core/scripts/generated-artifacts.ps1'
@@ -50,6 +53,212 @@ function Test-NestedWorkReuse {
   $hash = (Get-FileHash "$root/.gitignore").Hash
   & $helper -Action Protect -ProjectRoot $project -Profile Work -WorkPath '_work/task' | Out-Null
   Assert ((Get-FileHash "$root/.gitignore").Hash -eq $hash -and -not (Test-Path "$project/.gitignore")) 'Nested Work reuse mutated ancestor/child policy.'
+}
+
+# WI-01..06: use real Git policy/index decisions at the public Work helper boundary.
+# Expected: explicit broad directory policy may be reused; ownership stays one task.
+function Test-WorkPolicy {
+  $sourcePaths = @(
+    '.gitignore', 'FOLDER_STRUCTURE.md', 'docs/architecture.md', 'scripts/validate.ps1',
+    'tests/test-architecture-migration.ps1',
+    'skills/team-core/scripts/generated-artifacts.ps1'
+    'skills/team-core/references/generated-artifacts.md'
+    'skills/team-core/references/architecture-migration.md'
+  )
+  foreach ($directory in @('skills', 'agents', 'config')) {
+    $sourcePaths += Get-ChildItem -LiteralPath (Join-Path $repo $directory) -File -Recurse |
+      ForEach-Object { [IO.Path]::GetRelativePath($repo, $_.FullName) }
+  }
+  $sourceHashes = @{}
+  foreach ($relative in $sourcePaths | Sort-Object -Unique) {
+    $path = Join-Path $repo $relative
+    $sourceHashes[$path] = (Get-FileHash -LiteralPath $path).Hash
+  }
+  try {
+    # WI-01: anchored/unanchored root and nested policies cover populated/future tasks.
+    # Expected: every Protect reuses policy with empty rulesAdded, preserving bytes.
+    $ordinal = 0
+    foreach ($policy in @(
+      @{ rule = '/_work/'; nested = $false }
+      @{ rule = '_work/'; nested = $false }
+      @{ rule = '/nested/_work/'; nested = $true }
+      @{ rule = '_work/'; nested = $true }
+    )) {
+      $ordinal++
+      $root = New-Repo "work-policy-$ordinal"
+      $project = if ($policy.nested) { Join-Path $root 'nested' } else { $root }
+      Fixture $root '.gitignore' ("# user policy`r`n" + $policy.rule + "`r`n")
+      Fixture $project '_work/task/existing.txt' 'retained output'
+      New-Item -ItemType Directory -Force (Join-Path $project '_work/empty') | Out-Null
+      $ignoreHash = (Get-FileHash "$root/.gitignore").Hash
+      $outputHash = (Get-FileHash "$project/_work/task/existing.txt").Hash
+      foreach ($task in @('task', 'empty', 'future', 'task')) {
+        $result = & $helper -Action Protect -ProjectRoot $project -Profile Work `
+          -WorkPath "_work/$task" | ConvertFrom-Json
+        Assert ($result.status -eq 'protected' -and @($result.rulesAdded).Count -eq 0) (
+          "WI-01: policy $($policy.rule) not reused for $task."
+        )
+        Assert ((Get-FileHash "$root/.gitignore").Hash -eq $ignoreHash) (
+          'WI-01: existing policy bytes changed.'
+        )
+        if ($policy.nested) {
+          Assert (-not (Test-Path "$project/.gitignore")) 'WI-01: child policy created.'
+        }
+      }
+      Assert ((Get-FileHash "$project/_work/task/existing.txt").Hash -eq $outputHash) (
+        'WI-01: existing task output changed.'
+      )
+      Fixture $project '_work/future/generated.txt'
+      Git $root @('add', '--all') | Out-Null
+      $indexed = Git $root @('ls-files', '--cached')
+      Assert (@($indexed | Where-Object { $_ -match '(^|/)_work/' }).Count -eq 0) (
+        'WI-01: broad policy did not exclude current/future fixture output.'
+      )
+    }
+
+    # WI-02: absent broad policy retains default exact-task protection and idempotence.
+    # Expected: only /_work/task/ added; sibling remains stageable and output retained.
+    $root = New-Repo 'work-policy-default'
+    $result = & $helper -Action Protect -ProjectRoot $root -Profile Work `
+      -WorkPath '_work/task' | ConvertFrom-Json
+    Assert (@($result.rulesAdded).Count -eq 1 -and
+      $result.rulesAdded[0] -eq '/_work/task/') 'WI-02: default ignore broadened.'
+    Fixture $root '_work/task/output.txt'
+    Fixture $root '_work/sibling/user.txt'
+    $ignoreHash = (Get-FileHash "$root/.gitignore").Hash
+    $repeat = & $helper -Action Protect -ProjectRoot $root -Profile Work `
+      -WorkPath '_work/task' | ConvertFrom-Json
+    Assert (@($repeat.rulesAdded).Count -eq 0 -and
+      (Get-FileHash "$root/.gitignore").Hash -eq $ignoreHash) 'WI-02: repeat wrote policy.'
+    Git $root @('add', '--all') | Out-Null
+    $indexed = Git $root @('ls-files', '--cached')
+    Assert ('_work/task/output.txt' -notin $indexed -and
+      '_work/sibling/user.txt' -in $indexed) 'WI-02: selected task/sibling scope incorrect.'
+
+    # WI-03: force-staged exact task remains a finding despite broad user policy.
+    # Expected: Check names indexed-local-artifact; Protect fails with no byte/index writes.
+    $root = New-Repo 'work-policy-tracked'
+    Fixture $root '.gitignore' "/_work/`n"
+    Fixture $root '_work/task/keep.txt'
+    Git $root @('add', '-f', '--', '_work/task/keep.txt') | Out-Null
+    $before = Get-WorkFixtureFingerprint $root
+    $check = & $helper -Action Check -ProjectRoot $root -Profile Work `
+      -WorkPath '_work/task' | ConvertFrom-Json
+    Assert (@($check.violations | Where-Object {
+      $_.path -eq '_work/task/keep.txt' -and $_.reason -eq 'indexed-local-artifact'
+    }).Count -eq 1) 'WI-03: tracked exact-task risk omitted.'
+    Reject { & $helper -Action Protect -ProjectRoot $root -Profile Work `
+      -WorkPath '_work/task' } 'ARTIFACTS'
+    Assert ((Get-WorkFixtureFingerprint $root) -eq $before) 'WI-03: refusal mutated fixture.'
+
+    # WI-04: effective and inactive task includes are explicit user intent.
+    # Expected: Check reports explicit-include-policy; Protect preserves all policy/index bytes.
+    $ordinal = 0
+    foreach ($include in @(
+      @{ root = "/_work/`n!/_work/task/keep.txt`n"; child = $null }
+      @{ root = "/_work/`n!/_work/`n!/_work/task/`n!/_work/task/keep.txt`n"; child = $null }
+      @{ root = "/_work/`n"; child = "!keep.txt`n" }
+    )) {
+      $ordinal++
+      $root = New-Repo "work-policy-include-$ordinal"
+      Fixture $root '.gitignore' $include.root
+      Fixture $root '_work/task/keep.txt'
+      if ($include.child) { Fixture $root '_work/task/.gitignore' $include.child }
+      $before = Get-WorkFixtureFingerprint $root
+      $check = & $helper -Action Check -ProjectRoot $root -Profile Work `
+        -WorkPath '_work/task' | ConvertFrom-Json
+      Assert ($check.decisionRequired -and @($check.violations | Where-Object {
+        $_.reason -eq 'explicit-include-policy'
+      }).Count -gt 0) 'WI-04: include policy omitted.'
+      Reject { & $helper -Action Protect -ProjectRoot $root -Profile Work `
+        -WorkPath '_work/task' } 'ARTIFACTS'
+      Assert ((Get-WorkFixtureFingerprint $root) -eq $before) 'WI-04: refusal changed fixture.'
+    }
+
+    # WI-05: tracked/included sibling output does not become selected-task ownership.
+    # Expected: selected task clean/protected with no rules added; sibling bytes/index unchanged.
+    $root = New-Repo 'work-policy-sibling'
+    Fixture $root '.gitignore' "/_work/`n!/_work/sibling/keep.txt`n"
+    Fixture $root '_work/task/output.txt'
+    Fixture $root '_work/sibling/keep.txt'
+    Git $root @('add', '-f', '--', '_work/sibling/keep.txt') | Out-Null
+    $before = Get-WorkFixtureFingerprint $root
+    $result = & $helper -Action Protect -ProjectRoot $root -Profile Work `
+      -WorkPath '_work/task' | ConvertFrom-Json
+    $check = & $helper -Action Check -ProjectRoot $root -Profile Work `
+      -WorkPath '_work/task' | ConvertFrom-Json
+    Assert ($result.status -eq 'protected' -and @($result.rulesAdded).Count -eq 0 -and
+      $check.status -eq 'clean' -and @($check.violations).Count -eq 0) (
+      'WI-05: broad policy expanded selected ownership to sibling.'
+    )
+    Assert ((Get-WorkFixtureFingerprint $root) -eq $before) 'WI-05: sibling/index changed.'
+
+    # WI-06: wildcard, info-exclude, anchored ancestor and descendant-only rules lack scope.
+    # Expected: populated task without eligible literal project policy fails without writes.
+    foreach ($kind in @(
+      'wildcard', 'info', 'anchored-ancestor', 'descendant-work', 'descendant-task'
+    )) {
+      $root = New-Repo "work-policy-untrusted-$kind"
+      $project = $root
+      if ($kind -eq 'wildcard') { Fixture $root '.gitignore' "/_work/*/`n" }
+      if ($kind -eq 'info') { Fixture $root '.git/info/exclude' "_work/`n" }
+      if ($kind -eq 'anchored-ancestor') {
+        Fixture $root '.gitignore' "/_work/`n"
+        $project = Join-Path $root 'nested'
+      }
+      if ($kind -eq 'descendant-work') {
+        # A child basename _work/ ignores only its deeper descendant, not the owned scope.
+        Fixture $project '_work/task/inner/.gitignore' "_work/`n"
+        Fixture $project '_work/task/inner/_work/file.txt'
+      } elseif ($kind -eq 'descendant-task') {
+        # A child basename task/ likewise covers task/task, not the selected task root.
+        Fixture $project '_work/task/.gitignore' "task/`n"
+        Fixture $project '_work/task/task/file.txt'
+      } else {
+        Fixture $project '_work/task/existing.txt'
+      }
+      $before = Get-WorkFixtureFingerprint $root
+      Reject { & $helper -Action Protect -ProjectRoot $project -Profile Work `
+        -WorkPath '_work/task' } 'ARTIFACTS'
+      Assert ((Get-WorkFixtureFingerprint $root) -eq $before) (
+        "WI-06: untrusted $kind policy caused writes."
+      )
+    }
+
+    # WI-06: a configured global exclude is deliberately ignored by helper subprocesses.
+    # Expected: it cannot justify existing task ownership; config/output/index stay unchanged.
+    $root = New-Repo 'work-policy-global'
+    $globalFile = Join-Path $sandbox 'global-excludes'
+    [IO.File]::WriteAllText($globalFile, "_work/`n")
+    Git $root @('config', '--local', 'core.excludesFile', $globalFile) | Out-Null
+    Fixture $root '_work/task/existing.txt'
+    $before = Get-WorkFixtureFingerprint $root
+    Reject { & $helper -Action Protect -ProjectRoot $root -Profile Work `
+      -WorkPath '_work/task' } 'ARTIFACTS'
+    Assert ((Get-WorkFixtureFingerprint $root) -eq $before) 'WI-06: global-policy refusal wrote.'
+
+    # WI-06: the broad ignore policy never makes a broad/missing WorkPath valid.
+    # Expected: missing and _work paths fail PATH validation without mutation.
+    $before = Get-WorkFixtureFingerprint $root
+    Reject { & $helper -Action Protect -ProjectRoot $root -Profile Work } 'PATH'
+    Reject { & $helper -Action Protect -ProjectRoot $root -Profile Work `
+      -WorkPath '_work' } 'PATH'
+    Assert ((Get-WorkFixtureFingerprint $root) -eq $before) 'WI-06: invalid scope wrote.'
+    Write-Host 'PASS: Work directory policy reuse and bounded safety (WI-01..06).'
+  } finally {
+    foreach ($path in $sourceHashes.Keys) {
+      Assert ((Get-FileHash -LiteralPath $path).Hash -eq $sourceHashes[$path]) (
+        'Work policy fixture tests changed protected source/prior task files.'
+      )
+    }
+  }
+}
+
+# Hash all fixture files, including Git index/config, to detect prohibited side effects.
+function Get-WorkFixtureFingerprint([string]$Root) {
+  return ((Get-ChildItem -LiteralPath $Root -File -Force -Recurse | ForEach-Object {
+    "$([IO.Path]::GetRelativePath($Root, $_.FullName))|$((Get-FileHash $_.FullName).Hash)"
+  } | Sort-Object) -join "`n")
 }
 # Author a scoped review fixture from the real discovery result, including all required
 # coverage decisions. The input stays outside the runtime-owned governance bundle.
@@ -128,6 +337,7 @@ function Test-BundleClone {
 }
 try {
   New-Item -ItemType Directory $sandbox | Out-Null
+  if ($WorkPolicyOnly) { Test-WorkPolicy; return }
   if ($BundleCloneOnly) { Test-BundleClone; Write-Host 'PASS: CASE-GA-13 fresh local clone reconstruction.'; return }
   if ($BundleConflictOnly) { Test-BundleConflicts; Write-Host 'PASS: CASE-GA-14 runtime bundle conflicts.'; return }
   if ($BundleRedOnly) {
@@ -388,7 +598,11 @@ try {
   $env:GIT_CONFIG_NOSYSTEM = $priorGitSystem
   # Delete only this invocation's verified disposable root; preserve all actual project files.
   $resolved = [IO.Path]::GetFullPath($sandbox)
-  if ($resolved.StartsWith($tempParent.TrimEnd('/','\') + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -and (Split-Path -Leaf $resolved) -like 'codex-artifacts-test-*') {
+  $resolvedParent = [IO.Path]::GetFullPath((Split-Path -Parent $resolved))
+  if ($resolvedParent.TrimEnd('/','\') -eq $tempParent.TrimEnd('/','\') -and
+      (Split-Path -Leaf $resolved) -like 'codex-artifacts-test-*') {
     if (Test-Path -LiteralPath $resolved) { Remove-Item -LiteralPath $resolved -Recurse -Force }
   } else { throw 'Refusing unsafe fixture cleanup.' }
+  Assert (-not (Test-Path -LiteralPath $resolved)) 'Owned fixture cleanup failed.'
+  if ($WorkPolicyOnly) { Write-Host 'Owned Work-policy fixture removed.' }
 }

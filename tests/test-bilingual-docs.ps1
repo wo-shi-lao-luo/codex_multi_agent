@@ -21,7 +21,8 @@ function Invoke-Validation {
   return [pscustomobject]@{ Passed = ($LASTEXITCODE -eq 0); Output = ($output -join "`n") }
 }
 function Reset-Fixture {
-  # Restore an equivalent two-release bilingual repository before each mutation.
+  # Restore two equivalent releases, optionally preceded by pending change items.
+  param([switch]$IncludeUnreleased)
   Set-Content -LiteralPath (Join-Path $testRoot 'VERSION') -Value '0.9.3'
   $readme = @'
 # Kit
@@ -55,14 +56,19 @@ See [guide](docs/guide.md) and [history](CHANGELOG.md).
 - Earlier release.
 '@
   $changesChinese = $changes.Replace('[中文](CHANGELOG.zh-CN.md)', '[English](CHANGELOG.md)').Replace('Added ', '新增 ').Replace('Keep ', '保持 ').Replace('honest.', '真实。').Replace('Earlier release.', '之前的版本。')
+  if ($IncludeUnreleased) {
+    $pending = "## [Unreleased]`n`n### Added`n`n- Pending documentation update.`n`n"
+    $changes = $changes.Replace('## [0.9.3]', $pending + '## [0.9.3]')
+    $changesChinese = $changesChinese.Replace('## [0.9.3]', $pending.Replace('### Added', '### 新增').Replace('Pending documentation update.', '待发布的文档更新。') + '## [0.9.3]')
+  }
   foreach ($pair in @(@('README.md', $readme), @('README.zh-CN.md', $chinese), @('CHANGELOG.md', $changes), @('CHANGELOG.zh-CN.md', $changesChinese))) {
     Set-Content -LiteralPath (Join-Path $testRoot $pair[0]) -Value $pair[1] -Encoding utf8
   }
 }
 function Assert-RejectedMutation {
   # Apply one clearly identified drift and require nonzero exit at the CLI boundary.
-  param([string]$Name, [string]$File, [string]$Before, [string]$After)
-  Reset-Fixture
+  param([string]$Name, [string]$File, [string]$Before, [string]$After, [switch]$IncludeUnreleased)
+  Reset-Fixture -IncludeUnreleased:$IncludeUnreleased
   $path = Join-Path $testRoot $File
   $text = Get-Content -LiteralPath $path -Raw
   Assert-Condition ($text.Contains($Before)) "Mutation fixture anchor missing: $Name"
@@ -83,6 +89,12 @@ try {
   # Expected: accept idiomatic translated prose and translated model-role labels.
   $baseline = Invoke-Validation $testRoot
   Assert-Condition $baseline.Passed "Equivalent bilingual fixture rejected: $($baseline.Output)"
+  # Scenario: both changelogs have an optional pending section before real releases.
+  # Expected: accept translated categories/items without changing authoritative VERSION.
+  Reset-Fixture -IncludeUnreleased
+  $pendingBaseline = Invoke-Validation $testRoot
+  Assert-Condition $pendingBaseline.Passed "Equivalent Unreleased fixture rejected: $($pendingBaseline.Output)"
+  Reset-Fixture
   # Scenario: translated prose has extra blank lines outside executable code.
   # Expected: harmless layout differences pass rather than requiring line-for-line translation.
   $layoutPath = Join-Path $testRoot 'README.zh-CN.md'
@@ -117,6 +129,35 @@ try {
     @('changelog technical drift', 'CHANGELOG.zh-CN.md', '`scripts/validate-docs.ps1`', '`scripts/validate.ps1`'),
     @('malformed code fence', 'README.zh-CN.md', '```powershell', '``powershell')
   )) { Assert-RejectedMutation $case[0] $case[1] $case[2] $case[3] }
+  # Scenario: only one pending section loses its heading, category or change item.
+  # Expected: reject each structural drift just like published release drift.
+  foreach ($case in @(
+    @('missing Unreleased counterpart', "## [Unreleased]`n`n### 新增`n`n- 待发布的文档更新。`n`n", ''),
+    @('Unreleased category drift', '### 新增', '### 修复'),
+    @('Unreleased item omission', '- 待发布的文档更新。', '')
+  )) { Assert-RejectedMutation $case[0] 'CHANGELOG.zh-CN.md' $case[1] $case[2] -IncludeUnreleased }
+  # Scenario: both translations share an invalid pending layout, hiding pair drift.
+  # Expected: reject dated, duplicate, misplaced, empty, or release-only-missing layouts.
+  foreach ($case in @('dated', 'duplicate', 'misplaced', 'empty', 'no published release')) {
+    Reset-Fixture -IncludeUnreleased
+    foreach ($file in @('CHANGELOG.md', 'CHANGELOG.zh-CN.md')) {
+      $path = Join-Path $testRoot $file
+      $text = Get-Content -LiteralPath $path -Raw
+      switch ($case) {
+        'dated' { $text = $text.Replace('## [Unreleased]', '## [Unreleased] - 2026-10-10') }
+        'duplicate' { $text = $text.Replace('## [Unreleased]', "## [Unreleased]`n- Duplicate pending item.`n`n## [Unreleased]") }
+        'misplaced' {
+          $pendingBlock = [regex]::Match($text, '(?s)## \[Unreleased\].*?(?=## \[0\.9\.3\])').Value
+          $text = $text.Replace($pendingBlock, '') + "`n" + $pendingBlock
+        }
+        'empty' { $text = [regex]::Replace($text, '(?s)(## \[Unreleased\]).*?(?=## \[0\.9\.3\])', '$1' + "`n`n") }
+        'no published release' { $text = [regex]::Replace($text, '(?s)## \[0\.9\.3\].*$', '') }
+      }
+      Set-Content -LiteralPath $path -Value $text -Encoding utf8
+    }
+    Assert-Condition (-not (Invoke-Validation $testRoot).Passed) "Accepted shared invalid Unreleased layout: $case."
+    Write-Host "Rejected: Unreleased $case"
+  }
   # Scenario: both translations agree on a release absent from authoritative VERSION.
   # Expected: reject shared version drift rather than comparing only the two languages.
   Reset-Fixture
