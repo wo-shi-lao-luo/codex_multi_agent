@@ -67,6 +67,7 @@ The toolkit source is the current editable master. `scripts/install-user.ps1` va
 - `docs/governance/` — local documentation-adoption metadata, navigation index and scoped review runtime state, when initialized. The Kit keeps `documentation.json`, `doc-index.md` and the entire `reviews/` subtree on disk but outside Git; user-authored governance documents elsewhere remain versionable. A fresh checkout establishes its own adoption/review state from available documents. See `skills/team-core/references/generated-artifacts.md` for exact protection boundaries.
 - `docs/PRD/` — product requirements when needed; do not create an empty folder merely for template completeness.
 - `docs/legacy/` — confirmed superseded project documentation, preserving replacement/reason and references; no automatic age-based moves.
+- `docs/examples/` — reproducible maintainer-run examples with source, tests and redacted evidence; examples are not installation/adoption or automated human-acceptance claims.
 - `docs/` — architecture, source-attribution notes, technical use guides, and approved system-design specifications.
 - `docs/ai-simulation.md` — target-project local simulation workflow, evidence limits and engineering handoff guide.
 - `docs/formatter-tool.md` — repository-facing navigation and verification-maintenance notes for the installed formatter tool; the portable Skill reference is normative.

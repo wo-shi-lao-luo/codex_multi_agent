@@ -1,0 +1,13 @@
+test_celsius_reference_points (test_temperature.TemperatureTests.test_celsius_reference_points)
+CASE-01: Celsius reference integers yield expected Fahrenheit floats within tolerance. ... ok
+test_fahrenheit_reference_points (test_temperature.TemperatureTests.test_fahrenheit_reference_points)
+CASE-02: Fahrenheit reference integers yield expected Celsius floats within tolerance. ... ok
+test_fractional_conversions (test_temperature.TemperatureTests.test_fractional_conversions)
+CASE-03: Positive/negative fractions retain expected float values in both directions. ... ok
+test_round_trips (test_temperature.TemperatureTests.test_round_trips)
+CASE-04: Both real compositions yield floats and recover each input within 1e-9. ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK

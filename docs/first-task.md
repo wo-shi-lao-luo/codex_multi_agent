@@ -26,6 +26,10 @@ $team-dev Build a tiny Python temperature converter in this disposable project. 
 
 If Codex cannot discover a required Skill or agent, stop the exercise and use the installation guide's discovery checks. Do not change your global configuration just to hide the failure.
 
+### Compare with an observed run
+
+A [maintainer-run temperature example](examples/temperature/README.md) includes the final source, tests and a redacted record of actual role calls, Red/Green and independent review. It is source-read workflow evidence; it does not prove a fresh installation or external adoption, and human acceptance remains pending.
+
 ### Tell us what happened
 
 [Report an installation or first-task problem](https://github.com/wo-shi-lao-luo/codex_multi_agent/issues/new?template=first-use.yml), or [share a completed first task](https://github.com/wo-shi-lao-luo/codex_multi_agent/issues/new?template=usage-feedback.yml). Include the Kit source/version, Codex client, operating system, the step you reached, and a short redacted error or test summary. Never include credentials or private project files. Sharing feedback is optional; the Kit does not automatically send usage data through these forms.
@@ -51,6 +55,10 @@ If Codex cannot discover a required Skill or agent, stop the exercise and use th
 - 自己检查修改差异。练习只验证一条小型开发路径，不能证明性能、成本节省或生产项目适用性。
 
 如果 Codex 无法发现所需 Skill 或智能体，停止练习，按安装指南检查发现状态。不要为了掩盖失败而修改全局配置。
+
+### 对照一次实际运行
+
+[维护者运行的温度转换示例](examples/temperature/README.md)提供最终源码、测试，以及实际角色调用、Red/Green 和独立审查的脱敏记录。这份证据来自直接读取源码规则的工作流运行，不代表已验证全新安装或外部用户采用；人工验收仍待确认。
 
 ### 反馈使用情况
 
