@@ -7,7 +7,7 @@ description: Check Git delivery readiness for a planned commit, push, pull reque
 
 Use the shared [execution contract](../team-core/references/execution-contract.md)
 proportionately for Discover → Verify → Handoff; no implementation lifecycle is
-required for this read-only assessment.
+required for this read-only assessment. Apply its [risk-proportional light path](../team-core/references/execution-contract.md#risk-proportional-light-path): routine known non-material commit/push/PR scope may use a Lead self-check labeled non-independent; independent checking remains required when requested or when the outgoing scope or operation is materially risky.
 
 ## When to activate
 
@@ -17,7 +17,7 @@ operation scope, policy decisions, freshness and the distinction between mechani
 evidence and semantic readiness. Installation execution remains with the existing
 installation guide and its separately authorized deployment preview.
 
-Use [role routing](../team-core/references/role-routing.md) to check the active
+When the risk-proportional path calls for independent checking, use [role routing](../team-core/references/role-routing.md) to check the active
 catalog for the exact `team-delivery-checker` role before assigning its bounded
 assessment. A source TOML or installed receipt does not prove this session exposes
 the role. If unavailable, disclose the runtime testing limitation and ask the Lead

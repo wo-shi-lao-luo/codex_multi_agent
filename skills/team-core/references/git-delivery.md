@@ -55,6 +55,10 @@ Do not stage, commit, push, fetch, rebase, merge, tag, force-update refs or inst
 The Lead executes an action only under separate existing user authority and after
 rechecking current evidence. A request to check readiness supplies no such authority.
 
+Apply the shared [risk-proportional light path](execution-contract.md#risk-proportional-light-path) to role selection and evidence reuse. For a known, non-material routine commit, push or PR, the Lead may perform a scoped self-check and label it non-independent; do not force a checker child. An explicit independent request, material/complex outgoing scope, release execution, installation-source assessment, or material merge/rebase risk uses the named independent checker. In every case, bind the exact operation and snapshot, inspect every outgoing commit and relevant intermediate history for leaks, establish freshness, and keep read-only assessment separate from authority to execute delivery.
+
+Within an already activated delivery assessment, when outgoing changes introduce or redistribute third-party code/assets, check the relevant provenance, license declarations and required notices for that scope. This does not create a new delivery trigger or require an upstream-wide audit.
+
 Inspect the whole outgoing range, not only its final diff: a secret or local artifact
 introduced and then deleted still ships in history. Inspect relevant content locally
 without quoting secrets into reports. The collector reports each bounded commit's

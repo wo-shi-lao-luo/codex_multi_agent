@@ -12,6 +12,8 @@ Use a disposable local project for this exercise. Installation is a separate exp
 
 Team may be task-matched automatically for engineering work, but host selection is best effort. This exercise invokes `$team` explicitly so the entry remains clear when automatic matching does not occur.
 
+An understood low-risk exercise may use the lightweight Lead-owned path. In that case the final report states that no child agents were used and labels testing/review as self-checks; it must not invent independent evidence. To exercise the multi-agent path specifically, add an explicit request for a named implementer, Tester and independent Reviewer. See the [execution contract](../skills/team-core/references/execution-contract.md).
+
 ### Copy this task into Codex
 
 ```text
@@ -45,6 +47,8 @@ A [maintainer-run temperature example](examples/temperature/README.md) includes 
 请在一个可丢弃的本地项目中练习。安装需要单独明确提出；阅读本指南不需要运行用户级安装器。以下是可复现的练习，不是运行实录，也不表示真实多智能体流程已经通过。
 
 工程任务可能被自动匹配到 Team，但是否选中取决于宿主。本练习显式调用 `$team`，即使没有自动匹配也能按示例操作。
+
+边界清楚且低风险的练习可以采用 Lead 单独完成的轻量路径。此时最终汇报应明确没有调用子智能体，将测试与复查标为自检，不能编造独立证据。若要专门练习多智能体流程，请额外明确要求具名实现者、Tester 和独立 Reviewer。详见[执行约定](../skills/team-core/references/execution-contract.md)。
 
 ### 复制上面的任务到 Codex
 

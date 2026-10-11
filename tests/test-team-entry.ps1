@@ -5,10 +5,16 @@
 param(
   [switch]$RedOnly,
   [switch]$AutomaticRedOnly,
+  [switch]$RoutingOnly,
   [ValidateSet('Resource', 'Link', 'Policy')][string]$GuardRedCase,
   [switch]$InstallOnly
 )
 $ErrorActionPreference = 'Stop'
+# A focused run must never silently select a Red/guard or installation branch.
+# Conflicting modes fail before fixture creation or package validation.
+if ($RoutingOnly -and ($RedOnly -or $AutomaticRedOnly -or $GuardRedCase -or $InstallOnly)) {
+  throw 'RoutingOnly cannot be combined with Red, guard, automatic or installation modes.'
+}
 . (Join-Path $PSScriptRoot 'helpers/package-test.ps1')
 $repo = Split-Path -Parent $PSScriptRoot
 $assets = @(
@@ -64,6 +70,35 @@ if (-not $GuardRedCase) {
   )
 }
 if ($AutomaticRedOnly) { Write-Output 'AUTO01 automatic source metadata passed.'; exit 0 }
+
+# PE01: both Team entry paths must keep the common execution authority reachable,
+# including its role, test and TDD contracts. Expected: each explicit source edge
+# exists and resolves to a real file; this proves navigation, not role judgment.
+$executionAuthority = 'skills/team-core/references/execution-contract.md'
+$acceptanceAuthority = 'skills/team-core/references/test-acceptance-contract.md'
+$governanceRoutes = @(
+  @{ path = $assets[0]; target = '../team-core/references/execution-contract.md' },
+  @{ path = $assets[2]; target = 'execution-contract.md' },
+  @{ path = 'skills/team-dev/SKILL.md'; target = '../team-core/references/execution-contract.md' },
+  @{ path = $executionAuthority; target = 'role-routing.md' },
+  @{ path = 'skills/team-dev/SKILL.md'; target = '../team-core/references/test-acceptance-contract.md' },
+  @{ path = 'skills/team-dev/SKILL.md'; target = '../team-core/references/tdd-protocol.md' },
+  @{ path = $acceptanceAuthority; target = 'role-routing.md' },
+  @{ path = $acceptanceAuthority; target = 'tdd-protocol.md' }
+)
+if (-not $GuardRedCase) {
+  foreach ($route in $governanceRoutes) {
+    $sourcePath = Join-Path $repo $route.path
+    $sourceBody = Get-Content -LiteralPath $sourcePath -Raw
+    Assert ($sourceBody.Contains("]($($route.target))")) (
+      "PE01: missing authority route $($route.path) -> $($route.target)"
+    )
+    $targetPath = Join-Path (Split-Path -Parent $sourcePath) $route.target
+    Assert (Test-Path -LiteralPath $targetPath -PathType Leaf) (
+      "PE01: unresolved authority route $($route.path) -> $($route.target)"
+    )
+  }
+}
 
 $tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $sandbox = Join-Path $tempParent ('codex-team-entry-test-' + [guid]::NewGuid().ToString('N'))
@@ -155,6 +190,17 @@ This fixture establishes no native behavior or installation acceptance.
   $before = Package-Identity
   Validate-Package $true 'TE02 actual intact package'
   Assert ((Package-Identity) -ceq $before) 'TE02 validator mutated intact package.'
+
+  if ($RoutingOnly) {
+    # PE02: the same source routes must survive the real copied package consumer.
+    # Expected: one intact validation passes without changing any package bytes;
+    # unrelated metadata fault loops and installation are outside this mode.
+    Write-Output (
+      "PE01/PE02 routing package passed: $($governanceRoutes.Count) source edges, " +
+      "$script:validatorChecks validator check; package bytes unchanged."
+    )
+    exit 0
+  }
 
   if (-not $InstallOnly) {
     # TE02a: remove each new required asset independently and restore exact bytes.

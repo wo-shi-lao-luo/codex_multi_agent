@@ -2,7 +2,7 @@
 
 ## Purpose and authority
 
-Use this contract when a user asks the kit to help write, review, adopt, or maintain target-project instruction files, and during the `$team-plan`/`$team-dev` coverage checkpoints described below even when the task does not mention them. These files provide concise, durable working guidance for agents in that project. They do not replace the Codex system/developer instructions, an applicable product requirement, an architecture source, or the current task and stage evidence.
+Use this contract when a user asks the kit to help write, review, adopt, or maintain target-project instruction files, and during the `$team-plan`/`$team-dev` coverage checkpoints described below even when the task does not mention them. Apply the [risk-proportional light path](execution-contract.md#risk-proportional-light-path): eligible work skips a forced full governance/runtime scan but still reads relevant applicable instructions and follows adopted project rules. These files provide concise, durable working guidance for agents in that project. They do not replace the Codex system/developer instructions, an applicable product requirement, an architecture source, or the current task and stage evidence.
 
 Keep responsibilities distinct:
 

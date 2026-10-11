@@ -18,7 +18,7 @@ Do not use to introduce a state library, UI library, analytics, client-side secr
 
 ## Discover the interaction surface
 
-1. Identify the framework, design system, component conventions, state patterns, and existing test or browser-verification tools.
+1. Identify the framework, design system, component conventions, state patterns, and existing test or browser-verification tools. Prefer suitable existing components and dependencies; when evaluating or adding third-party code/assets, follow [reuse and third-party guidance](../team-core/references/reuse-and-third-party.md).
 2. Trace the user-observable path: entry point, data source, loading, empty, error, success, mutation feedback, and recovery behavior.
 3. Inspect accessibility and responsive conventions already used nearby: semantic controls, keyboard behavior, focus management, accessible names, and supported viewport expectations.
 

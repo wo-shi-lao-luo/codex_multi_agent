@@ -9,6 +9,8 @@ Use this Skill for focused review work. Read the shared [execution contract](../
 
 For an affected web client or service boundary, select relevant checks from [risk-proportional web engineering](../team-core/references/web-engineering.md) and inspect the same concrete risks carried by the Work contract and packet. Do not infer a broad audit from the framework or demo label.
 
+Check evidence-backed, clearly unjustified reimplementation of a suitable existing project capability, without treating style preference or library choice as a finding. For introduced or adapted third-party code/assets, check relevant provenance, license/notice handling, unnecessary or duplicate dependencies, and material compatibility/security concerns under [reuse and third-party guidance](../team-core/references/reuse-and-third-party.md). Bound inspection to the consumed surface and risk; do not force external search or infer an upstream-wide audit.
+
 
 ## When to activate
 

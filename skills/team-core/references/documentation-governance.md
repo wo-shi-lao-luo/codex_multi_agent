@@ -2,7 +2,7 @@
 
 ## Activation and authority
 
-Apply before team planning or implementation, and after material documentation/implementation changes. A project without a trusted record gets an initial scoped assessment; an existing marker never proves that any task was reviewed. Ordinary Codex conversations have no background watcher. Small clear tasks may be assessed by the Lead; use `team-docs-maintainer` for substantial inventories and repeated checks.
+Apply before team planning or implementation, and after material documentation/implementation changes. A project without a trusted record gets an initial scoped assessment; an existing marker never proves that any task was reviewed. The [risk-proportional light path](execution-contract.md#risk-proportional-light-path) skips a forced full inventory or governance runtime scan only; relevant source reading, task/module instruction checkpoints, evidence-backed gap reporting and existing artifact obligations still apply. Ordinary Codex conversations have no background watcher. Small clear tasks may be assessed by the Lead; use `team-docs-maintainer` for substantial inventories and repeated checks.
 
 Default all new development documentation to `docs/`. Product requirements belong in `docs/PRD/`; preserve existing repository conventions and index equivalent existing sources rather than moving them merely to adopt this kit. Only create category directories when the task needs them. Information may live in a PRD, approved user decision, API definition or existing architecture/test document; the existence of a particular template is not a readiness requirement.
 

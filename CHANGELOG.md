@@ -6,6 +6,7 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 ### Added
 
+- Add shared reuse and third-party selection guidance with conditional development, review and delivery links: prefer suitable existing implementations, assess GitHub quality beyond popularity, preserve exact source/version and applicable license obligations, and keep dependency/trust authority and proportional checks without a new role or mandatory audit.
 - Add a shared risk-proportional web engineering guide that selects relevant client or service checks without creating a new workflow, blanket audit, or default test round.
 - Add conditional frontend references for state/data and usability/performance, plus backend service-reliability guidance for actual API, job, and side-effect boundaries; examples do not mandate frameworks, dependencies, or metrics.
 - Route existing frontend, backend, testing, review, and Team development Skills to the shared guidance and add bilingual public navigation; existing roles, packets, and acceptance gates remain authoritative.
@@ -19,6 +20,7 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 ### Changed
 
+- Make execution risk-proportional: permit Lead-owned low-risk documentation/metadata maintenance and understood isolated ordinary code fixes without forced child roles or extra Lead-only approval. Retain relevant checks, existing stage/manual obligations and material-change independent review; lightweight delivery assessment can be an explicitly non-independent self-check. Reuse trustworthy scoped evidence instead of automatically repeating full inventories, packets or unrelated regression suites. These instruction changes do not establish native runtime enforcement or measured savings.
 - Refactor test support so six consumers share bounded process capture, package copying, fingerprints, and temporary-directory cleanup while preserving their scenarios and flags. This is a focused tooling extension on the existing 1.0 preview line; it does not claim token or runtime gains and does not declare a stable release.
 
 ## [1.0.7] - 2026-10-10

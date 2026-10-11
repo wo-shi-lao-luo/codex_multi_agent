@@ -13,6 +13,8 @@ For a material backend contract, workflow/state, configuration or eligibility, p
 
 For an actual service/API, job, dependency, persisted mutation, or external side effect, select applicable checks from the shared [risk-proportional web engineering guide](../team-core/references/web-engineering.md) and [service reliability guide](references/service-reliability.md). Match depth to the real boundary; this does not impose production hardening on isolated or fake-data work.
 
+When selecting or adding service dependencies, integrations, or copied/adapted code, apply relevant [reuse and third-party guidance](../team-core/references/reuse-and-third-party.md) checks to the consumed boundary and risk.
+
 
 ## When to activate
 

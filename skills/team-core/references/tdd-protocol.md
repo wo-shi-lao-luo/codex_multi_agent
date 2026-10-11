@@ -1,6 +1,6 @@
 # TDD protocol
 
-Use this protocol with the [Test & Acceptance Contract](test-acceptance-contract.md) for every `$team-dev` stage, whether reached through direct invocation or selected by the Team entry explicitly or through task matching. It makes behavior-first evidence the default while allowing practical alternatives when strict TDD would be unreliable or wasteful.
+Use this protocol with the [Test & Acceptance Contract](test-acceptance-contract.md) for `$team-dev` work, whether reached through direct invocation or selected by the Team entry explicitly or through task matching. Apply the [risk-proportional light path](execution-contract.md#risk-proportional-light-path): an eligible task may keep concise TDD evidence in an existing suitable record without the stage-packet schema. The behavior-first evidence and practical alternatives below still apply.
 
 For application AI behavior, also apply the [AI evaluation contract](ai-evaluation.md). Plan and calibrate stochastic evaluation cases before the change and capture a baseline when authorized, but do not call a baseline Red unless the test assertion actually fails. Keep the existing tracks and packet schema; use a justified `test-after` or `manual-or-environmental` track when nondeterminism prevents reliable pre-change failure evidence.
 
@@ -16,7 +16,7 @@ Never claim a Red result retrospectively. Record the named test, command, and ob
 
 Apply the [manual scope and automated coverage contract](test-acceptance-contract.md#manual-scope-and-automated-coverage) when users add/change test cases or requirements. Reassess affected behavior-to-test mappings and tracks, update E2E plus applicable other-layer assertions and rerun affected checks. New planned scenarios do not inherit an earlier Green; a requirement received after implementation does not justify fabricated pre-implementation Red evidence. Keep automation gaps, user decisions and archived baselines explicit.
 
-## Stage packet requirements
+## Standard-path stage packet requirements
 
 Use the target repository's equivalent QA convention when one exists; otherwise use `scripts/stage-verification.ps1` to create `docs/verification/active/<stage-slug>.md`. Its TDD behavior matrix maps each material behavior to risk, test layer, track, test identity, Red/Green/refactor evidence, exception rationale, owner, status, and manual evidence.
 
@@ -33,7 +33,7 @@ The packet has exactly one `Final manual status` and one `Final manual evidence`
 ## Workflow use
 
 - `$team-plan` identifies likely behavior-to-test mappings, tracks, test entrypoints, and environment unknowns.
-- `$team-dev` creates and validates the packet before writers start, then reconciles every row before close.
+- `$team-dev` creates and validates the packet before writers start on the standard path, then reconciles every row before close. Eligible light work uses concise evidence in a suitable existing record.
 - `$team-debug` captures a minimal failing regression reproduction where practical before it recommends a repair.
 - `$team-review` audits behavior-to-test traceability, unsupported exceptions, Red/Green evidence, and regression gaps.
 - `testing-engineering` selects the narrowest observable test layer and evaluates evidence quality.

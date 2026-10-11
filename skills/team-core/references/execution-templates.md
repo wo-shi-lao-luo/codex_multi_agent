@@ -2,6 +2,8 @@
 
 Use these concise templates when a team workflow needs a shared artifact. Keep them in the handoff or Lead's working context unless the user asks for a persistent document.
 
+Apply the [risk-proportional light path](execution-contract.md#risk-proportional-light-path) before using a template: eligible work needs only a short outcome/scope/risk/acceptance/checks note and may keep TDD or verification evidence in an existing suitable record. Templates do not create a packet or extra process-file requirement by themselves.
+
 ## Task record
 
 ```text

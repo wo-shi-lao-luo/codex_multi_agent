@@ -17,7 +17,7 @@ Read the UI brief and inspect available existing pages, components and style def
 
 Without an established system, state a concise baseline and implement it in reusable tokens/components: type hierarchy, spacing rhythm, content width/grid, density, neutral and accent colors, status colors, borders/radii and component states. Prefer familiar, clear interaction patterns and a restrained, coherent appearance. Choose density for the task: an operations table is not a marketing hero. Do not impose gradients, giant headlines, identical cards or decorative animation on every brief.
 
-Reuse existing libraries/assets first; introducing a dependency, changing the design system or fetching paid/licensed assets requires the relevant authority. Use available fonts/icons consistently with fallbacks; do not make basic readability depend on remote fonts. This baseline fits the existing work contract/project conventions; no mandatory lengthy proposal or per-page design document.
+Prefer suitable existing libraries and assets. For third-party code/assets, apply [reuse and third-party guidance](../team-core/references/reuse-and-third-party.md); introducing a dependency, changing the design system or fetching paid/licensed assets still requires the relevant authority. Use available fonts/icons consistently with fallbacks; do not make basic readability depend on remote fonts. This baseline fits the existing work contract/project conventions; no mandatory lengthy proposal or per-page design document.
 
 ## Implement the complete page
 
