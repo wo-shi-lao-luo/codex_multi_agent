@@ -28,6 +28,8 @@ Check purpose and primary action clarity; hierarchy, alignment, spacing, typogra
 
 Fix observed in-scope defects and re-inspect affected results. Do not require an arbitrary number of polish loops or repeatedly redesign an adequate page. If remaining repairs exceed authorization, report the specific gap and needed decision.
 
+For task inputs, bounded adjacent user-perspective observations, finding classification and retest handoff, follow [QA inputs and user-perspective verification](test-acceptance-contract.md#qa-inputs-and-user-perspective-verification); visual observations do not by themselves establish user acceptance or authorize expanded scope.
+
 Record functional results separately from visual status: `verified`, `issues remain`, `not verified`, or `not applicable` with a reason. If the app cannot run, credentials are missing or no visual tool is available, continue safe work and report `not verified`; code review cannot silently substitute for rendered inspection. Never claim external-release visual readiness in that state.
 
 At integration, the Lead checks that evidence covers the final assembled revision. Recheck affected pages after integration changes that invalidate prior evidence. An assigned reviewer inspects available rendered evidence against the brief and names uncovered states; code-only review remains code-only. Do not add reviewers solely because the workflow has roles.

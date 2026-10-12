@@ -4,6 +4,12 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
 
+## [Unreleased]
+
+### Added
+
+- Strengthen task-scoped QA inputs, bounded user-perspective observations, evidence-led defect triage and fixed-revision retesting; distinguish defects, requirement questions, suggestions and quality advice from repair authority and user acceptance. Reuse existing Skills, records and proportional test rules without adding roles or status schemas.
+
 ## [1.0.9] - 2026-10-12
 
 ### Changed
