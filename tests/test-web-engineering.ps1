@@ -51,7 +51,7 @@ foreach ($route in $routes) {
   )
 }
 
-$tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+$tempParent = Get-TestTemporaryParent
 $sandbox = Join-Path $tempParent ('codex-web-engineering-test-' + [guid]::NewGuid().ToString('N'))
 $package = Join-Path $sandbox 'package'
 $pwshExe = (Get-Process -Id $PID).Path

@@ -3,9 +3,10 @@
 [CmdletBinding()]
 param()
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $config = Join-Path $root 'config/recommended-config.toml'
-$temporaryParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+$temporaryParent = (Get-TestTemporaryParent)
 $testRoot = Join-Path $temporaryParent ('codex-multi-agent-concurrency-test-' + [guid]::NewGuid().ToString('N'))
 
 function Assert-Condition {

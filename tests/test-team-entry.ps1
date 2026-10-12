@@ -100,7 +100,7 @@ if (-not $GuardRedCase) {
   }
 }
 
-$tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+$tempParent = Get-TestTemporaryParent
 $sandbox = Join-Path $tempParent ('codex-team-entry-test-' + [guid]::NewGuid().ToString('N'))
 $package = Join-Path $sandbox 'package'
 $pwshExe = (Get-Process -Id $PID).Path

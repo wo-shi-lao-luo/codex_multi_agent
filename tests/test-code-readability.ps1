@@ -3,6 +3,7 @@
 [CmdletBinding()]
 param([switch]$SourceOnly)
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $assets = @(
   'agents/team-code-maintainer.toml',
@@ -23,7 +24,7 @@ foreach ($relative in $assets) {
   Assert-Condition (-not [string]::IsNullOrWhiteSpace($content)) "CR-01 empty resource: $relative"
 }
 if ($SourceOnly) { Write-Output 'CR-01 source payload passed; native behavior not tested.'; return }
-$tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\', '/')
+$tempParent = Get-TestTemporaryParent
 $testRoot = Join-Path $tempParent ('codex-readability-test-' + [guid]::NewGuid().ToString('N'))
 $validator = Join-Path $testRoot 'scripts/validate.ps1'
 function Invoke-Validator {

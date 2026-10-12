@@ -5,21 +5,13 @@ param(
   [string]$BlueprintPath = 'docs/architecture/project-blueprint.md'
 )
 $ErrorActionPreference = 'Stop'
-$root = [IO.Path]::GetFullPath($ProjectRoot)
-if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'Project root must exist.' }
-if ([IO.Path]::IsPathRooted($BlueprintPath)) { throw 'BlueprintPath must be repository-relative.' }
-$path = [IO.Path]::GetFullPath((Join-Path $root $BlueprintPath))
-$prefix = $root.TrimEnd([char]'\', [char]'/') + [IO.Path]::DirectorySeparatorChar
-if (-not $path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'BlueprintPath must stay inside ProjectRoot.' }
-# Reject linked ancestors so initialization cannot escape through a directory junction.
-$ancestor = $path
-while ($ancestor -ne $root -and $ancestor.Length -ge $root.Length) {
-  if ((Test-Path -LiteralPath $ancestor) -and ((Get-Item -LiteralPath $ancestor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Linked blueprint paths are not supported.' }
-  $ancestor = Split-Path -Parent $ancestor
-}
+. (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
+$root = Get-TeamCanonicalRoot $ProjectRoot
+$path = Resolve-TeamContainedPath $root $BlueprintPath
 if ($Action -eq 'Initialize') {
   if (Test-Path -LiteralPath $path) { throw 'Blueprint already exists; inspect and update it in place.' }
   New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+  Assert-TeamPlainPath $path
   @'
 # Project blueprint
 

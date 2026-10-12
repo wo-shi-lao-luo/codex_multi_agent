@@ -41,6 +41,12 @@ if (mode === 'timeout') {
       process.stdout.write(mode === 'oversize' ? 'x'.repeat(5 * 1024 * 1024) : '界'.repeat(1500000));
       return;
     }
+    if (mode === 'combined-oversize') {
+      // Each pipe is below 4MiB; the adapter must enforce their combined byte cap.
+      process.stdout.write('x'.repeat(5 * 1024 * 1024 / 2));
+      process.stderr.write('e'.repeat(5 * 1024 * 1024 / 2));
+      return;
+    }
     if (mode === 'unicode-boundary') {
       const bytes = Buffer.from('A' + '😀'.repeat(6000), 'utf8');
       for (let offset = 0; offset < bytes.length; offset += 4095) {

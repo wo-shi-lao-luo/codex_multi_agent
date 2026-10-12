@@ -4,9 +4,13 @@
 
 PowerShell 7 is required. `scripts/install-user.ps1` validates current source and calls `scripts/deploy-user.ps1`; `scripts/update-user.ps1` retains its existing entrypoint. The same manager handles installation, upgrade, downgrade and snapshot restoration. It never runs an old version's installer or validator, downloads packages, rewrites Git history, changes the worktree, or changes global Codex configuration.
 
+Windows, macOS and Linux use the same manager. From a regular shell, prefix the commands below with `pwsh -NoProfile -File`; inside PowerShell they may be invoked directly. Directory deployment can run without Git, while `-GitRef` needs a locally available Git executable. See [platform support](platform-support.md) for prerequisites, filesystem rules and the distinction between implemented support and recorded verification. Verified macOS `/tmp` and `/var` aliases are normalized at selected roots; other linked roots and linked descendants remain rejected.
+
 The exact target is defined by an inventory of agent TOMLs and complete Skill directories. Before a deploy, the manager compares current receipt ownership with the target. It adds/replaces target units and removes retired receipt-owned units. New-only files inside retained Skills disappear as well. Personal agents/Skills outside those units are preserved. Unknown or changed content inside a selected unit is a conflict; `-Force` explicitly backs up and replaces the entire selected unit, not arbitrary neighboring content.
 
 There is no fallback from a corrupt receipt to assumed ownership. Legacy schema-v1 receipts are accepted only after validating their paths against the requested homes. Old untracked leftovers not represented in a receipt are not inferred from a `team-` prefix: report and resolve them separately. Exact-cleanliness guarantees apply to known managed payload, not unrelated project data or undocumented historical installs.
+
+Linked or case-colliding managed paths are refused even with `-Force`. On a case-sensitive filesystem, resolve case-only customizations before deployment or recovery; the manager cannot safely snapshot or restore a package whose paths would collide on another supported platform.
 
 ## Before trying an experimental version
 

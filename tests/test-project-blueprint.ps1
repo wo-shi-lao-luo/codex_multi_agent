@@ -1,8 +1,9 @@
 [CmdletBinding()]
 param()
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $scriptPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'skills/team-core/scripts/project-blueprint.ps1'
-$tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+$tempParent = (Get-TestTemporaryParent)
 $testRoot = Join-Path $tempParent ('codex-blueprint-test-' + [Guid]::NewGuid().ToString('N'))
 function Assert-Fails([scriptblock]$Check, [string]$Label) {
   $failed = $false

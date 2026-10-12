@@ -14,12 +14,13 @@ param(
   [ValidateRange(1, 1048576)][int]$MaxFileBytes = 1048576
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
 $rows = [Collections.Generic.List[hashtable]]::new()
 $contexts = [Collections.Generic.List[hashtable]]::new()
-$snapshots = @{}
+$snapshots = if ($IsWindows) { @{} } else { New-TeamOrdinalMap }
 $root = $null
 $utf8 = [Text.UTF8Encoding]::new($false, $true)
-$comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+$comparison = Get-TeamPathComparison
 $prettierNames = @(
   '.prettierrc', '.prettierrc.json', '.prettierrc.yml', '.prettierrc.yaml',
   '.prettierrc.json5', '.prettierrc.toml', '.prettierrc.js', '.prettierrc.cjs',
@@ -30,16 +31,7 @@ $prettierNames = @(
 
 # A linked path never confers permission, even if its final string is contained.
 function Assert-Plain([string]$Path) {
-  $cursor = $Path
-  while ($cursor) {
-    if (Test-Path -LiteralPath $cursor) {
-      $attributes = (Get-Item -LiteralPath $cursor -Force).Attributes
-      if ($attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'unsafe-path' }
-    }
-    $next = [IO.Path]::GetDirectoryName($cursor)
-    if ($next -eq $cursor) { break }
-    $cursor = $next
-  }
+  try { Assert-TeamPlainPath $Path } catch { throw 'unsafe-path' }
 }
 
 # Literal relative files only; metadata, outputs and asserted representations stay untouched.
@@ -71,6 +63,18 @@ function Resolve-File([string]$Relative) {
   if (-not $full.StartsWith($root + [IO.Path]::DirectorySeparatorChar, $comparison)) { throw 'unsafe-path' }
   Assert-Plain $full
   if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { throw 'not-a-file' }
+  # Unix volumes may still be case-insensitive (for example default APFS).
+  # Require the actual entry spelling without creating a probe file: otherwise
+  # two ordinal request identities could write the same physical file twice.
+  if (-not $IsWindows) {
+    $directory = $root
+    foreach ($part in ($relativePath -split '/')) {
+      $entry = Get-ChildItem -LiteralPath $directory -Force -ErrorAction Stop |
+        Where-Object { $_.Name -ceq $part } | Select-Object -First 1
+      if ($null -eq $entry) { throw 'noncanonical-file-case' }
+      $directory = Join-Path $directory $entry.Name
+    }
+  }
   if ((Get-Item -LiteralPath $full -Force).Length -gt $MaxFileBytes) { throw 'file-too-large' }
   return $full
 }
@@ -79,7 +83,7 @@ function Resolve-File([string]$Relative) {
 function Read-Metadata([string]$Path) {
   Assert-Plain $Path
   if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { $snapshots[$Path] = 'absent'; return $null }
-  if ((Get-Item -LiteralPath $Path).Length -gt $MaxFileBytes) { throw 'config-too-large' }
+  if ((Get-Item -LiteralPath $Path -Force).Length -gt $MaxFileBytes) { throw 'config-too-large' }
   $snapshots[$Path] = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
   return [IO.File]::ReadAllText($Path, $utf8)
 }
@@ -356,15 +360,19 @@ function Invoke-Tool([hashtable]$Context, [string[]]$Arguments, [string]$InputTe
     $encodedChunk = [byte[]]::new($utf8.GetMaxByteCount(4096))
     $capturedBytes = 0
     $closed = $false
+    $waiters = [Collections.Generic.List[Threading.Tasks.Task]]::new()
     while (-not $process.HasExited -or $tasks[0] -or $tasks[1]) {
       if ($watch.Elapsed.TotalSeconds -gt $TimeoutSeconds) { throw 'tool-timeout' }
+      $progress = $false
       if (-not $closed -and $write.IsCompleted) {
         $write.GetAwaiter().GetResult()
         $process.StandardInput.Close()
         $closed = $true
+        $progress = $true
       }
       for ($index = 0; $index -lt 2; $index++) {
         if ($tasks[$index] -and $tasks[$index].IsCompleted) {
+          $progress = $true
           $count = $tasks[$index].GetAwaiter().GetResult()
           $charactersUsed = 0
           $bytesUsed = 0
@@ -386,7 +394,21 @@ function Invoke-Tool([hashtable]$Context, [string[]]$Arguments, [string]$InputTe
           $tasks[$index] = $readers[$index].ReadAsync($buffers[$index], 0, 4096)
         }
       }
-      [Threading.Thread]::Sleep(10)
+      # A pending read may complete just after inspection, especially on Windows.
+      # Wait for completion instead of imposing a polling delay per pipe chunk.
+      # One read per stream each cycle keeps fairness and the deadline above.
+      if (-not $progress) {
+        $waiters.Clear()
+        foreach ($task in $tasks) { if ($null -ne $task) { $waiters.Add($task) } }
+        if (-not $closed) { $waiters.Add($write) }
+        $remaining = $TimeoutSeconds * 1000 - $watch.ElapsedMilliseconds
+        $waitMilliseconds = [int][Math]::Max(1, [Math]::Min(10, $remaining))
+        if ($waiters.Count) {
+          [Threading.Tasks.Task]::WaitAny($waiters.ToArray(), $waitMilliseconds) | Out-Null
+        } elseif (-not $process.HasExited) {
+          $process.WaitForExit($waitMilliseconds) | Out-Null
+        }
+      }
     }
     $process.WaitForExit()
     return @{ code = $process.ExitCode; output = $texts[0].ToString() }
@@ -434,7 +456,7 @@ function Read-Source([hashtable]$Context) {
   if ($offset) { $Context.bom = [byte[]]$bytes[0..($offset - 1)] }
   $Context.eol = if ($text.Contains("`r`n")) { "`r`n" } else { "`n" }
   $Context.text = $text
-  $Context.hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes))
+  $Context.hash = (Get-TeamSha256Hex $bytes).ToUpperInvariant()
 }
 
 # Honor applicable Git exclusions even for tracked/literal paths; never initialize Git here.
@@ -451,8 +473,9 @@ function Test-GitIgnored([hashtable]$Context) {
   if (-not $git) { throw 'git-policy-unavailable' }
   $gitContext = @{ executable = $git.Source; prefix = @() }
   $boundary = Invoke-Tool $gitContext @('-C', $root, 'rev-parse', '--show-toplevel')
-  $repository = $boundary.output.Trim().Replace('/', '\')
-  if ($boundary.code -ne 0 -or -not $repository.Equals($root.Replace('/', '\'), $comparison)) {
+  if ($boundary.code -ne 0) { throw 'git-policy-boundary' }
+  try { $repository = Get-TeamCanonicalRoot $boundary.output.Trim() } catch { throw 'git-policy-boundary' }
+  if (-not $repository.Equals($root, $comparison)) {
     throw 'git-policy-boundary'
   }
   $probe = Invoke-Tool $gitContext @('-C', $root, 'check-ignore', '--no-index', '-q', '--', $Context.row.path)
@@ -543,12 +566,12 @@ function Get-Reason($Failure) {
 
 $globalFailure = $null
 try {
-  try { $root = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd('/', '\') } catch { throw 'invalid-project-root' }
-  Assert-Plain $root
+  try { $selectedRoot = [IO.Path]::GetFullPath($ProjectRoot) } catch { throw 'invalid-project-root' }
+  try { $root = Get-TeamCanonicalRoot $selectedRoot -AllowMissing } catch { throw 'unsafe-path' }
   if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'invalid-project-root' }
   $parentDirectories = @(Get-ParentDirectories)
   if ($Files.Count -eq 0 -or $Files.Count -gt 100) { throw 'file-count-limit' }
-  $seen = @{}
+  $seen = if ($IsWindows) { @{} } else { New-TeamOrdinalMap }
   foreach ($relative in $Files) {
     $displayPath = if ([IO.Path]::IsPathRooted($relative)) { '<invalid>' } else { $relative.Replace('\', '/') }
     $row = @{
@@ -602,7 +625,9 @@ try {
             $stream = [IO.File]::Open(
               $context.full, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None
             )
-            $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($stream))
+            $algorithm = [Security.Cryptography.SHA256]::Create()
+            try { $hash = [BitConverter]::ToString($algorithm.ComputeHash($stream)).Replace('-','') }
+            finally { $algorithm.Dispose() }
             if ($hash -ne $context.hash) { throw 'source-changed-before-write' }
             $stream.Position = 0
             $stream.Write($context.candidate, 0, $context.candidate.Length)
@@ -639,7 +664,7 @@ $errors = @($rows | Where-Object status -eq 'error').Count
 $changed = @($rows | Where-Object changed).Count
 $applied = @($rows | Where-Object status -eq 'applied').Count
 @{
-  schemaVersion = 1; kitVersion = '1.0.6'; action = $Action; results = $rows.ToArray()
+  schemaVersion = 1; kitVersion = '1.0.9'; action = $Action; results = $rows.ToArray()
   summary = @{ total = $rows.Count; changed = $changed; applied = $applied; blocked = $blocked; errors = $errors }
   limitations = @(
     'metadata-selection-not-semantic-authority', 'trusted-process-not-os-sandbox',

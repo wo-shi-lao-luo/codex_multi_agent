@@ -1,6 +1,8 @@
 # Shared transport and filesystem mechanisms for isolated package tests.
 # Callers own scenarios, assertions, environment policy and final payload proofs.
 #requires -Version 7.0
+. (Join-Path $PSScriptRoot 'platform.ps1')
+. (Join-Path $PSScriptRoot '../../skills/team-core/scripts/platform-filesystem.ps1')
 
 # Run literal argv with independently drained pipes and caller-selected child env.
 # Return exit/stdout/stderr unchanged; launch errors throw and parent env is untouched.
@@ -42,15 +44,15 @@ function Copy-TestPackage {
     [Parameter(Mandatory)][ValidateSet('Narrow', 'PublicDocs')][string]$Profile,
     [Parameter(Mandatory)][bool]$IncludeConfig
   )
-  $source = [IO.Path]::GetFullPath($SourceRoot).TrimEnd('\', '/')
-  $destination = [IO.Path]::GetFullPath($DestinationRoot).TrimEnd('\', '/')
-  $comparison = if ($IsWindows) {
-    [StringComparison]::OrdinalIgnoreCase
-  } else { [StringComparison]::Ordinal }
+  $source = Get-TeamCanonicalRoot $SourceRoot
+  $destination = Get-TeamCanonicalRoot $DestinationRoot -AllowMissing
+  # Default APFS can resolve different casing to the same physical tree. Refuse
+  # ambiguous overlap on every host without writing a filesystem probe.
+  $comparison = [StringComparison]::OrdinalIgnoreCase
   $separator = [IO.Path]::DirectorySeparatorChar
   if ($source.Equals($destination, $comparison) -or
-      $source.StartsWith($destination + $separator, $comparison) -or
-      $destination.StartsWith($source + $separator, $comparison)) {
+      $source.StartsWith($destination.TrimEnd('\','/') + $separator, $comparison) -or
+      $destination.StartsWith($source.TrimEnd('\','/') + $separator, $comparison)) {
     throw 'Package source and destination must not overlap.'
   }
   if (-not (Test-Path -LiteralPath $source -PathType Container)) {
@@ -61,6 +63,8 @@ function Copy-TestPackage {
   if ($IncludeConfig) { $items += 'config' }
   $items += 'VERSION'
   if ($Profile -eq 'Narrow') { $items += @('CHANGELOG.md', 'CHANGELOG.zh-CN.md') }
+  # Public platform documents link to workflow sources when this package has them.
+  if ($Profile -eq 'PublicDocs' -and (Test-Path -LiteralPath (Join-Path $source '.github') -PathType Container)) { $items += '.github' }
   foreach ($item in $items) {
     Copy-Item -LiteralPath (Join-Path $source $item) -Destination $destination -Recurse -Force
   }
@@ -72,14 +76,14 @@ function Copy-TestPackage {
     }
   } else {
     $docsRoot = Join-Path $source 'docs'
-    foreach ($document in Get-ChildItem -LiteralPath $docsRoot -File -Recurse) {
+    foreach ($document in Get-ChildItem -LiteralPath $docsRoot -File -Recurse -Force) {
       $relative = [IO.Path]::GetRelativePath($docsRoot, $document.FullName).Replace('\', '/')
       if ($relative -match '^(governance|superpowers)/') { continue }
       $target = Join-Path $destination "docs/$relative"
       New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
       Copy-Item -LiteralPath $document.FullName -Destination $target
     }
-    foreach ($document in Get-ChildItem -LiteralPath $source -Filter '*.md' -File) {
+    foreach ($document in Get-ChildItem -LiteralPath $source -Filter '*.md' -File -Force) {
       Copy-Item -LiteralPath $document.FullName -Destination $destination
     }
   }
@@ -108,8 +112,8 @@ function Remove-TestSandbox {
     [Parameter(Mandatory)][string]$Path,
     [Parameter(Mandatory)][string]$Prefix
   )
-  $resolved = [IO.Path]::GetFullPath($Path).TrimEnd('\', '/')
-  $temporaryParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\', '/')
+  $resolved = Get-TeamCanonicalRoot $Path -AllowMissing
+  $temporaryParent = Get-TestTemporaryParent
   $actualParent = [IO.Path]::GetDirectoryName($resolved)
   $comparison = if ($IsWindows) {
     [StringComparison]::OrdinalIgnoreCase

@@ -2,10 +2,11 @@
 param()
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $installer = Join-Path $root 'scripts\install-user.ps1'
 $updater = Join-Path $root 'scripts\update-user.ps1'
-$temporaryParent = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+$temporaryParent = (Get-TestTemporaryParent)
 $testRootName = "codex-multi-agent-install-test-" + [Guid]::NewGuid().ToString('N')
 $testRoot = Join-Path $temporaryParent $testRootName
 $codexHome = Join-Path $testRoot 'codex'
@@ -131,3 +132,10 @@ try {
   Assert-Condition (-not (Test-Path -LiteralPath $resolvedTestRoot)) "Test cleanup left an unexpected directory: $resolvedTestRoot"
   Write-Host 'Isolated test directory removed.'
 }
+
+# Keep setup coverage inside the installation suite. A separate process prevents
+# test mocks or fixture preferences from changing the installer tests above.
+$setupCheck = Invoke-TestPowerShell -Arguments @('-File', (Join-Path $PSScriptRoot 'test-setup.ps1')) -TimeoutSeconds 600
+if ($setupCheck.Output) { Write-Host $setupCheck.Output.TrimEnd() }
+if ($setupCheck.Errors) { Write-Host $setupCheck.Errors.TrimEnd() }
+Assert-Condition ($setupCheck.ExitCode -eq 0) 'Setup tests failed inside the install-user suite.'

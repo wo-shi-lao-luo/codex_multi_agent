@@ -15,8 +15,30 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
-$CodexHome = [IO.Path]::GetFullPath($CodexHome).TrimEnd('\','/')
-$AgentsHome = [IO.Path]::GetFullPath($AgentsHome).TrimEnd('\','/')
+# Normalize only macOS's verified system aliases. Arbitrary linked installation
+# roots and every linked descendant remain unsupported; no general realpath bypass.
+function Resolve-SystemPathAlias([string]$Path) {
+  $full = [IO.Path]::GetFullPath($Path)
+  if ($IsMacOS) {
+    foreach ($alias in @(@{path='/tmp'; target='/private/tmp'}, @{path='/var'; target='/private/var'})) {
+      if ($full -ceq $alias.path -or $full.StartsWith($alias.path+'/', [StringComparison]::Ordinal)) {
+        $item = Get-Item -LiteralPath $alias.path -Force -ErrorAction Stop
+        $targets = @($item.Target)
+        if ($item.LinkType -cne 'SymbolicLink' -or -not ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $targets.Count -ne 1 -or [string]::IsNullOrWhiteSpace($targets[0])) { throw 'PATH: Unverified macOS system alias.' }
+        $target = [string]$targets[0]
+        if (-not [IO.Path]::IsPathRooted($target)) { $target = Join-Path ([IO.Path]::GetDirectoryName($alias.path)) $target }
+        $target = [IO.Path]::GetFullPath($target)
+        if ($target -cne $alias.target -or -not (Test-Path -LiteralPath $target -PathType Container)) { throw 'PATH: Unexpected macOS system alias target.' }
+        return $alias.target + $full.Substring($alias.path.Length)
+      }
+    }
+  }
+  return $full
+}
+$pathComparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+$CodexHome = (Resolve-SystemPathAlias $CodexHome).TrimEnd('\','/')
+$AgentsHome = (Resolve-SystemPathAlias $AgentsHome).TrimEnd('\','/')
+$temporaryRoot = $null
 $managerRoot = Join-Path $AgentsHome 'codex-multi-agent'
 $receiptPath = Join-Path $managerRoot 'install-receipt.json'
 $pendingPath = Join-Path $managerRoot 'pending.json'
@@ -32,7 +54,11 @@ foreach ($homePath in @($CodexHome,$AgentsHome)) {
 function Assert-PlainPath([string]$Path) {
   $cursor = [IO.Path]::GetFullPath($Path)
   while ($cursor) {
-    $item = Get-Item -LiteralPath $cursor -Force -ErrorAction SilentlyContinue
+    # Get-Item observes dangling links as well; do not mistake a broken link for
+    # an absent destination. Permission/inspection errors fail closed.
+    try { $item = Get-Item -LiteralPath $cursor -Force -ErrorAction Stop }
+    catch [System.Management.Automation.ItemNotFoundException] { $item = $null }
+    catch { throw 'PATH: Cannot safely inspect path ancestors.' }
     if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw "PATH: Linked path is unsupported: $cursor" }
     $cursor = Split-Path -Parent $cursor
   }
@@ -40,11 +66,21 @@ function Assert-PlainPath([string]$Path) {
 
 # Keys are portable receipt names, never executable instructions or absolute filesystem paths.
 function Assert-Key([string]$Key, [switch]$Unit) {
-  if ($Key -notmatch '^(agents/[a-z0-9][a-z0-9-]*\.toml|skills/[a-z0-9][a-z0-9-]*(/[^/]+)*)$' -or $Key -match '[\\:]') { throw "PATH: Invalid package key $Key" }
+  if ($Key -cnotmatch '^(agents/[a-z0-9][a-z0-9-]*\.toml|skills/[a-z0-9][a-z0-9-]*(/[^/]+)*)$' -or $Key -match '[\\:]') { throw "PATH: Invalid package key $Key" }
   foreach ($segment in $Key.Split('/')) {
     if ($segment -in @('.','..') -or $segment -match '[<>"|?*\x00-\x1f]' -or $segment.EndsWith('.') -or $segment.EndsWith(' ') -or $segment -match '^(?i:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)') { throw 'PATH: Unsafe package segment.' }
   }
   if ($Unit -and $Key.StartsWith('skills/') -and $Key.Split('/').Count -ne 2) { throw 'PATH: Expected a whole Skill unit.' }
+}
+# Package identities are exact on every host. Reject case-only collisions before
+# mapping or copying so a package cannot mean different things on Unix and Windows.
+function New-KeyMap { return ,([Collections.Generic.Dictionary[string,object]]::new([StringComparer]::Ordinal)) }
+function Assert-PortableKeys([string[]]$Keys) {
+  $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+  foreach ($key in $Keys) {
+    Assert-Key $key
+    if (-not $seen.Add($key)) { throw "PACKAGE: Duplicate or case-colliding path: $key" }
+  }
 }
 function Get-Unit([string]$Key) {
   Assert-Key $Key
@@ -94,14 +130,14 @@ function Read-Receipt {
   try { $receipt = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json -AsHashtable } catch { throw 'RECEIPT: Invalid JSON; repair ownership before deployment.' }
   if ($receipt.schemaVersion -notin @(1,2) -or $receipt.kitVersion -notmatch '^\d+\.\d+\.\d+$') { throw 'RECEIPT: Unsupported version.' }
   if ($receipt.schemaVersion -eq 2 -and $receipt.managerProtocol -ne 1) { throw 'RECEIPT: Unsupported manager protocol; use its compatible recovery runtime.' }
-  if ([IO.Path]::GetFullPath($receipt.codexHome).TrimEnd('\','/') -ne $CodexHome -or [IO.Path]::GetFullPath($receipt.agentsHome).TrimEnd('\','/') -ne $AgentsHome) { throw 'RECEIPT: Home directories do not match.' }
-  $seen = @{}
+  if (-not [string]::Equals((Resolve-SystemPathAlias $receipt.codexHome).TrimEnd('\','/'), $CodexHome, $pathComparison) -or -not [string]::Equals((Resolve-SystemPathAlias $receipt.agentsHome).TrimEnd('\','/'), $AgentsHome, $pathComparison)) { throw 'RECEIPT: Home directories do not match.' }
+  $seen = New-KeyMap
   foreach ($file in $receipt.files) {
-    $path = [IO.Path]::GetFullPath([string]$file.path)
+    $path = Resolve-SystemPathAlias ([string]$file.path)
     $key = $null
     foreach ($mapping in @(@{root=$CodexHome; prefix='agents'}, @{root=$AgentsHome; prefix='skills'})) {
       $prefix = (Join-Path $mapping.root $mapping.prefix) + [IO.Path]::DirectorySeparatorChar
-      if ($path.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)) { $key = [IO.Path]::GetRelativePath($mapping.root,$path).Replace('\','/') }
+      if ($path.StartsWith($prefix,$pathComparison)) { $key = [IO.Path]::GetRelativePath($mapping.root,$path).Replace('\','/') }
     }
     if (-not $key) { throw 'RECEIPT: File is outside managed agent/Skill namespaces.' }
     Assert-Key $key
@@ -117,6 +153,7 @@ function Read-Receipt {
     $receipt.directories = @(Get-ExpectedDirectories $receipt.files)
     $receipt.source = @{ kind='legacy-receipt'; commit=$null; dirty=$null }
   }
+  Assert-PortableKeys (@($receipt.files | ForEach-Object { $_.key }) + @($receipt.directories))
   foreach ($dir in $receipt.directories) {
     Assert-Key $dir
     if ((Get-Unit $dir) -notin $receipt.units) { throw 'RECEIPT: Directory outside owned units.' }
@@ -128,7 +165,7 @@ function Read-Receipt {
 
 # Legacy receipts did not list directories. Infer only parent directories of their owned files.
 function Get-ExpectedDirectories($Files) {
-  $dirs = @{}
+  $dirs = New-KeyMap
   foreach ($file in $Files) {
     if (-not $file.key.StartsWith('skills/')) { continue }
     $parts = $file.key.Split('/')
@@ -152,6 +189,7 @@ function Read-Package([string]$Root, $Provenance) {
       else { $files += @{ key=$key; sha256=(Get-Sha $item.FullName) } }
     }
   }
+  Assert-PortableKeys (@($files | ForEach-Object { $_.key }) + @($directories))
   $units = @($files | ForEach-Object { Get-Unit $_.key } | Sort-Object -Unique)
   if (@($units | Where-Object { $_.StartsWith('agents/') }).Count -eq 0 -or @($units | Where-Object { $_.StartsWith('skills/') }).Count -eq 0) { throw 'PACKAGE: Expected nonempty agent and Skill sets.' }
   foreach ($unit in $units) {
@@ -169,16 +207,17 @@ function Read-Package([string]$Root, $Provenance) {
 
 # Inspect entire selected units. Unknown files inside an owned Skill are conflicts, not disposable data.
 function Test-Installed($Manifest, [string[]]$Units) {
-  $actual = @{}; $dirs = @{}
+  $actual = New-KeyMap; $dirs = New-KeyMap
   foreach ($unit in $Units) {
     Assert-Key $unit -Unit
     $destination = Get-Destination $unit
     foreach ($item in @(Get-Tree $destination)) {
-      $key = if ($item.FullName -eq $destination) { $unit } else { $unit + '/' + [IO.Path]::GetRelativePath($destination,$item.FullName).Replace('\','/') }
+      $key = if ([string]::Equals($item.FullName,$destination,$pathComparison)) { $unit } else { $unit + '/' + [IO.Path]::GetRelativePath($destination,$item.FullName).Replace('\','/') }
       if ($item.PSIsContainer) { $dirs[$key] = $true } else { $actual[$key] = Get-Sha $item.FullName }
     }
   }
-  $expected = @{}
+  Assert-PortableKeys (@($actual.Keys) + @($dirs.Keys))
+  $expected = New-KeyMap
   foreach ($file in @($Manifest.files)) { $expected[$file.key] = $file.sha256 }
   if ($actual.Count -ne $expected.Count -or $dirs.Count -ne @($Manifest.directories).Count) { return $false }
   foreach ($key in $expected.Keys) { if (-not $actual.ContainsKey($key) -or $actual[$key] -cne $expected[$key]) { return $false } }
@@ -189,13 +228,14 @@ function Test-Installed($Manifest, [string[]]$Units) {
 # Validate an inactive package tree before any active file is touched, including unexpected empty
 # directories. This catches source edits during staging and snapshot corruption before activation.
 function Assert-Payload($Manifest, [string]$Root) {
-  $actual=@{}; $dirs=@{}
+  $actual=New-KeyMap; $dirs=New-KeyMap
   foreach ($item in @(Get-Tree $Root | Select-Object -Skip 1)) {
     $key=[IO.Path]::GetRelativePath($Root,$item.FullName).Replace('\','/')
     if ($item.PSIsContainer -and $key -in @('agents','skills')) { continue }
     Assert-Key $key
     if ($item.PSIsContainer) { $dirs[$key]=$true } else { $actual[$key]=Get-Sha $item.FullName }
   }
+  Assert-PortableKeys (@($actual.Keys) + @($dirs.Keys))
   if ($actual.Count -ne @($Manifest.files).Count -or $dirs.Count -ne @($Manifest.directories).Count) { throw 'PACKAGE: Payload inventory mismatch.' }
   foreach ($file in $Manifest.files) { if (-not $actual.ContainsKey($file.key) -or $actual[$file.key] -cne $file.sha256) { throw 'PACKAGE: Payload hash mismatch.' } }
   foreach ($dir in $Manifest.directories) { if (-not $dirs.ContainsKey($dir)) { throw 'PACKAGE: Payload directory mismatch.' } }
@@ -213,7 +253,7 @@ function Save-Snapshot([string]$Id, [string[]]$Units, $Receipt, [string]$Kind) {
     if (-not (Test-Path -LiteralPath $destination)) { continue }
     $present += $unit
     foreach ($item in @(Get-Tree $destination)) {
-      $key = if ($item.FullName -eq $destination) { $unit } else { $unit + '/' + [IO.Path]::GetRelativePath($destination,$item.FullName).Replace('\','/') }
+      $key = if ([string]::Equals($item.FullName,$destination,$pathComparison)) { $unit } else { $unit + '/' + [IO.Path]::GetRelativePath($destination,$item.FullName).Replace('\','/') }
       Assert-Key $key
       if ($item.PSIsContainer) { $dirs += $key } else { $files += @{key=$key; sha256=(Get-Sha $item.FullName)} }
     }
@@ -221,6 +261,7 @@ function Save-Snapshot([string]$Id, [string[]]$Units, $Receipt, [string]$Kind) {
     New-Item -ItemType Directory -Force (Split-Path -Parent $copy) | Out-Null
     Copy-Item -LiteralPath $destination -Destination $copy -Recurse
   }
+  Assert-PortableKeys (@($files | ForEach-Object { $_.key }) + @($dirs))
   $manifest = @{ schemaVersion=1; id=$Id; kind=$Kind; codexHome=$CodexHome; agentsHome=$AgentsHome; files=$files; directories=$dirs; units=$present; restoreScope=$Units; packageDigest=(Get-Digest $files); kitVersion='0.0.0'; runtimeDataSchema=1; source=@{kind='empty'}; receiptText=$null }
   if ($Receipt) {
     $manifest.kitVersion=$Receipt.kitVersion; $manifest.runtimeDataSchema=$Receipt.runtimeDataSchema; $manifest.source=$Receipt.source
@@ -236,8 +277,9 @@ function Read-Snapshot([string]$Id) {
   $folder=Join-Path $managerRoot "backups/$Id"
   Assert-PlainPath $folder
   $m=Get-Content -LiteralPath "$folder/manifest.json" -Raw | ConvertFrom-Json -AsHashtable
-  if ($m.schemaVersion -ne 1 -or $m.id -cne $Id -or $m.codexHome -ne $CodexHome -or $m.agentsHome -ne $AgentsHome) { throw 'SNAPSHOT: Invalid metadata or different homes.' }
-  $seen=@{}
+  if ($m.schemaVersion -ne 1 -or $m.id -cne $Id -or -not [string]::Equals((Resolve-SystemPathAlias $m.codexHome).TrimEnd('\','/'),$CodexHome,$pathComparison) -or -not [string]::Equals((Resolve-SystemPathAlias $m.agentsHome).TrimEnd('\','/'),$AgentsHome,$pathComparison)) { throw 'SNAPSHOT: Invalid metadata or different homes.' }
+  $seen=New-KeyMap
+  Assert-PortableKeys (@($m.files | ForEach-Object { $_.key }) + @($m.directories))
   foreach ($unit in $m.units) { Assert-Key $unit -Unit }
   foreach ($unit in $m.restoreScope) { Assert-Key $unit -Unit }
   foreach ($file in $m.files) {
@@ -292,7 +334,7 @@ function Restore-Pending {
   if ((@($journal.units | Sort-Object -Unique) -join '|') -cne (@($before.restoreScope | Sort-Object -Unique) -join '|')) { throw 'PENDING: Scope mismatch.' }
   # A crashed operation does not authorize erasing subsequent user edits. Accept only files from
   # its before-image or intended target (including partial copies); unknown bytes require inspection.
-  $allowed=@{}
+  $allowed=New-KeyMap
   foreach ($file in @($before.files)+@($journal.targetFiles)) {
     Assert-Key $file.key
     if ((Get-Unit $file.key) -notin $journal.units) { throw 'PENDING: Target file outside operation scope.' }
@@ -302,9 +344,9 @@ function Restore-Pending {
   foreach ($unit in $journal.units) {
     $destination=Get-Destination $unit
     foreach ($item in @(Get-Tree $destination)) {
-      $key=if ($item.FullName -eq $destination) {$unit} else {$unit+'/'+[IO.Path]::GetRelativePath($destination,$item.FullName).Replace('\','/')}
+      $key=if ([string]::Equals($item.FullName,$destination,$pathComparison)) {$unit} else {$unit+'/'+[IO.Path]::GetRelativePath($destination,$item.FullName).Replace('\','/')}
       if ($item.PSIsContainer) {
-        if ($key -notin (@($before.directories)+@($journal.targetDirectories))) { throw 'RECOVERY_CONFLICT: A new directory appeared after interruption; preserve it before recovery.' }
+        if ($key -cnotin (@($before.directories)+@($journal.targetDirectories))) { throw 'RECOVERY_CONFLICT: A new directory appeared after interruption; preserve it before recovery.' }
       } elseif (-not $allowed.ContainsKey($key) -or (Get-Sha $item.FullName) -notin $allowed[$key]) { throw 'RECOVERY_CONFLICT: File changed outside the interrupted operation; inspect before recovery.' }
     }
   }
@@ -371,14 +413,19 @@ try {
   $stable=$null
   if ($Action -eq 'Deploy') {
     if (-not $SourceRoot) { throw 'SOURCE: SourceRoot is required.' }
-    $SourceRoot=(Resolve-Path -LiteralPath $SourceRoot).Path
+    $SourceRoot=Resolve-SystemPathAlias ((Resolve-Path -LiteralPath $SourceRoot).Path)
+    Assert-PlainPath $SourceRoot
+    $gitCommand=Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
     $provenance=@{kind='directory'; commit=$null; dirty=$true}
     if ($GitRef) {
-      $commit=(& git -C $SourceRoot rev-parse --verify --end-of-options "$GitRef^{commit}" 2>$null)
+      if (-not $gitCommand) { throw 'SOURCE: Git is required for GitRef deployment.' }
+      $commit=(& $gitCommand.Source -C $SourceRoot rev-parse --verify --end-of-options "$GitRef^{commit}" 2>$null)
       if ($LASTEXITCODE -ne 0 -or $commit -notmatch '^[a-f0-9]{40,64}$') { throw 'SOURCE: Git ref did not resolve to a local commit.' }
-      $exportRoot=Join-Path ([IO.Path]::GetTempPath()) ('codex-kit-export-'+[guid]::NewGuid().ToString('N'))
+      $temporaryRoot = (Resolve-SystemPathAlias ([IO.Path]::GetTempPath())).TrimEnd('\','/')
+      Assert-PlainPath $temporaryRoot
+      $exportRoot=Join-Path $temporaryRoot ('codex-kit-export-'+[guid]::NewGuid().ToString('N'))
       New-Item -ItemType Directory $exportRoot | Out-Null
-      & git -C $SourceRoot archive --format=zip "--output=$exportRoot/package.zip" $commit
+      & $gitCommand.Source -C $SourceRoot archive --format=zip "--output=$exportRoot/package.zip" $commit
       if ($LASTEXITCODE -ne 0) { throw 'SOURCE: Git export failed.' }
       $zip=[IO.Compression.ZipFile]::OpenRead("$exportRoot/package.zip")
       try {
@@ -390,10 +437,14 @@ try {
       $payload="$exportRoot/source"; $provenance=@{kind='git';commit=$commit;dirty=$false}
     } else {
       $payload=$SourceRoot
-      $gitRoot=(& git -C $SourceRoot rev-parse --show-toplevel 2>$null)
-      if ($LASTEXITCODE -eq 0 -and [IO.Path]::GetFullPath($gitRoot) -eq $SourceRoot) {
-        $provenance.commit=(& git -C $SourceRoot rev-parse HEAD).Trim()
-        $provenance.dirty= -not [string]::IsNullOrWhiteSpace((& git -C $SourceRoot status --porcelain --untracked-files=normal | Out-String))
+      if ($gitCommand) {
+        $gitRoot=(& $gitCommand.Source -C $SourceRoot rev-parse --show-toplevel 2>$null)
+        if ($LASTEXITCODE -eq 0 -and [string]::Equals((Resolve-SystemPathAlias $gitRoot),$SourceRoot,$pathComparison)) {
+          $head=(& $gitCommand.Source -C $SourceRoot rev-parse HEAD 2>$null)
+          if ($LASTEXITCODE -eq 0 -and $head -match '^[a-f0-9]{40,64}$') { $provenance.commit=$head.Trim() }
+          $status=(& $gitCommand.Source -C $SourceRoot status --porcelain --untracked-files=normal 2>$null | Out-String)
+          if ($LASTEXITCODE -eq 0) { $provenance.dirty= -not [string]::IsNullOrWhiteSpace($status) }
+        }
       }
     }
     $target=Read-Package $payload $provenance
@@ -497,7 +548,7 @@ try {
   if ($lock) { $lock.Dispose() }
   if ($exportRoot -and (Test-Path -LiteralPath $exportRoot)) {
     $resolved=[IO.Path]::GetFullPath($exportRoot)
-    if ((Split-Path $resolved -Parent) -ne [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\','/') -or (Split-Path $resolved -Leaf) -notlike 'codex-kit-export-*') { throw 'PATH: Unsafe export cleanup.' }
+    if (-not [string]::Equals((Split-Path $resolved -Parent),$temporaryRoot,$pathComparison) -or (Split-Path $resolved -Leaf) -notlike 'codex-kit-export-*') { throw 'PATH: Unsafe export cleanup.' }
     $null=@(Get-Tree $resolved)
     Remove-Item -LiteralPath $resolved -Recurse -Force
   }

@@ -1,0 +1,45 @@
+name: Platform tests
+
+# Runners and exact-commit checkouts are provisioned separately through the
+# approved route. This workflow never fetches code or downloads dependencies.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Windows
+            architecture: X64
+          - os: macOS
+            architecture: ARM64
+          - os: Linux
+            architecture: X64
+    runs-on: [self-hosted, "${{ matrix.os }}", "${{ matrix.architecture }}", codex-kit-offline]
+    steps:
+      - name: Verify provisioned source and run local checks
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:KIT_SOURCE_ROOT -or -not (Test-Path -LiteralPath $env:KIT_SOURCE_ROOT -PathType Container)) {
+            throw 'Provision an exact-commit checkout and set KIT_SOURCE_ROOT on this runner.'
+          }
+          if (-not (Get-Command git -CommandType Application -ErrorAction SilentlyContinue)) {
+            throw 'Preinstall Git through the approved route; the workflow does not download dependencies.'
+          }
+          Set-Location -LiteralPath $env:KIT_SOURCE_ROOT
+          $revision = & git rev-parse --verify HEAD
+          if ($LASTEXITCODE -ne 0 -or $revision.Trim() -cne $env:GITHUB_SHA) {
+            throw 'Provisioned source must match the requested workflow commit exactly.'
+          }
+          $changes = & git status --porcelain --untracked-files=all
+          if ($LASTEXITCODE -ne 0 -or $changes) {
+            throw 'Provisioned checkout must be clean before platform verification.'
+          }
+          & ./scripts/test.ps1
+          exit $LASTEXITCODE

@@ -124,7 +124,13 @@ The documentation runtime keeps its adoption metadata and reviews under docs/gov
 
 The deployment manager is independent of the Kit's agent/Skill payload. `scripts/deploy-user.ps1` owns manifests, receipt migration, exact unit reconciliation, staging, before-images, recovery journals, stable selection and pruning. The existing install/update entrypoints route to it. Its content-addressed installed copy survives source checkout changes and payload downgrade. No Skill or agent can silently opt a project into rollback.
 
+The optional macOS/Linux setup layer (`scripts/setup.sh` and `scripts/setup-user.ps1`) checks local prerequisites and client capabilities before delegating explicit installation to the existing installer. Its default `Doctor` action leaves the installation unchanged; `Verify` combines receipt validation with isolated client Skill discovery. Client probes run in disposable homes with networking denied. This layer does not acquire dependencies, authenticate, select models, or replace the deployment/recovery protocol. See the [setup guide](setup.md).
+
 This approved installer refactor preserves global config and unrelated personal components; it changes the old per-unit restore into whole-operation recovery. No business source layout is reorganized. Snapshot/data compatibility and recovery limits are documented in [safe deployment](safe-deployment.md).
+
+## Platform boundary
+
+The installed runtime scripts share `team-core/scripts/platform-filesystem.ps1` for platform-aware root normalization, contained literal paths, link rejection, exact project-file identities and compatible hashing. Only verified macOS system aliases are canonicalized; arbitrary linked roots and linked descendants remain unsupported. Distributable package filenames remain portable and reject case collisions. The deployment manager deliberately retains self-contained filesystem code so its installed recovery copy survives source removal or payload downgrade. See [platform support](platform-support.md) for the test matrix and evidence limits.
 
 ## Deliberate limits
 

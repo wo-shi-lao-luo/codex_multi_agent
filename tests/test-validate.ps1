@@ -3,8 +3,9 @@
 param([switch]$DesignExplorationOnly)
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $root = Split-Path -Parent $PSScriptRoot
-$temporaryParent = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+$temporaryParent = (Get-TestTemporaryParent)
 $testRootName = "codex-multi-agent-validate-test-" + [Guid]::NewGuid().ToString('N')
 $testRoot = Join-Path $temporaryParent $testRootName
 $validator = Join-Path $testRoot 'scripts\validate.ps1'
@@ -47,6 +48,20 @@ try {
 
   # Scenario: an intact package. Expected: validation succeeds before mutations.
   Assert-Condition (Invoke-CopiedValidator) 'Baseline validation failed in an isolated package copy.'
+
+  # Scenario: a release leaves any emitted provenance stamp behind.
+  # Expected: packaging rejects it and accepts an exact source restoration.
+  foreach ($producer in @('documentation.ps1','project-rules.ps1','format-code.ps1','ai-simulation.ps1')) {
+    $relative="skills/team-core/scripts/$producer"
+    $path=Join-Path $testRoot $relative
+    $text=Get-Content -LiteralPath $path -Raw
+    $stale=[regex]::Replace($text, "(\bkitVersion\s*=\s*')\d+\.\d+\.\d+(')", '${1}999.0.0${2}')
+    Assert-Condition ($stale -cne $text) "Missing provenance fixture in $producer."
+    [IO.File]::WriteAllText($path,$stale,[Text.UTF8Encoding]::new($false))
+    Assert-Condition (-not (Invoke-CopiedValidator)) "Validator accepted stale provenance in $producer."
+    Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $path -Force
+    Assert-Condition (Invoke-CopiedValidator) "Validator failed after restoring $producer provenance."
+  }
 
   # DE-01: a copied package without the required shared design reference is incomplete.
   # Expected: the real package validator rejects omission, then accepts exact restoration.
@@ -259,14 +274,15 @@ try {
   Copy-Item -LiteralPath (Join-Path $root 'skills/team-core/references/code-comments.md') -Destination $commentReference -Force
   Assert-Condition (Invoke-CopiedValidator) 'Validation did not recover after restoring comment routing and the contract.'
 
-  # Scenario: adapter runtime or routing is missing. Expected: distributable validation rejects each omission.
-  foreach ($relative in @('skills/team-core/scripts/openspec-adapter.ps1', 'skills/team-core/templates/openspec/config.yaml')) {
+  # Scenario: adapter runtime, shared filesystem helper or routing is missing.
+  # Expected: distributable validation rejects each omission before installation.
+  foreach ($relative in @('skills/team-core/scripts/openspec-adapter.ps1', 'skills/team-core/scripts/platform-filesystem.ps1', 'skills/team-core/templates/openspec/config.yaml')) {
     $resourcePath = Join-Path $testRoot $relative
     Remove-Item -LiteralPath $resourcePath
     Assert-Condition (-not (Invoke-CopiedValidator)) "Validation accepted missing $relative"
     Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $resourcePath
   }
-  Assert-Condition (Invoke-CopiedValidator) 'Validation did not recover after restoring OpenSpec files.'
+  Assert-Condition (Invoke-CopiedValidator) 'Validation did not recover after restoring required runtime files.'
   # Scenario: add an unsupported TOML field. Expected: validation rejects it.
   Add-Content -LiteralPath $invalidAgent -Value 'unsupported = "value"' -Encoding utf8
   Assert-Condition (-not (Invoke-CopiedValidator)) 'Validation accepted an unsupported TOML field.'

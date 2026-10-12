@@ -15,19 +15,13 @@ param(
   [string]$CallInput
 )
 $ErrorActionPreference='Stop'
-$root=[IO.Path]::GetFullPath($ProjectRoot).TrimEnd('/','\')
-if ($root -eq [IO.Path]::GetPathRoot($root).TrimEnd('/','\')) { throw 'PATH: A filesystem root cannot be a simulation project.' }
-if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'PATH: ProjectRoot must exist.' }
+. (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
+$root=Get-TeamCanonicalRoot $ProjectRoot
+if ($root -eq [IO.Path]::GetPathRoot($root)) { throw 'PATH: A filesystem root cannot be a simulation project.' }
 
 # Linked ancestors are rejected even when a missing leaf would otherwise be safe.
 function Assert-Plain([string]$Path) {
-  $cursor=$Path
-  while ($cursor) {
-    if (Test-Path -LiteralPath $cursor) {
-      if ((Get-Item -LiteralPath $cursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'PATH: Linked paths are unsupported.' }
-    }
-    $next=Split-Path -Parent $cursor; if ($next -eq $cursor) { break }; $cursor=$next
-  }
+  Assert-TeamPlainPath $Path
 }
 # Resolve literal repository paths only, without expansion or traversal aliases.
 function Resolve-Relative([string]$Value) {
@@ -36,10 +30,7 @@ function Resolve-Relative([string]$Value) {
   foreach ($part in ($value -split '/')) {
     if ($part -in @('','.','..') -or $part -match '[<>:"|?*\[\]#\x00-\x1f]' -or $part -match '[ .]$' -or $part -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)' -or $part -match '^(\.git|\.aws|\.ssh|\.azure|\.gnupg|node_modules|vendor|\.venv|venv)$') { throw 'PATH: Unsafe path segment.' }
   }
-  $path=[IO.Path]::GetFullPath((Join-Path $root $value))
-  if (-not $path.StartsWith($root+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) { throw 'PATH: Path leaves project.' }
-  Assert-Plain $path
-  return $path
+  return Resolve-TeamContainedPath $root $value
 }
 # Schema objects use exact fields: unknown extensions require a schema revision.
 function Assert-Fields($Object,[string[]]$Fields) {
@@ -106,7 +97,7 @@ function Convert-Element([Text.Json.JsonElement]$Element,[int]$Depth=0) {
 # Read bounded strict UTF-8 JSON without reporting potentially private contents.
 function Read-Json([string]$Path,[int]$Maximum=1048576) {
   Assert-Plain $Path
-  if (-not (Test-Path -LiteralPath $Path -PathType Leaf) -or (Get-Item -LiteralPath $Path).Length -gt $Maximum) { throw 'INPUT: Missing or oversized JSON file.' }
+  if (-not (Test-Path -LiteralPath $Path -PathType Leaf) -or (Get-Item -LiteralPath $Path -Force).Length -gt $Maximum) { throw 'INPUT: Missing or oversized JSON file.' }
   $document=$null
   try {
     $text=[Text.UTF8Encoding]::new($false,$true).GetString([IO.File]::ReadAllBytes($Path)).TrimStart([char]0xfeff)
@@ -251,9 +242,9 @@ if ($Action -eq 'Validate' -or $Action -eq 'InitializeRun') {
   $total=0
   foreach ($source in $sources) {
     $path=Resolve-Relative $source
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -LiteralPath $path).Length -gt 1048576) { throw 'INPUT: Missing or oversized declared source.' }
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -LiteralPath $path -Force).Length -gt 1048576) { throw 'INPUT: Missing or oversized declared source.' }
     try { $null=[Text.UTF8Encoding]::new($false,$true).GetString([IO.File]::ReadAllBytes($path)) } catch { throw 'INPUT: Declared source must be UTF-8 text.' }
-    $total+=(Get-Item -LiteralPath $path).Length
+    $total+=(Get-Item -LiteralPath $path -Force).Length
   }
   if ($total -gt 8388608) { throw 'BUDGET: Declared snapshots exceed eight MiB.' }
   if ($Action -eq 'Validate') { Json @{schemaVersion=1;status='valid';assessmentScope='prototype';acceptance='not-assessed'}; return }
@@ -307,7 +298,7 @@ try {
     # Revalidate the frozen definition, not a live source reread after snapshotting.
     $frozen=Read-Json (Join-Path $runFull $snapshots[0].path); Assert-Definition $frozen
     if ((Json $frozen) -cne (Json $definition)) { throw 'DRIFT: Definition changed during initialization.' }
-    $manifest=@{schemaVersion=1;kitVersion='1.0.6';runId=$RunId;workPath=$WorkPath;definitionPath=$DefinitionPath;definition=$frozen;snapshots=$snapshots;createdAt=[DateTime]::UtcNow.ToString('o');assessmentScope='prototype';hostAddedContext='unknown';modelRequestParameters='unknown'}
+    $manifest=@{schemaVersion=1;kitVersion='1.0.9';runId=$RunId;workPath=$WorkPath;definitionPath=$DefinitionPath;definition=$frozen;snapshots=$snapshots;createdAt=[DateTime]::UtcNow.ToString('o');assessmentScope='prototype';hostAddedContext='unknown';modelRequestParameters='unknown'}
     Publish-Json (Join-Path $runFull 'manifest.json') $manifest
     Publish-Json (Join-Path $runFull 'head.json') @{schemaVersion=1;runId=$RunId;sequence=0;lastEnvelopeSha256=$null}
     Publish-Json (Join-Path $runFull 'ownership.json') @{schemaVersion=1;manifestSha256=File-Digest (Join-Path $runFull 'manifest.json');runId=$RunId}

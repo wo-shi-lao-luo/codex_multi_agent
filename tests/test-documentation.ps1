@@ -4,9 +4,10 @@
 [CmdletBinding()]
 param()
 $ErrorActionPreference='Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $repo=Split-Path -Parent $PSScriptRoot
 $script=Join-Path $repo 'skills/team-core/scripts/documentation.ps1'
-$parent=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('/','\')
+$parent=(Get-TestTemporaryParent)
 $sandbox=Join-Path $parent ('codex-doc-test-'+[guid]::NewGuid().ToString('N'))
 function Assert([bool]$Condition,[string]$Message) { if (-not $Condition) { throw $Message } }
 # Fail only for the expected contract error, rather than any incidental exception.
@@ -42,6 +43,14 @@ try {
   Assert ($scan.policyVersion -eq 3) 'Documentation.Policy3: expected checking policy3.'
   Assert ($scan.adopted -eq $false -and $scan.documents.Count -eq 2) 'Wrong discovery.'
   Assert (-not (Test-Path "$sandbox/docs/governance")) 'Scan wrote files.'
+  # Scenario: explicit additional discovery uses different casing for the protected governance namespace.
+  # Expected: no current-governance file enters the source inventory, even on a case-sensitive volume.
+  $caseRoot=Join-Path $sandbox 'excluded-case'
+  New-Item -ItemType Directory -Path "$caseRoot/docs/GOVERNANCE" -Force | Out-Null
+  Set-Content -LiteralPath "$caseRoot/docs/GOVERNANCE/preserve.md" -Value 'Protected governance fixture'
+  $caseScan=& $script -Action Scan -ProjectRoot $caseRoot -AdditionalPaths @('docs/GOVERNANCE') | ConvertFrom-Json
+  Assert ($caseScan.documents.Count -eq 0) 'AdditionalPaths exposed governance through different casing.'
+  Assert ((Get-Content -LiteralPath "$caseRoot/docs/GOVERNANCE/preserve.md" -Raw).Trim() -eq 'Protected governance fixture') 'Governance exclusion changed the protected file.'
   # Scenario: first adoption. Expected: existing docs/source unchanged; marker alone is not ready.
   $baselineSource=Get-Content "$sandbox/src/login.ts" -Raw
   $baselinePrd=Get-Content "$sandbox/docs/PRD/product.md" -Raw
@@ -58,8 +67,13 @@ try {
   Set-Content -LiteralPath $legacyScript -Value $legacySource -Encoding utf8
   Copy-Item -LiteralPath (Join-Path (Split-Path $currentScript) 'generated-artifacts.ps1') `
     -Destination "$sandbox/runtime/generated-artifacts.ps1"
+  Copy-Item -LiteralPath (Join-Path (Split-Path $currentScript) 'platform-filesystem.ps1') `
+    -Destination "$sandbox/runtime/platform-filesystem.ps1"
   $script=$legacyScript
   & $script -Action Initialize -ProjectRoot $sandbox -AdditionalPaths 'notes' | Out-Null
+  $initialState=Get-Content "$sandbox/docs/governance/documentation.json" -Raw | ConvertFrom-Json
+  $expectedKitVersion=(Get-Content -LiteralPath (Join-Path $repo 'VERSION') -Raw).Trim()
+  Assert ($initialState.kitVersion -ceq $expectedKitVersion) 'Initial documentation provenance differs from the kit release.'
   Assert ((Get-Content "$sandbox/docs/PRD/product.md" -Raw) -ceq $baselinePrd) 'Adoption changed PRD.'
   Assert ((Get-Content "$sandbox/docs/legacy/old.md" -Raw) -ceq $baselineLegacy) 'Adoption changed legacy docs.'
   Assert ((Get-Content "$sandbox/src/login.ts" -Raw) -ceq $baselineSource) 'Adoption changed source.'
@@ -82,6 +96,9 @@ try {
   Record (New-Review)
   & $script -Action Validate -ProjectRoot $sandbox -Scope login -Task 'Add login' | Out-Null
   $freshState=Get-Content "$sandbox/docs/governance/documentation.json" -Raw | ConvertFrom-Json
+  $freshRecord=Get-Content "$sandbox/docs/governance/reviews/login.json" -Raw | ConvertFrom-Json
+  Assert ($freshState.kitVersion -ceq $expectedKitVersion -and $freshRecord.kitVersion -ceq $expectedKitVersion) `
+    'Refreshed documentation state/review provenance differs from the kit release.'
   Assert ($freshState.policyVersion -eq 3 -and $freshState.schemaVersion -eq 1) `
     'Fresh review did not preserve schema1 while upgrading policy3.'
   Assert ($freshState.initializedAt -ceq $legacyState.initializedAt) 'Upgrade reset adoption.'
@@ -95,6 +112,14 @@ try {
   Assert (@($archives | Where-Object {
     (Get-FileHash -LiteralPath $_.FullName).Hash -eq $legacyRecordHash
   }).Count -eq 1) 'Legacy review record bytes were not retained.'
+  # Scenario: authored evidence or its input attempts to use current governance with different casing.
+  # Expected: reject self-dependencies and protected input locations before publishing a replacement review.
+  $initialStateHash=(Get-FileHash -LiteralPath "$sandbox/docs/governance/documentation.json" -Algorithm SHA256).Hash
+  $selfReview=New-Review
+  $selfReview.dependencies=@('src/login.ts','docs/GOVERNANCE/reviews/login.md')
+  Reject { Record $selfReview } 'PATH'
+  Reject { & $script -Action RecordReview -ProjectRoot $sandbox -ReviewInput 'docs/GOVERNANCE/reviews/login.json' } 'PATH'
+  Assert ((Get-FileHash -LiteralPath "$sandbox/docs/governance/documentation.json" -Algorithm SHA256).Hash -eq $initialStateHash) 'Rejected governance case alias changed current review state.'
   # Scenario: higher-priority root instructions appear after review. Expected: inventory includes override, old review stale, bytes untouched.
   Set-Content "$sandbox/AGENTS.override.md" '# User-owned override policy'
   $overrideScan=& $script -Action Scan -ProjectRoot $sandbox | ConvertFrom-Json
@@ -282,16 +307,23 @@ try {
   # Repair only the disposable malformed pointer from an explicitly preserved valid state for the remaining corruption checks.
   $state.reviews.login.reportPath='docs/governance/reviews/login.md'
   $state | ConvertTo-Json -Depth 30 | Set-Content $statePath
-  # Scenario: doc discovery encounters a Windows junction. Expected: reject link traversal and leave its target intact.
+  # Scenario: doc discovery encounters a junction (Windows) or symlink (Unix).
+  # Expected: reject link traversal and leave its target intact on every host.
   $junctionPath=Join-Path $sandbox 'docs/link'
   $junctionTarget=Join-Path $sandbox 'link-target'
   New-Item -ItemType Directory -Path $junctionTarget | Out-Null
   Set-Content (Join-Path $junctionTarget 'reference.md') 'Do not traverse this linked document.'
   try {
-    New-Item -ItemType Junction -Path $junctionPath -Target $junctionTarget | Out-Null
+    New-TestDirectoryLink -Path $junctionPath -Target $junctionTarget
     Reject { & $script -Action Scan -ProjectRoot $sandbox } 'PATH'
     Assert (Test-Path -LiteralPath (Join-Path $junctionTarget 'reference.md')) 'Scan changed the junction target.'
-  } finally { if (Test-Path -LiteralPath $junctionPath) { Remove-Item -LiteralPath $junctionPath -Force } }
+  } finally { Remove-TestLink $junctionPath }
+  # Scenario: the linked target disappears. Expected: reject the dangling link as unsafe, not absent.
+  try {
+    New-TestDirectoryLink -Path $junctionPath -Target $junctionTarget
+    Remove-Item -LiteralPath $junctionTarget -Recurse -Force
+    Reject { & $script -Action Scan -ProjectRoot $sandbox } 'PATH'
+  } finally { Remove-TestLink $junctionPath }
   # Scenario: traversal or malformed state. Expected: no writes outside project and no reset to assumed ownership.
   Reject { & $script -Action RecordReview -ProjectRoot $sandbox -ReviewInput '../outside.json' } 'PATH'
   Set-Content $statePath '{invalid'

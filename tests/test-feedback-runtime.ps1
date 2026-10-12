@@ -2,9 +2,10 @@
 param()
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $runtime = Join-Path $root 'skills\team-core\scripts\feedback-runtime.ps1'
-$temporaryParent = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+$temporaryParent = (Get-TestTemporaryParent)
 $testRootName = 'codex-multi-agent-feedback-test-' + [Guid]::NewGuid().ToString('N')
 $testRoot = Join-Path $temporaryParent $testRootName
 $feedbackHome = Join-Path $testRoot 'feedback-home'
@@ -13,6 +14,15 @@ $payloadPath = Join-Path $testRoot 'run.json'
 function Assert-Condition {
   param([Parameter(Mandatory = $true)][bool]$Condition, [Parameter(Mandatory = $true)][string]$Message)
   if (-not $Condition) { throw $Message }
+}
+
+function Assert-PathRejection([scriptblock]$Run) {
+  # Require a confinement error, not an incidental missing record or malformed payload.
+  try { & $Run | Out-Null } catch {
+    if ($_.Exception.Message -notmatch 'PATH|[Ll]ink|single candidate filename') { throw "Expected feedback path rejection; got $_" }
+    return
+  }
+  throw 'Expected feedback path rejection.'
 }
 
 function Invoke-Runtime {
@@ -102,6 +112,53 @@ try {
   $deleted = Invoke-Runtime -Action 'Maintain' -DeleteArchived -ConfirmDeletion
   Assert-Condition ($deleted.maintenance.deleted -eq 1) 'Confirmed deletion did not remove the eligible archive.'
   Assert-Condition (@(Get-ChildItem -LiteralPath $archiveDirectory -Filter '*.json' -File).Count -eq 0) 'Deletion left an archive file behind.'
+
+  # Scenario: CandidateId contains traversal, separators or an absolute path.
+  # Expected: reject before touching any candidate or the adjacent sentinel record.
+  $sentinel = Join-Path $feedbackHome 'feedback/outside.json'
+  Set-Content -LiteralPath $sentinel -Value '{"id":"outside","state":"candidate"}' -Encoding utf8
+  $sentinelHash = (Get-FileHash -LiteralPath $sentinel -Algorithm SHA256).Hash
+  $candidateHash = (Get-FileHash -LiteralPath (Join-Path $feedbackHome ('feedback/candidates/' + $fixtureCandidate[0].id + '.json')) -Algorithm SHA256).Hash
+  foreach ($id in @('../outside','..\outside','sub/../outside','nested/candidate',(Join-Path $testRoot 'outside'))) {
+    Assert-PathRejection { & $runtime -Action SetCandidateState -FeedbackHome $feedbackHome -CandidateId $id -CandidateState applied -Confirm:$false }
+  }
+  Assert-Condition ((Get-FileHash -LiteralPath $sentinel -Algorithm SHA256).Hash -eq $sentinelHash) 'Candidate traversal changed an adjacent record.'
+  Assert-Condition ((Get-FileHash -LiteralPath (Join-Path $feedbackHome ('feedback/candidates/' + $fixtureCandidate[0].id + '.json')) -Algorithm SHA256).Hash -eq $candidateHash) 'Rejected CandidateId changed the existing candidate.'
+
+  # Use a valid zero-candidate payload so Record reaches its run-output boundary directly.
+  $payloadWithoutOptionalSignals | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $payloadPath -Encoding utf8
+  foreach ($scenario in @(
+    @{action='Record';link='runs';arguments=@{Action='Record';InputPath=$payloadPath;Confirm=$false}},
+    @{action='Maintain';link='runs';arguments=@{Action='Maintain';Confirm=$false}},
+    @{action='SetCandidateState';link='feedback/candidates';arguments=@{Action='SetCandidateState';CandidateId='chosen';CandidateState='applied';Confirm=$false}}
+  )) {
+    # Scenario: each public action is given an arbitrary linked selected root.
+    # Expected: reject the alias before processing records or maintenance targets.
+    $store = Join-Path $testRoot ($scenario.action + ' store 中文')
+    $target = Join-Path $testRoot ($scenario.action + '-target')
+    $rootLink = Join-Path $testRoot ($scenario.action + '-root-link')
+    New-Item -ItemType Directory -Path $store,$target | Out-Null
+    $actionArguments = $scenario.arguments
+    try {
+      New-TestDirectoryLink -Path $rootLink -Target $store
+      Assert-PathRejection { & $runtime -FeedbackHome $rootLink @actionArguments }
+    } finally { Remove-TestLink $rootLink }
+    # Scenario: the action's output/maintenance directory is a link, then becomes dangling.
+    # Expected: reject both, preserve target bytes, and never recreate the missing target.
+    $link = Join-Path $store $scenario.link
+    New-Item -ItemType Directory -Path (Split-Path -Parent $link) -Force | Out-Null
+    Set-Content -LiteralPath "$target/chosen.json" -Value '{"id":"chosen","state":"candidate"}' -Encoding utf8
+    $targetHash = (Get-FileHash -LiteralPath "$target/chosen.json" -Algorithm SHA256).Hash
+    try {
+      New-TestDirectoryLink -Path $link -Target $target
+      Assert-PathRejection { & $runtime -FeedbackHome $store @actionArguments }
+      Assert-Condition ((Get-FileHash -LiteralPath "$target/chosen.json" -Algorithm SHA256).Hash -eq $targetHash) "$($scenario.action) changed a linked record."
+      Assert-Condition (@(Get-ChildItem -LiteralPath $target -Force).Count -eq 1) "$($scenario.action) wrote through a linked directory."
+      Remove-Item -LiteralPath $target -Recurse -Force
+      Assert-PathRejection { & $runtime -FeedbackHome $store @actionArguments }
+      Assert-Condition (-not (Test-Path -LiteralPath $target)) "$($scenario.action) recreated a dangling target."
+    } finally { Remove-TestLink $link }
+  }
 
   Write-Host 'Feedback runtime tests passed.'
 } finally {

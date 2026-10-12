@@ -16,19 +16,13 @@ param(
   [string]$WorkPath
 )
 $ErrorActionPreference = 'Stop'
-$root = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd('/','\')
-if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'PATH: ProjectRoot must be an existing directory.' }
+. (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
+$root = Get-TeamCanonicalRoot $ProjectRoot
+$pathComparison = Get-TeamPathComparison
 
 # Missing leaves are permitted, but existing linked ancestors never confer ownership.
 function Assert-ArtifactPlain([string]$Path) {
-  $cursor = $Path
-  while ($cursor) {
-    if (Test-Path -LiteralPath $cursor) {
-      if ((Get-Item -LiteralPath $cursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'PATH: Linked artifact paths are unsupported.' }
-    }
-    $next = Split-Path -Parent $cursor
-    if ($next -eq $cursor) { break }; $cursor = $next
-  }
+  Assert-TeamPlainPath $Path
 }
 # Validate literal project paths before using them as anchored Gitignore patterns.
 function Resolve-ArtifactRelative([string]$Relative) {
@@ -37,9 +31,7 @@ function Resolve-ArtifactRelative([string]$Relative) {
   foreach ($part in ($value -split '/')) {
     if ($part -in @('','.','..') -or $part -match '[<>:"|?*\[\]#\x00-\x1f]' -or $part -match '[ .]$' -or $part -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)' -or $part -match '^(\.git|\.aws|\.ssh|\.azure|\.gnupg|node_modules|vendor|\.venv|venv)$') { throw 'PATH: Unsafe artifact path segment.' }
   }
-  $full = [IO.Path]::GetFullPath((Join-Path $root $value))
-  if (-not $full.StartsWith($root + [IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) { throw 'PATH: Artifact path leaves ProjectRoot.' }
-  Assert-ArtifactPlain $full
+  $null = Resolve-TeamContainedPath $root $value
   return $value
 }
 Assert-ArtifactPlain $root
@@ -95,7 +87,7 @@ if (-not $gitCommand) { throw 'DEPENDENCY: Git is required to inspect artifact s
 # explicit local Git boundary for these fixed read-only commands, never a wildcard.
 $trustedGitRoot = $root
 while ($trustedGitRoot -and -not (Test-Path -LiteralPath (Join-Path $trustedGitRoot '.git'))) {
-  $next = Split-Path -Parent $trustedGitRoot
+  $next = [IO.Path]::GetDirectoryName($trustedGitRoot)
   if ($next -eq $trustedGitRoot) { break }; $trustedGitRoot = $next
 }
 if ($trustedGitRoot) { Assert-ArtifactPlain (Join-Path $trustedGitRoot '.git') }
@@ -131,11 +123,11 @@ if ($repository.code -ne 0) {
   $cursor = $root
   while ($cursor) {
     if (Test-Path -LiteralPath (Join-Path $cursor '.git')) { throw 'GIT: Existing Git metadata could not be inspected; no artifact protection was written.' }
-    $next = Split-Path -Parent $cursor; if ($next -eq $cursor) { break }; $cursor = $next
+    $next = [IO.Path]::GetDirectoryName($cursor); if ($next -eq $cursor) { break }; $cursor = $next
   }
   $result | ConvertTo-Json -Depth 10; return
 }
-$gitRoot = [IO.Path]::GetFullPath($repository.output.Trim()).TrimEnd('/','\')
+$gitRoot = Get-TeamCanonicalRoot $repository.output.Trim()
 Assert-ArtifactPlain $gitRoot
 $projectPrefix = [IO.Path]::GetRelativePath($gitRoot,$root).Replace('\','/')
 if ($projectPrefix -eq '.') { $projectPrefix = '' } else { $projectPrefix += '/' }
@@ -150,17 +142,18 @@ foreach ($path in ($indexed.output -split "`0" | Where-Object { $_ })) {
 
 # Read only ignore files capable of affecting the bounded outputs. Never recurse
 # source/dependency trees just to discover unrelated policies; do not follow links.
-$policyFiles = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$pathComparer = if ($IsWindows) { [StringComparer]::OrdinalIgnoreCase } else { [StringComparer]::Ordinal }
+$policyFiles = [Collections.Generic.HashSet[string]]::new($pathComparer)
 function Add-ArtifactPolicy([string]$Directory) {
   Assert-ArtifactPlain $Directory
   $file = Join-Path $Directory '.gitignore'; Assert-ArtifactPlain $file
   if (Test-Path -LiteralPath $file -PathType Leaf) { $null = $policyFiles.Add($file) }
 }
 foreach ($probe in $probes) {
-  $cursor = Split-Path -Parent (Join-Path $root $probe)
-  while ($cursor -and ($cursor -eq $gitRoot -or $cursor.StartsWith($gitRoot + [IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase))) {
+  $cursor = [IO.Path]::GetDirectoryName((Join-Path $root $probe))
+  while ($cursor -and ($cursor.Equals($gitRoot,$pathComparison) -or $cursor.StartsWith($gitRoot + [IO.Path]::DirectorySeparatorChar,$pathComparison))) {
     Add-ArtifactPolicy $cursor
-    if ($cursor -eq $gitRoot) { break }; $cursor = Split-Path -Parent $cursor
+    if ($cursor.Equals($gitRoot,$pathComparison)) { break }; $cursor = [IO.Path]::GetDirectoryName($cursor)
   }
 }
 $actual = [Collections.Generic.List[string]]::new()
@@ -275,8 +268,8 @@ if ($Profile -eq 'Work' -and $missing.Count) {
     $sourceDirectory = Split-Path -Parent $sourcePath
     if (-not $covered.StartsWith(
         $sourceDirectory + [IO.Path]::DirectorySeparatorChar,
-        [StringComparison]::OrdinalIgnoreCase)) { continue }
-    if ($covered -eq $taskDirectory -or $covered -eq $workDirectory) {
+        $pathComparison)) { continue }
+    if ($covered.Equals($taskDirectory,$pathComparison) -or $covered.Equals($workDirectory,$pathComparison)) {
       $missing = @()
       break
     }

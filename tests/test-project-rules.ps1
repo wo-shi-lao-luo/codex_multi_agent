@@ -4,9 +4,10 @@
 [CmdletBinding()]
 param()
 $ErrorActionPreference='Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $repo=Split-Path -Parent $PSScriptRoot
 $runtime=Join-Path $repo 'skills/team-core/scripts/project-rules.ps1'
-$parent=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('/','\')
+$parent=(Get-TestTemporaryParent)
 $sandbox=Join-Path $parent ('codex-project-rules-test-'+[guid]::NewGuid().ToString('N'))
 # Assertion failures preserve the observable mismatch in runner output.
 function Assert([bool]$Condition,[string]$Message) { if (-not $Condition) { throw $Message } }
@@ -29,6 +30,7 @@ try {
   # Scenario: blank target. Expected: no selected instructions, all root candidates tracked, no mutation or live-loading claim.
   $before=Snapshot
   $scan=Discover
+  Assert ($scan.kitVersion -ceq (Get-Content -LiteralPath (Join-Path $repo 'VERSION') -Raw).Trim()) 'Discovery provenance differs from the installed kit release.'
   Assert ($scan.schemaVersion -eq 1 -and $scan.workingDirectory -eq '.' -and $scan.runtimeLoaded -eq 'unknown') 'Wrong default/loading contract.'
   Assert ($scan.selectedPaths.Count -eq 0 -and $scan.directories.Count -eq 1 -and $scan.totalSelectedBytes -eq 0) 'Blank target selection wrong.'
   Assert ($scan.dependencyPaths -contains 'AGENTS.override.md' -and $scan.dependencyPaths -contains 'AGENTS.md') 'Absent instruction dependencies missing.'
@@ -105,24 +107,24 @@ try {
   Assert (($scan.candidates | Where-Object path -eq 'app/AGENTS.override.md').status -eq 'empty') 'BOM-only file selected.'
   Assert ($scan.selectedPaths -contains 'app/AGENTS.md') 'BOM-only override blocked root candidate.'
 
-  # Scenario: Windows junction in requested scope. Expected: reject traversal; preserve linked target bytes; never recurse into it.
-  if ($IsWindows) {
+  # Scenario: a Windows junction or Unix symlink in scope. Expected: reject traversal and preserve target bytes.
+  & {
     $link="$sandbox/linked-app"
     try {
-      New-Item -ItemType Junction -Path $link -Target "$sandbox/app" | Out-Null
+      New-TestDirectoryLink -Path $link -Target "$sandbox/app"
       Reject @{WorkingDirectory='linked-app'} 'PATH|reparse|link'
       Assert ((Get-Content "$sandbox/app/AGENTS.md" -Raw).Trim() -eq '# App rules') 'Linked target modified.'
-    } finally { if (Test-Path -LiteralPath $link) { Remove-Item -LiteralPath $link -Force } }
+    } finally { Remove-TestLink $link }
 
-    # Scenario: junction target disappears. Expected: still reject the linked path rather than treat broken-link candidates as ordinary absence.
+    # Scenario: link target disappears. Expected: still reject the path rather than treat it as ordinary absence.
     $dangling="$sandbox/dangling-app"; $danglingTarget="$sandbox/dangling-target"
     try {
       New-Item -ItemType Directory -Path $danglingTarget | Out-Null
-      New-Item -ItemType Junction -Path $dangling -Target $danglingTarget | Out-Null
+      New-TestDirectoryLink -Path $dangling -Target $danglingTarget
       Remove-Item -LiteralPath $danglingTarget
       Reject @{WorkingDirectory='dangling-app'} 'PATH|reparse|link'
     } finally {
-      if ($null -ne (Get-Item -LiteralPath $dangling -Force -ErrorAction SilentlyContinue)) { Remove-Item -LiteralPath $dangling -Force }
+      Remove-TestLink $dangling
     }
   }
   Write-Host 'Project instruction discovery tests passed.'

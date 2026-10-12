@@ -7,10 +7,12 @@ param(
   [switch]$BundleConflictOnly, [switch]$BundleCloneOnly, [switch]$WorkPolicyOnly
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $repo = Split-Path -Parent $PSScriptRoot
 $helper = Join-Path $repo 'skills/team-core/scripts/generated-artifacts.ps1'
-$tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+$tempParent = Get-TestTemporaryParent
 $sandbox = Join-Path $tempParent ('codex-artifacts-test-' + [guid]::NewGuid().ToString('N'))
+$gitExecutable = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $priorGitGlobal = $env:GIT_CONFIG_GLOBAL
 $priorGitSystem = $env:GIT_CONFIG_NOSYSTEM
 $env:GIT_CONFIG_GLOBAL = '/dev/null'
@@ -18,7 +20,7 @@ $env:GIT_CONFIG_NOSYSTEM = '1'
 function Assert([bool]$Condition, [string]$Message) { if (-not $Condition) { throw $Message } }
 # Run Git only in owned disposable projects; native failures must not masquerade as passes.
 function Git([string]$Root, [string[]]$Arguments) {
-  $output = & git.exe -c core.excludesFile= -c core.hooksPath= -C $Root @Arguments 2>&1
+  $output = & $gitExecutable -c core.excludesFile= -c core.hooksPath= -C $Root @Arguments 2>&1
   if ($LASTEXITCODE -ne 0) { throw "Git failed: $output" }
   return @($output | ForEach-Object { [string]$_ })
 }
@@ -581,15 +583,52 @@ try {
   Assert ('docs/governance/guide.md' -in $staged) 'Linked worktree user governance guide hidden.'
   Assert (-not (Test-Path "$root/.gitignore")) 'Linked worktree mutated main checkout.'
 
+  # Verified macOS temporary-root aliases keep Git policy discovery on the same tree.
+  # Expected: Protect/Check work through /tmp or /var without duplicate policy changes.
+  $root = New-Repo 'system-alias'
+  if ($IsMacOS -and ($root.StartsWith('/private/tmp/') -or $root.StartsWith('/private/var/'))) {
+    $aliasRoot = $root.Substring('/private'.Length)
+    & $helper -Action Protect -ProjectRoot $aliasRoot -Profile Documentation | Out-Null
+    $ignoreHash = (Get-FileHash "$root/.gitignore").Hash
+    $aliasCheck = & $helper -Action Check -ProjectRoot $aliasRoot -Profile Documentation | ConvertFrom-Json
+    Assert ($aliasCheck.status -eq 'clean' -and (Get-FileHash "$root/.gitignore").Hash -ceq $ignoreHash) 'Aliased artifact audit failed or changed policy.'
+  } else { Write-Output 'N/A: artifact macOS system alias fixture unavailable on this host.' }
+
+  # Case-distinct review subtrees have separate local include policies on sensitive volumes.
+  # Expected: Check reports both declarations; Protect preserves both files and root policy.
+  $root = New-Repo 'case-distinct-policy'
+  if (Test-CaseSensitiveFixture $root) {
+    Fixture $root 'docs/governance/reviews/Case/.gitignore' "!upper.md`n"
+    Fixture $root 'docs/governance/reviews/Case/upper.md'
+    Fixture $root 'docs/governance/reviews/case/.gitignore' "!lower.md`n"
+    Fixture $root 'docs/governance/reviews/case/lower.md'
+    $caseCheck = & $helper -Action Check -ProjectRoot $root -Profile Documentation | ConvertFrom-Json
+    foreach ($policy in @('docs/governance/reviews/Case/.gitignore','docs/governance/reviews/case/.gitignore')) {
+      Assert (@($caseCheck.violations | Where-Object { $_.path -ceq $policy -and $_.reason -eq 'explicit-include-policy' }).Count -eq 1) 'Case-distinct include policy was omitted.'
+    }
+    $upperHash = (Get-FileHash "$root/docs/governance/reviews/Case/.gitignore").Hash
+    $lowerHash = (Get-FileHash "$root/docs/governance/reviews/case/.gitignore").Hash
+    Reject { & $helper -Action Protect -ProjectRoot $root -Profile Documentation } 'ARTIFACTS'
+    Assert (-not (Test-Path "$root/.gitignore") -and (Get-FileHash "$root/docs/governance/reviews/Case/.gitignore").Hash -ceq $upperHash -and (Get-FileHash "$root/docs/governance/reviews/case/.gitignore").Hash -ceq $lowerHash) 'Case-distinct policy rejection changed files.'
+  } else { Write-Output 'N/A: artifact case-distinct policies require a case-sensitive fixture volume.' }
+
   # CASE-GA-09c: a docs directory is a junction into an external fixture directory.
   # Expected: reject the linked ancestor before writing ignore or target artifacts.
   $root = New-Repo 'linked-path'
   $outside = Join-Path $sandbox 'junction-target'
   New-Item -ItemType Directory $outside | Out-Null
-  New-Item -ItemType Junction -Path "$root/docs" -Target $outside | Out-Null
+  New-TestDirectoryLink "$root/docs" $outside
   Reject { & $helper -Action Protect -ProjectRoot $root -Profile Documentation } 'PATH|linked|reparse|unsafe'
   Assert (-not (Test-Path "$root/.gitignore") -and @(Get-ChildItem $outside -Force).Count -eq 0) 'Linked path rejection wrote files.'
-  Remove-Item -LiteralPath "$root/docs" -Force
+  Remove-TestLink "$root/docs"
+  # A missing linked target cannot grant ownership of future artifact directories.
+  # Expected: reject without writing .gitignore or recreating the target.
+  New-TestDirectoryLink "$root/docs" $outside
+  Remove-Item -LiteralPath $outside -Force
+  try {
+    Reject { & $helper -Action Protect -ProjectRoot $root -Profile Documentation } 'PATH|linked|reparse|unsafe'
+    Assert (-not (Test-Path "$root/.gitignore") -and -not (Test-Path $outside)) 'Dangling artifact ancestor created files.'
+  } finally { Remove-TestLink "$root/docs" }
   Test-BundleConflicts
   Test-BundleClone
   Write-Host 'PASS: generated artifact Git boundaries (CASE-GA-01..09,12..14).'

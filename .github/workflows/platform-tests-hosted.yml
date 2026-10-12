@@ -1,0 +1,130 @@
+name: Hosted platform tests
+
+# Publishing starts jobs on the branch selected for initial verification.
+# GitHub connectivity for this run was explicitly authorized by the user.
+# Future runs must also follow the repository's approved network route.
+# Action pins were verified against official releases on 2026-10-10.
+# The existing offline self-hosted workflow remains a separate option.
+on:
+  workflow_dispatch:
+  push:
+    branches: [zhiheng]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows
+            runner: windows-2022
+          - target: linux
+            runner: ubuntu-24.04
+          - target: macos
+            runner: macos-15
+    runs-on: ${{ matrix.runner }}
+    env:
+      POWERSHELL_TELEMETRY_OPTOUT: '1'
+      POWERSHELL_UPDATECHECK: 'Off'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      KIT_PROPOSED_RUNNER: ${{ matrix.runner }}
+    steps:
+      - name: Prepare checkout line endings
+        # This setting affects only the disposable hosted runner's Git profile.
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git config --global core.autocrlf false
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot configure consistent checkout line endings.' }
+
+      - name: Check out the exact dispatched revision
+        # The deployment suite creates its own fixture repository/history.
+        # No test needs the source checkout's complete Git history.
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Record native provenance and run local checks
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $artifactRoot = Join-Path $env:RUNNER_TEMP 'codex-kit-platform'
+          New-Item -ItemType Directory -Force -Path $artifactRoot | Out-Null
+          foreach ($kind in @('cache','config','data','fixtures')) {
+            New-Item -ItemType Directory -Force -Path (Join-Path $artifactRoot $kind) | Out-Null
+          }
+          $env:XDG_CACHE_HOME = Join-Path $artifactRoot 'cache'
+          $env:XDG_CONFIG_HOME = Join-Path $artifactRoot 'config'
+          $env:XDG_DATA_HOME = Join-Path $artifactRoot 'data'
+          $env:TMPDIR = Join-Path $artifactRoot 'fixtures'
+          $env:TEMP = $env:TMPDIR
+          $env:TMP = $env:TMPDIR
+          $provenance = [ordered]@{
+            schemaVersion = 1
+            expectedSourceSha = $env:GITHUB_SHA
+            observedSourceSha = $null
+            cleanCheckout = $false
+            proposedRunner = $env:KIT_PROPOSED_RUNNER
+            runnerOS = $env:RUNNER_OS
+            runnerArchitecture = $env:RUNNER_ARCH
+            imageOS = $env:ImageOS
+            imageVersion = $env:ImageVersion
+            os = [Runtime.InteropServices.RuntimeInformation]::OSDescription
+            osArchitecture = [string][Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+            processArchitecture = [string][Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture
+            powerShell = [string]$PSVersionTable.PSVersion
+            framework = [Runtime.InteropServices.RuntimeInformation]::FrameworkDescription
+            git = $null
+            node = $null
+            caseSensitiveTemporaryFilesystem = $null
+            preflightPassed = $false
+          }
+          try {
+            if ($PSVersionTable.PSVersion -lt [version]'7.0') { throw 'PowerShell 7+ must be preinstalled; this workflow does not acquire runtimes.' }
+            foreach ($dependency in @('git','node')) {
+              if (-not (Get-Command $dependency -CommandType Application -ErrorAction SilentlyContinue)) {
+                throw "Required preinstalled dependency missing: $dependency."
+              }
+            }
+            Set-Location -LiteralPath $env:GITHUB_WORKSPACE
+            $revision = & git rev-parse --verify HEAD
+            if ($LASTEXITCODE -ne 0) { throw 'Cannot identify the checked-out source revision.' }
+            $provenance.observedSourceSha = $revision.Trim()
+            if ($provenance.observedSourceSha -cne $env:GITHUB_SHA) { throw 'Checkout does not match the exact dispatched revision.' }
+            $changes = & git status --porcelain --untracked-files=all
+            if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Source checkout must be clean before verification.' }
+            $provenance.cleanCheckout = $true
+            $gitVersion = & git --version
+            if ($LASTEXITCODE -ne 0) { throw 'Git version probe failed.' }
+            $provenance.git = $gitVersion.Trim()
+            $nodeVersion = & node --version
+            if ($LASTEXITCODE -ne 0) { throw 'Node.js version probe failed.' }
+            $provenance.node = $nodeVersion.Trim()
+            # Record the hosted image's actual runtime versions; a passing job
+            # does not prove the untested PowerShell 7.0 minimum or other versions.
+            . ./tests/helpers/platform.ps1
+            $provenance.caseSensitiveTemporaryFilesystem = Test-CaseSensitiveFixture $env:TMPDIR
+            $provenance.preflightPassed = $true
+          } finally {
+            [IO.File]::WriteAllText((Join-Path $artifactRoot 'provenance.json'), ($provenance | ConvertTo-Json -Depth 4), [Text.UTF8Encoding]::new($false))
+          }
+          & ./scripts/test.ps1 -ResultPath (Join-Path $artifactRoot 'results.json')
+          exit $LASTEXITCODE
+
+      - name: Retain result and provenance summaries
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: platform-${{ matrix.target }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/codex-kit-platform/results.json
+            ${{ runner.temp }}/codex-kit-platform/provenance.json
+          if-no-files-found: warn
+          retention-days: 7

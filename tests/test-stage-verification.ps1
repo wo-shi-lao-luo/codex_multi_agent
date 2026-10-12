@@ -4,9 +4,10 @@
 param()
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $root 'skills\team-core\scripts\stage-verification.ps1'
-$temporaryParent = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+$temporaryParent = (Get-TestTemporaryParent)
 $testRootName = 'codex-multi-agent-stage-verification-test-' + [Guid]::NewGuid().ToString('N')
 $testRoot = Join-Path $temporaryParent $testRootName
 

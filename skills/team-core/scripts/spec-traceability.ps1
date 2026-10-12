@@ -11,7 +11,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'openspec-common.ps1')
-$root = (Resolve-Path -LiteralPath $ProjectRoot).Path
+$root = Get-TeamCanonicalRoot $ProjectRoot
 $null = Get-SpecIntegration $root
 $change = Resolve-SpecPath $root "openspec/changes/$ChangeId"
 if (-not (Test-Path -LiteralPath $change -PathType Container)) { throw 'CHANGE: Active change does not exist.' }
@@ -86,7 +86,7 @@ if ([regex]::Matches($taskContent, '(?m)^\s*- \[[^\]\r\n]*\]').Count -ne $tasks.
 if (@($index.links).Count -eq 0) { throw 'LINK: At least one evidence mapping is required.' }
 $covered = @{}
 $coveredTasks = @{}
-$packets = @{}
+$packets = New-TeamOrdinalMap
 foreach ($link in $index.links) {
   if (-not $requirements.ContainsKey([string]$link.requirement)) { throw 'REQUIREMENT: Unknown requirement.' }
   if ($link.scenario) {

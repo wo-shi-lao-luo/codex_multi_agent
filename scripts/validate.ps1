@@ -1,4 +1,5 @@
 # Validate distributable metadata and resource routing, not runtime or visual quality.
+#requires -Version 7.0
 [CmdletBinding()]
 param()
 
@@ -9,12 +10,51 @@ foreach ($resource in @('scripts/deploy-user.ps1')) {
   if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing deployment resource: $resource") }
 }
 
+# Reject links and case-only payload collisions on the source host before an
+# installer can give the same inventory a different meaning on another filesystem.
+function Test-PortablePayload([string]$Directory, [Collections.Generic.HashSet[string]]$Keys) {
+  try { $items = @(Get-ChildItem -LiteralPath $Directory -Force -ErrorAction Stop) }
+  catch { $failures.Add('Package payload directory cannot be inspected safely.'); return }
+  foreach ($item in $items) {
+    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { $failures.Add('Package payload contains an unsupported linked path.'); continue }
+    $key = [IO.Path]::GetRelativePath($root,$item.FullName).Replace('\','/')
+    if (-not $Keys.Add($key)) { $failures.Add("Package has duplicate or case-colliding path: $key") }
+    if ($item.PSIsContainer) { Test-PortablePayload $item.FullName $Keys }
+  }
+}
+$payloadKeys = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach ($area in @('agents','skills')) {
+  $directory = Join-Path $root $area
+  try { $item = Get-Item -LiteralPath $directory -Force -ErrorAction Stop }
+  catch { $failures.Add("Package $area directory cannot be inspected safely."); continue }
+  if (-not $item -or -not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { $failures.Add("Package requires an unlinked $area directory."); continue }
+  Test-PortablePayload $directory $payloadKeys
+}
+if ($failures.Count -gt 0) {
+  $failures | ForEach-Object { Write-Error $_ }
+  exit 1
+}
+
 $versionPath = Join-Path $root 'VERSION'
 $kitVersion = $null
 if (-not (Test-Path -LiteralPath $versionPath)) {
   $failures.Add('VERSION is missing')
 } elseif (($kitVersion = (Get-Content -LiteralPath $versionPath -Raw).Trim()) -notmatch '^\d+\.\d+\.\d+$') {
   $failures.Add('VERSION must use semantic version format, for example 0.1.0')
+}
+
+# Installed runtime scripts cannot rely on the source checkout's VERSION file.
+# Check their embedded provenance during packaging so every release updates it.
+foreach ($producer in @('documentation.ps1','project-rules.ps1','format-code.ps1','ai-simulation.ps1')) {
+  $producerPath=Join-Path $root "skills/team-core/scripts/$producer"
+  if (-not (Test-Path -LiteralPath $producerPath -PathType Leaf)) {
+    $failures.Add("Missing kit-version producer: $producer")
+    continue
+  }
+  $stamps=[regex]::Matches((Get-Content -LiteralPath $producerPath -Raw), "\bkitVersion\s*=\s*'(?<version>\d+\.\d+\.\d+)'")
+  if ($stamps.Count -ne 1 -or $stamps[0].Groups['version'].Value -cne $kitVersion) {
+    $failures.Add("Runtime kitVersion must match VERSION in $producer")
+  }
 }
 
 $changelogPath = Join-Path $root 'CHANGELOG.md'
@@ -490,21 +530,21 @@ Get-ChildItem -Path $root -Filter '*.md' -File -Recurse | ForEach-Object {
     if ($target.StartsWith('#') -or $target -match '^[a-z][a-z0-9+.-]*:' -or $target.StartsWith('//')) { continue }
     $relativePath = ($target -split '[#?]', 2)[0]
     if ([string]::IsNullOrWhiteSpace($relativePath)) { continue }
-    $resolvedPath = Join-Path $markdownFile.DirectoryName ($relativePath -replace '/', '\\')
+    $resolvedPath = Join-Path $markdownFile.DirectoryName $relativePath
     if (-not (Test-Path -LiteralPath $resolvedPath)) {
       $failures.Add("$($markdownFile.FullName) links to missing local path $relativePath")
     }
   }
 }
 
-$installer = Get-Content -LiteralPath (Join-Path $root 'scripts\install-user.ps1') -Raw
+$installer = Get-Content -LiteralPath (Join-Path $root 'scripts/install-user.ps1') -Raw
 foreach ($requiredInstallerFeature in 'SupportsShouldProcess', '[switch]$Force', 'install-receipt.json') {
   if (-not $installer.Contains($requiredInstallerFeature)) {
     $failures.Add("install-user.ps1 is missing $requiredInstallerFeature")
   }
 }
 
-$updater = Join-Path $root 'scripts\update-user.ps1'
+$updater = Join-Path $root 'scripts/update-user.ps1'
 if (-not (Test-Path -LiteralPath $updater)) {
   $failures.Add('update-user.ps1 is missing')
 } else {
@@ -541,7 +581,7 @@ Get-ChildItem -Path (Join-Path $root 'skills') -Directory | ForEach-Object {
 }
 
 $coreReferences = @('execution-contract.md', 'execution-templates.md', 'role-routing.md', 'file-ownership.md', 'handoff-format.md', 'feedback-recording.md', 'test-acceptance-contract.md', 'tdd-protocol.md')
-$coreReferenceDirectory = Join-Path $root 'skills\team-core\references'
+$coreReferenceDirectory = Join-Path $root 'skills/team-core/references'
 $coreReferences += 'project-blueprint.md'
 $coreReferences += 'code-comments.md'
 $coreReferences += 'ui-quality.md'
@@ -609,6 +649,7 @@ foreach ($skillName in @('team-core','team-dev','team-doc-check')) {
 foreach ($resource in @('skills/team-project-rules/SKILL.md','skills/team-core/scripts/project-rules.ps1')) {
   if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing project-rules resource: $resource") }
 }
+if (-not (Test-Path -LiteralPath (Join-Path $root 'skills/team-core/scripts/platform-filesystem.ps1') -PathType Leaf)) { $failures.Add('Missing shared platform-filesystem.ps1 resource.') }
 foreach ($skillName in @('team-core','team-doc-check','team-dev','team-plan','team-project-rules')) {
   $target = if ($skillName -eq 'team-core') { 'references/project-rules.md' } else { '../team-core/references/project-rules.md' }
   $file = Join-Path $root "skills/$skillName/SKILL.md"
@@ -655,7 +696,7 @@ foreach ($skillName in $tddWorkflowSkills) {
   }
 }
 
-$stageVerification = Join-Path $root 'skills\team-core\scripts\stage-verification.ps1'
+$stageVerification = Join-Path $root 'skills/team-core/scripts/stage-verification.ps1'
 if (-not (Test-Path -LiteralPath $stageVerification)) {
   $failures.Add('team-core is missing scripts/stage-verification.ps1')
 } else {
@@ -667,7 +708,7 @@ if (-not (Test-Path -LiteralPath $stageVerification)) {
   }
 }
 
-$feedbackRuntime = Join-Path $root 'skills\team-core\scripts\feedback-runtime.ps1'
+$feedbackRuntime = Join-Path $root 'skills/team-core/scripts/feedback-runtime.ps1'
 # Guard optional integration distribution and discoverable routing; runtime tests check behavior.
 foreach ($relative in @('references/spec-lifecycle.md','references/openspec-integration.md','scripts/openspec-adapter.ps1','scripts/openspec-common.ps1','scripts/spec-traceability.ps1','templates/openspec/config.yaml')) {
   if (-not (Test-Path -LiteralPath (Join-Path $root "skills/team-core/$relative") -PathType Leaf)) { $failures.Add("Missing optional OpenSpec resource: $relative") }

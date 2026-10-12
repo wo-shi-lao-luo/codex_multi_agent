@@ -13,7 +13,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'openspec-common.ps1')
-$root = (Resolve-Path -LiteralPath $ProjectRoot).Path
+$root = Get-TeamCanonicalRoot $ProjectRoot
 $specRoot = Resolve-SpecPath $root 'openspec'
 $marker = Resolve-SpecPath $root 'openspec/team-integration.json'
 $enabled = Test-Path -LiteralPath $marker
@@ -29,11 +29,26 @@ if ($Action -notin @('Enable','Doctor') -and -not $ChangeId) { throw 'CHANGE: Ch
 # Callers may supply an explicit trusted installation path; project JSON never selects executable code.
 if (-not $OpenSpecEntry) {
   $command = Get-Command openspec -ErrorAction SilentlyContinue | Select-Object -First 1
-  if ($command -and $command.Source) {
-    $OpenSpecEntry = Join-Path (Split-Path -Parent $command.Source) 'node_modules/@fission-ai/openspec/bin/openspec.js'
+  if ($command -and $command.Source -and $command.CommandType -in @('Application','ExternalScript')) {
+    $commandDirectory = [IO.Path]::GetDirectoryName($command.Source)
+    $candidate = if ($IsWindows) {
+      Join-Path $commandDirectory 'node_modules/@fission-ai/openspec/bin/openspec.js'
+    } else {
+      # npm's POSIX global executable lives in <prefix>/bin while its package
+      # entry lives in <prefix>/lib/node_modules. Never execute the shell shim.
+      Join-Path ([IO.Path]::GetDirectoryName($commandDirectory)) 'lib/node_modules/@fission-ai/openspec/bin/openspec.js'
+    }
+    $candidate = [IO.Path]::GetFullPath($candidate)
+    $projectPrefix = $root.TrimEnd('/','\') + [IO.Path]::DirectorySeparatorChar
+    # Use a conservative project-local exclusion even on case-insensitive macOS
+    # volumes. Linked package locations need the caller's explicit trusted path.
+    if (-not $candidate.StartsWith($projectPrefix, [StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+      try { Assert-TeamPlainPath $candidate; $OpenSpecEntry = $candidate }
+      catch { $OpenSpecEntry = $null }
+    }
   }
 }
-if (-not $OpenSpecEntry -or -not (Test-Path -LiteralPath $OpenSpecEntry -PathType Leaf)) { throw 'DEPENDENCY: Install trusted @fission-ai/openspec@1.13.2 separately, or supply -OpenSpecEntry.' }
+if (-not $OpenSpecEntry -or -not [IO.Path]::IsPathRooted($OpenSpecEntry) -or -not (Test-Path -LiteralPath $OpenSpecEntry -PathType Leaf)) { throw 'DEPENDENCY: Install trusted @fission-ai/openspec@1.13.2 separately, or supply a trusted absolute -OpenSpecEntry.' }
 $entry = (Resolve-Path -LiteralPath $OpenSpecEntry).Path
 $node = Get-Command node -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
 if (-not $node) { throw 'DEPENDENCY: Node.js 20.19+ is required by OpenSpec.' }
@@ -119,7 +134,7 @@ if ($Action -eq 'Prepare') {
 if (-not (Test-Path -LiteralPath $change -PathType Container)) { throw 'CHANGE: Active change does not exist; inspect archive instead of retrying.' }
 $status = Invoke-OpenSpec @('status','--change',$ChangeId,'--json')
 if ($status.schemaName -cne 'spec-driven' -or -not $status.Contains('artifacts')) { throw 'SCHEMA: v1 requires the native spec-driven schema; no custom schema is overwritten.' }
-if ($status.root -and $status.root.path -and [IO.Path]::GetFullPath($status.root.path) -ne $root) { throw 'PATH: Upstream resolved a different project root.' }
+if ($status.root -and $status.root.path -and -not [string]::Equals((Get-TeamCanonicalRoot $status.root.path),$root,(Get-TeamPathComparison))) { throw 'PATH: Upstream resolved a different project root.' }
 if ($Action -eq 'Inspect') { $status | ConvertTo-Json -Depth 40; exit 0 }
 if ($Action -eq 'Instructions') {
   Invoke-OpenSpec @('instructions',$Artifact,'--change',$ChangeId,'--json') | ConvertTo-Json -Depth 40

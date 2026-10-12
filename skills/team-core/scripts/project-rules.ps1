@@ -12,30 +12,17 @@ param(
   [ValidateRange(1,[long]::MaxValue)][long]$MaxBytes = 32768
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
 
 # Preserve volume roots while normalizing ordinary directory paths. Root may be
 # absolute; all inspected paths below it must be strictly repository-relative.
-try { $root = [IO.Path]::GetFullPath($ProjectRoot) }
+try { $root = Get-TeamCanonicalRoot $ProjectRoot }
 catch { throw 'PATH: ProjectRoot must be a valid existing directory.' }
-if ($root -ne [IO.Path]::GetPathRoot($root)) { $root = $root.TrimEnd('/','\') }
-if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'PATH: ProjectRoot must be an existing directory.' }
-$comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
 
 # Check every existing ancestor and candidate: a relative path must not traverse a
 # junction/symlink. These local checks are not a sandbox against hostile concurrent edits.
 function Assert-Plain([string]$Path) {
-  $cursor = $Path
-  while ($cursor) {
-    # Get-Item also observes dangling links; Test-Path alone may report their
-    # missing targets as absent and lose the linked-path security boundary.
-    try { $item = Get-Item -LiteralPath $cursor -Force -ErrorAction Stop }
-    catch [System.Management.Automation.ItemNotFoundException] { $item = $null }
-    catch { throw 'PATH: Cannot safely inspect candidate ancestors.' }
-    if ($null -ne $item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'PATH: Linked/reparse paths are unsupported.' }
-    $next = Split-Path -Parent $cursor
-    if ($next -eq $cursor) { break }
-    $cursor = $next
-  }
+  Assert-TeamPlainPath $Path
 }
 
 # Use the documentation runtime's credential/dependency/generated exclusions; an
@@ -52,11 +39,7 @@ function Test-Excluded([string]$Relative) {
 # Reject traversal, aliases, ADS and Windows reserved names even on other hosts;
 # valid input produces one stable forward-slash repository-relative identity.
 function Normalize-Relative([string]$Relative) {
-  if ([string]::IsNullOrWhiteSpace($Relative) -or [IO.Path]::IsPathRooted($Relative)) { throw 'PATH: Require a repository-relative path.' }
-  $normalized = $Relative.Replace('\','/')
-  foreach ($part in ($normalized -split '/')) {
-    if ($part -in @('','.','..') -or $part -match '[<>:"|?*\x00-\x1f]' -or $part -match '[ .]$' -or $part -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)') { throw 'PATH: Unsafe path segment.' }
-  }
+  $normalized = Normalize-TeamRelativePath $Relative
   if (Test-Excluded $normalized) { throw 'PATH: Sensitive, dependency and generated locations are excluded.' }
   return $normalized
 }
@@ -64,11 +47,7 @@ function Normalize-Relative([string]$Relative) {
 # Resolve only already-normalized candidate paths; linked absent-file ancestors
 # are checked too, so expected absent dependencies cannot escape through a link.
 function Resolve-Candidate([string]$Relative) {
-  $absolute = [IO.Path]::GetFullPath((Join-Path $root $Relative))
-  $prefix = $root.TrimEnd('/','\') + [IO.Path]::DirectorySeparatorChar
-  if (-not $absolute.StartsWith($prefix,$comparison)) { throw 'PATH: Candidate leaves ProjectRoot.' }
-  Assert-Plain $absolute
-  return $absolute
+  return Resolve-TeamContainedPath $root $Relative
 }
 
 Assert-Plain $root
@@ -80,6 +59,8 @@ if ($working -ne '.') {
 }
 $names = [Collections.Generic.List[string]]::new()
 $names.Add('AGENTS.override.md'); $names.Add('AGENTS.md')
+# Configured fallback aliases remain conservatively case-folded on every host;
+# distinct spellings can address the same file on case-insensitive macOS volumes.
 $seenNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 $null = $seenNames.Add('AGENTS.override.md'); $null = $seenNames.Add('AGENTS.md')
 foreach ($name in $FallbackNames) {
@@ -111,7 +92,7 @@ foreach ($directory in $directories) {
 $candidates = [Collections.Generic.List[object]]::new()
 $selected = [Collections.Generic.List[string]]::new()
 $dependencies = [Collections.Generic.List[string]]::new()
-$selectedDirectories = @{}
+$selectedDirectories = New-TeamOrdinalMap
 [long]$total = 0
 $utf8 = [Text.UTF8Encoding]::new($false,$true)
 foreach ($candidate in $pending) {
@@ -128,7 +109,7 @@ foreach ($candidate in $pending) {
     } catch { throw 'READ: Cannot read/decode instruction candidate as UTF8.' }
     Assert-Plain $candidate.absolute
     $size = $bytes.LongLength
-    $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
+    $hash = Get-TeamSha256Hex $bytes
     $nonempty = -not [string]::IsNullOrWhiteSpace($text.TrimStart([char]0xFEFF))
     if (-not $nonempty) { $status = 'empty' }
     elseif ($selectedDirectories.ContainsKey($candidate.directory)) { $status = 'shadowed' }
@@ -145,7 +126,7 @@ if ($total -gt $MaxBytes) { $warnings.Add('Selected source bytes exceed MaxBytes
 # Source-byte sum is a diagnostic, not Codex's exact assembled prompt accounting.
 # No global settings are read: fallback names and limit are caller-supplied evidence.
 [ordered]@{
-  schemaVersion=1; kitVersion='1.0.6'; workingDirectory=$working
+  schemaVersion=1; kitVersion='1.0.9'; workingDirectory=$working
   fallbackNames=@($FallbackNames); maxBytes=$MaxBytes; directories=@($directories)
   candidates=@($candidates); selectedPaths=@($selected); dependencyPaths=@($dependencies)
   totalSelectedBytes=$total; exceedsMaxBytes=($total -gt $MaxBytes)

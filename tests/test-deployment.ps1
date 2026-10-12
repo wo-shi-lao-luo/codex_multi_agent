@@ -4,10 +4,11 @@
 [CmdletBinding()]
 param()
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $repo = Split-Path -Parent $PSScriptRoot
 $manager = Join-Path $repo 'scripts/deploy-user.ps1'
-$tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\','/')
-$testRoot = Join-Path $tempParent ('codex-deploy-test-' + [guid]::NewGuid().ToString('N'))
+$tempParent = (Get-TestTemporaryParent)
+$testRoot = Join-Path $tempParent ('codex-deploy-test-' + [guid]::NewGuid().ToString('N') + ' space 中文')
 $fakeCodex = Join-Path $testRoot 'codex'
 $fakeAgents = Join-Path $testRoot 'agents-home'
 $arguments = @{ CodexHome = $fakeCodex; AgentsHome = $fakeAgents }
@@ -80,6 +81,30 @@ try {
   Assert-True ($receipt.schemaVersion -eq 2 -and $receipt.kitVersion -eq '0.11.0') 'Wrong receipt.'
   Assert-True (-not(Test-Path -LiteralPath "$management/stable.json")) 'Initial major-line lifecycle test implicitly marked stable.'
   Assert-True (Test-Path "$management/rollback.ps1") 'Missing persistent recovery entrypoint.'
+  # Scenario: an explicitly selected source/home is an arbitrary link.
+  # Expected: refuse even a preview, retaining the same managed installation.
+  $selectedLink = Join-Path $testRoot 'selected-root-link'
+  try {
+    New-TestDirectoryLink -Path $selectedLink -Target $old
+    Assert-Fails { & $manager -Action Deploy -SourceRoot $selectedLink @arguments -WhatIf } 'PATH'
+    Remove-TestLink $selectedLink
+    New-TestDirectoryLink -Path $selectedLink -Target $fakeCodex
+    Assert-Fails { & $manager -Action Deploy -SourceRoot $old -CodexHome $selectedLink -AgentsHome $fakeAgents -WhatIf } 'PATH'
+  } finally { Remove-TestLink $selectedLink }
+  if ($IsMacOS) {
+    # Scenario: macOS's verified /var or /tmp spelling names these same physical fake homes.
+    # Expected: source preview and receipt verification work without a second installation.
+    $aliasRoot = $null
+    foreach ($alias in @('/var','/tmp')) {
+      $physical = '/private' + $alias
+      if ($testRoot.StartsWith($physical + '/', [StringComparison]::Ordinal)) { $aliasRoot = $alias + $testRoot.Substring($physical.Length) }
+    }
+    if ($aliasRoot) {
+      & $manager -Action Deploy -SourceRoot "$aliasRoot/old" -CodexHome "$aliasRoot/codex" -AgentsHome "$aliasRoot/agents-home" -WhatIf | Out-Null
+      & $manager -Action Verify -CodexHome "$aliasRoot/codex" -AgentsHome "$aliasRoot/agents-home" | Out-Null
+      Assert-True ($receipt.codexHome -ceq $fakeCodex -and $receipt.agentsHome -ceq $fakeAgents) 'Receipt did not retain canonical fake-home paths.'
+    } else { Write-Host 'NOT APPLICABLE: macOS temp root has no /var or /tmp spelling; deployment alias case was not exercised.' }
+  }
   # Scenario: user explicitly pins a tested install. Expected: later upgrades do not move stable.
   $stable = & $manager -Action MarkStable @arguments | ConvertFrom-Json
   $stableBytes = Get-Content "$management/stable.json" -Raw
@@ -151,11 +176,14 @@ try {
   }
   # Scenario: another process holds the deployment lock. Expected: no active payload or receipt changes.
   $heldLock = [IO.File]::Open("$management/deployment.lock",'Open','ReadWrite','None')
-  try { Assert-Fails { & $manager -Action Deploy -SourceRoot $old @arguments } 'LOCK' } finally { $heldLock.Dispose() }
+  try {
+    $contender = Invoke-TestPowerShell -Arguments @('-File',$manager,'-Action','Deploy','-SourceRoot',$old,'-CodexHome',$fakeCodex,'-AgentsHome',$fakeAgents)
+    Assert-True ($contender.ExitCode -ne 0 -and ($contender.Output + $contender.Errors) -match 'LOCK:') 'Separate deployment process did not refuse the held lock.'
+  } finally { $heldLock.Dispose() }
   Assert-True ((Get-Content $receiptPath -Raw) -eq $beforeReceipt) 'Lock conflict changed receipt.'
   # Scenario: hard process exit after activation. Expected: pending journal blocks new work; Recover restores all.
   Set-Content $fault ($source.Replace("Write-Verbose 'Unit activated.'", '[Environment]::Exit(91)'))
-  & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -File $fault -Action Deploy -SourceRoot $old -CodexHome $fakeCodex -AgentsHome $fakeAgents | Out-Null
+  & (Get-TestPowerShell) -NoProfile -File $fault -Action Deploy -SourceRoot $old -CodexHome $fakeCodex -AgentsHome $fakeAgents | Out-Null
   Assert-True ($LASTEXITCODE -eq 91) 'Crash fixture did not exit at intended point.'
   Assert-Fails { & $manager -Action Deploy -SourceRoot $old @arguments } 'PENDING'
   # Scenario: an external edit appears after the crash. Expected: recovery refuses to erase it; journal survives.
@@ -179,14 +207,59 @@ try {
   $receipt | ConvertTo-Json -Depth 20 | Set-Content $receiptPath
   Assert-Fails { & $manager -Action Deploy -SourceRoot $old @arguments -Force } 'RECEIPT|PATH'
   [IO.File]::WriteAllText($receiptPath,$beforeReceipt)
+  # Scenario: case-sensitive host receives a receipt claiming a case-distinct home.
+  # Expected: reject ownership before changing payload, even when remaining file entries match.
+  if (Test-CaseSensitiveFixture $testRoot) {
+    $receipt = $beforeReceipt | ConvertFrom-Json
+    $receipt.codexHome = Join-Path $testRoot 'CODEX'
+    $receipt | ConvertTo-Json -Depth 20 | Set-Content $receiptPath
+    Assert-Fails { & $manager -Action Verify @arguments } 'RECEIPT|PATH'
+    [IO.File]::WriteAllText($receiptPath,$beforeReceipt)
+    Assert-True ((Fingerprint "$fakeAgents/skills") -eq $beforeFiles) 'Case-distinct receipt changed payload.'
+    # Scenario: source files differ only in case. Expected: portable package refuses them before writes.
+    Set-Content "$old/skills/team-fixture/Guide.md" 'uppercase fixture'
+    Set-Content "$old/skills/team-fixture/guide.md" 'lowercase fixture'
+    try {
+      Assert-Fails { & $manager -Action Deploy -SourceRoot $old @arguments } 'PACKAGE|PORTABLE|PATH'
+      Assert-True ((Get-Content $receiptPath -Raw) -eq $beforeReceipt) 'Case-colliding source changed receipt.'
+    } finally {
+      Remove-Item -LiteralPath "$old/skills/team-fixture/Guide.md","$old/skills/team-fixture/guide.md" -Force
+    }
+  } else { Write-Host 'NOT APPLICABLE: Case-distinct package/receipt scenarios require a case-sensitive fixture volume.' }
+  # Scenario: source contains an existing or dangling directory link. Expected: reject both without activation.
+  $sourceLink = "$old/skills/team-fixture/linked"
+  $linkTarget = "$testRoot/link-target"
+  New-Item -ItemType Directory $linkTarget | Out-Null
+  Set-Content "$linkTarget/preserve.md" 'preserve target bytes'
+  try {
+    New-TestDirectoryLink -Path $sourceLink -Target $linkTarget
+    Assert-Fails { & $manager -Action Deploy -SourceRoot $old @arguments } 'PATH|PACKAGE'
+    Assert-True ((Get-Content "$linkTarget/preserve.md" -Raw).Trim() -eq 'preserve target bytes') 'Source-link target changed.'
+    Remove-Item -LiteralPath $linkTarget -Recurse -Force
+    Assert-Fails { & $manager -Action Deploy -SourceRoot $old @arguments } 'PATH|PACKAGE'
+    Assert-True ((Get-Content $receiptPath -Raw) -eq $beforeReceipt) 'Rejected source link changed receipt.'
+  } finally { Remove-TestLink $sourceLink }
   # Scenario: newer runtime data contract. Expected: incompatible downgrade stops before payload changes.
   Set-Content "$old/deployment.json" '{"runtimeDataSchema":0}'
   Assert-Fails { & $manager -Action Deploy -SourceRoot $old @arguments } 'DATA_SCHEMA'
   Remove-Item -LiteralPath "$old/deployment.json"
+  # Scenario: Git is not installed. Expected: directory deployment still works, GitRef reports its dependency.
+  # This empty, owned PATH fixture changes only this process and is restored before local-Git tests.
+  $savedPath = $env:PATH
+  $emptyBin = Join-Path $testRoot 'empty-bin'
+  New-Item -ItemType Directory -Path $emptyBin | Out-Null
+  try {
+    $env:PATH = $emptyBin
+    & $manager -Action Deploy -SourceRoot $new @arguments | Out-Null
+    $withoutGit = Get-Content $receiptPath -Raw | ConvertFrom-Json
+    Assert-True ($null -eq $withoutGit.source.commit -and $withoutGit.source.dirty -eq $true) 'Directory install without Git invented provenance.'
+    Assert-Fails { & $manager -Action Deploy -SourceRoot $old -GitRef HEAD @arguments } 'GIT|DEPENDENCY'
+  } finally { $env:PATH = $savedPath }
   # Scenario: immutable local Git target while dirty worktree exists. Expected: use commit, preserve working files.
-  & git init --quiet $old
+  # An empty template/hooks directory and disabled signing keep fixture commits local and noninteractive.
+  & git init --quiet "--template=$emptyBin" $old
   & git -C $old add .
-  & git -C $old -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m fixture
+  & git -C $old -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false -c "core.hooksPath=$emptyBin" commit --quiet -m fixture
   $commit = (& git -C $old rev-parse HEAD).Trim()
   Set-Content "$old/VERSION" '9.9.9'
   & $manager -Action Deploy -SourceRoot $old -GitRef $commit @arguments | Out-Null
@@ -213,5 +286,6 @@ try {
     if ((Split-Path $resolved -Parent) -ne $tempParent -or (Split-Path $resolved -Leaf) -notlike 'codex-deploy-test-*') { throw 'Unsafe cleanup path.' }
     Remove-Item -LiteralPath $resolved -Force -Recurse
     if (Test-Path $resolved) { throw 'Deployment test cleanup failed.' }
+    Write-Host 'Isolated deployment directory removed.'
   }
 }

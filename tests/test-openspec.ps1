@@ -4,12 +4,14 @@
 [CmdletBinding()]
 param([string]$OpenSpecEntry)
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $repo = Split-Path -Parent $PSScriptRoot
 $adapter = Join-Path $repo 'skills/team-core/scripts/openspec-adapter.ps1'
 $trace = Join-Path $repo 'skills/team-core/scripts/spec-traceability.ps1'
-$tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+$tempParent = (Get-TestTemporaryParent)
 $testRoot = Join-Path $tempParent ('codex-openspec-test-' + [guid]::NewGuid().ToString('N'))
 $double = Join-Path $PSScriptRoot 'fixtures/openspec-cli.cjs'
+$git = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $priorMode = $env:KIT_OPENSPEC_TEST_MODE
 $priorGitGlobal = $env:GIT_CONFIG_GLOBAL
 $priorGitSystem = $env:GIT_CONFIG_NOSYSTEM
@@ -63,7 +65,7 @@ try {
   New-Item -ItemType Directory $testRoot | Out-Null
   # Scenario: opted-in adapter lifecycle runs in a real temporary Git checkout.
   # Expected: only adapter-owned local controls/recovery are omitted from staging.
-  & git.exe -C $testRoot init --quiet --template=
+  & $git -C $testRoot init --quiet --template=
   Assert-True ($LASTEXITCODE -eq 0) 'Could not initialize isolated Git fixture.'
   # Scenario: disabled project. Expected: Doctor is read-only and does not require a CLI.
   $doctor = & $adapter -Action Doctor -ProjectRoot $testRoot | ConvertFrom-Json
@@ -148,15 +150,15 @@ try {
   Assert-Fails { & $adapter -Action Doctor -ProjectRoot $testRoot -OpenSpecEntry $double } 'RECOVERY'
   Assert-True ((Get-FileHash "$testRoot/.gitignore").Hash -eq $ignoreHash) 'Doctor changed ignore rules.'
   Assert-True ((Get-FileHash "$testRoot/openspec/.team-recovery/specs/baseline.md").Hash -eq $recoveryHash) 'Doctor changed recovery evidence.'
-  & git.exe -C $testRoot add --all
+  & $git -C $testRoot add --all
   Assert-True ($LASTEXITCODE -eq 0) 'Git staging failed.'
-  $staged = @(& git.exe -C $testRoot diff --cached --name-only)
+  $staged = @(& $git -C $testRoot diff --cached --name-only)
   Assert-True ($LASTEXITCODE -eq 0) 'Git staged-name observation failed.'
   Assert-True (@($staged | Where-Object { $_ -like 'openspec/.team-recovery/*' -or $_ -eq 'openspec/.team-archive.lock' }).Count -eq 0) 'Local OpenSpec recovery/control was staged.'
   foreach ($path in 'openspec/team-integration.json','openspec/specs/baseline.md','openspec/changes/sample/tasks.md','openspec/changes/sample/verification.json','docs/verification/active/sample.md') {
     Assert-True ($path -in $staged) "Durable OpenSpec evidence hidden: $path"
   }
-  Remove-Item -LiteralPath "$testRoot/openspec/.team-archive.lock"
+  Remove-Item -LiteralPath "$testRoot/openspec/.team-archive.lock" -Force
   Assert-True (Test-Path "$testRoot/openspec/.team-recovery/specs") 'Original specs not backed up.'
   Assert-True (Test-Path "$testRoot/openspec/specs/damaged.md") 'Failure state silently overwritten.'
   Assert-Fails { & $adapter -Action Archive -ProjectRoot $testRoot -ChangeId sample -OpenSpecEntry $double -ConfirmArchive } 'RECOVERY'
@@ -225,7 +227,9 @@ try {
   # Only the unique temporary tree owned by this test may be recursively removed.
   if (Test-Path $testRoot) {
     $resolved = (Resolve-Path $testRoot).Path
-    if (-not $resolved.StartsWith($tempParent, [StringComparison]::OrdinalIgnoreCase) -or (Split-Path $resolved -Leaf) -notlike 'codex-openspec-test-*') { throw 'Unsafe cleanup target.' }
+    if ((Split-Path $resolved -Parent) -cne $tempParent -or (Split-Path $resolved -Leaf) -notlike 'codex-openspec-test-*') { throw 'Unsafe cleanup target.' }
     Remove-Item -LiteralPath $resolved -Recurse -Force
+    if (Test-Path -LiteralPath $resolved) { throw 'OpenSpec fixture cleanup failed.' }
+    Write-Host 'Isolated OpenSpec directory removed.'
   }
 }

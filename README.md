@@ -64,7 +64,7 @@ Architect uses GPT-6.1 Sol / xhigh to budget more reasoning for architecture tra
 
 The kit does not implement automatic model fallback. Keep previous model assignments in Git history as a manual recovery reference, not a second active profile. If a model is unavailable or shows a reproducible regression, first identify the cause and confirm a replacement is available; make an explicit, scoped configuration change with matching validator updates and verification. Do not silently switch models or assume a legacy model bypasses service outages or account limits.
 
-Version `1.0.8` includes the unified `$team` entry, Git delivery checking, risk-proportional web engineering guidance, and the AI development, evaluation and migration guidance described below; see the [changelog](CHANGELOG.md) for the complete release record. It remains on the 1.0 preview line and is not a stable-release declaration. For a source installation, use the installation receipt's source commit and package digest to identify the installed content, not the version number alone.
+Version `1.0.9` integrates portable setup and verification with the unified `$team` entry, Git delivery checking, risk-proportional web engineering guidance, and the AI development, evaluation and migration guidance described below; see the [changelog](CHANGELOG.md) for the complete release record. It remains on the 1.0 preview line and is not a stable-release declaration. For a source installation, use the installation receipt's source commit and package digest to identify the installed content, not the version number alone.
 
 When a commit, push, pull request, merge, release, or installation source decision is in scope, `$team-delivery-check` assesses the operation's exact Git scope against project policy and current evidence. It can activate when that delivery intent is clear; ordinary edits and code review alone do not activate it. The collector is read-only, and its mechanical `ready-for-review` result is not semantic approval or permission to perform the Git action. See the [Git delivery contract](skills/team-core/references/git-delivery.md).
 
@@ -90,17 +90,27 @@ Use Codex on the machine where the Kit should be installed and share the [Kit re
 
 ### Manual installation (optional)
 
-From PowerShell 7 in the repository, the direct commands are:
+The shared implementation targets Windows, macOS, and Linux using PowerShell 7. Install `pwsh` separately, then run these commands from this repository in PowerShell or your usual shell. See [platform setup](docs/platform-support.md) for prerequisites and filesystem limits, and the [platform matrix](docs/platform-support.md#platform-matrix-and-evidence) for historical verification coverage and remaining limits.
+
+For guided macOS/Linux setup, start with the read-only readiness check, then explicitly install and verify:
+
+```sh
+sh scripts/setup.sh
+sh scripts/setup.sh -Action Install
+sh scripts/setup.sh -Action Verify
+```
+
+The setup helper uses existing PowerShell and Codex installations, guides missing prerequisites, and checks installed Skill discovery without login or inference. See the [setup guide](docs/setup.md) for approved-route dependency preparation, options, and sandbox requirements. The direct PowerShell commands remain available on all three platforms:
 
 ```powershell
-.\scripts\validate.ps1
-.\scripts\install-user.ps1
+pwsh -NoProfile -File ./scripts/validate.ps1
+pwsh -NoProfile -File ./scripts/install-user.ps1
 ```
 
 To update an existing installation, use:
 
 ```powershell
-.\scripts\update-user.ps1
+pwsh -NoProfile -File ./scripts/update-user.ps1
 ```
 
 The [Codex installation guide](docs/codex-install.md) explains source selection, preview and discovery checks. The update entrypoint uses the same receipt, `-WhatIf`, conflict protection, and `-Force` backup behavior as the installer. It does not modify `~/.codex/config.toml`. Install, upgrade and downgrade share one deployment manager. Receipt-owned components absent from the target are removed, including obsolete files inside retained Skills. Unknown or modified contents block replacement unless explicitly backed up with `-Force`. See [safe deployment](docs/safe-deployment.md) to pin a tested stable snapshot before trying a new version, restore offline, or deploy a local Git commit without changing the checkout. Backups and the recovery manager intentionally remain outside agent/Skill discovery; project data is not rolled back.
@@ -108,32 +118,25 @@ The [Codex installation guide](docs/codex-install.md) explains source selection,
 To verify the distributable package without touching your actual Codex or Skills directories, run:
 
 ```powershell
-.\tests\test-validate.ps1
-.\tests\test-stage-verification.ps1
-.\tests\test-project-blueprint.ps1
-.\tests\test-install-user.ps1
-.\tests\test-deployment.ps1
-.\tests\test-documentation.ps1
-.\tests\test-feedback-runtime.ps1
-.\tests\test-ai-simulation.ps1
+pwsh -NoProfile -File ./scripts/test.ps1
 ```
 
-These tests run only in unique system-temporary directories. They verify invalid metadata and missing local references, TDD stage-packet initialization and safe state transitions, the complete package and update behavior, the feedback runtime's validation, aggregation, archive, deletion-confirmation, and cleanup behavior, and local AI-simulation definition/run evidence handling; each directory is removed before its test exits.
+The runner invokes both validators and the isolated test suites in separate PowerShell processes, records environment and check outcomes, and fails when a required prerequisite or check is unavailable. The full suite needs Git and Node.js for local fixtures; it downloads no dependencies. Tests use unique system-temporary directories and remove their fixtures. Coverage includes package metadata, stage verification, installation/update/recovery, local runtime helpers, AI-simulation definition and run-evidence handling, generated-artifact protection, formatter behavior, Team routing, Git delivery evidence, shared test support, web guidance, and Windows/Unix filesystem boundaries.
 
 To validate public documentation structure and synchronization separately from package validation, run:
 
 ```powershell
-.\scripts\validate-docs.ps1 -ProjectRoot .
-.\tests\test-bilingual-docs.ps1
+pwsh -NoProfile -File ./scripts/validate-docs.ps1 -ProjectRoot .
+pwsh -NoProfile -File ./tests/test-bilingual-docs.ps1
 ```
 
 The installer copies agents to `~/.codex/agents` and Skills (including the internal `team-core` policy bundle and feedback runtime) to `~/.agents/skills`. It does not overwrite or merge `~/.codex/config.toml`. The optional [`config/recommended-config.toml`](config/recommended-config.toml) recommends a ceiling of six concurrently open child threads per session, excluding the Lead. If you already merged an older fragment, explicitly update `max_concurrent_threads_per_session` from `3` to `6`. The active Codex session may enforce a lower limit; a config value does not prove the setting is loaded or that six threads are available.
 
-The installer validates the kit before writing. Use `-WhatIf` to preview its actions. It stops on an existing file or Skill directory unless it is an unchanged installation recorded by the kit; use `-Force` only when you want conflicting destinations backed up and replaced. The installation receipt and backups are stored under `~/.agents/codex-multi-agent/` by default.
+The installer validates the kit before writing. Use `-WhatIf` to preview its actions. It stops on an existing file or Skill directory unless it is an unchanged installation recorded by the kit; use `-Force` only when you want conflicting destinations backed up and replaced. Linked or case-colliding managed paths remain refused even with `-Force`. The installation receipt and backups are stored under `~/.agents/codex-multi-agent/` by default.
 
 Agent names use the `team-` prefix to avoid collisions with personal agents. Historical components absent from the installation receipt are left untouched; inspect their ownership before removing them manually.
 
-Current release: `1.0.8` (unified `$team` entry, Git delivery checking, risk-proportional web guidance, shared test support, AI development/evaluation guidance, migration completeness and first-use onboarding on the 1.0 preview line; not a stable-release declaration). Kit-owned local generated artifacts use narrow Git protection and an index check. Documentation governance metadata, index and review records stay on disk locally but are not shared through Git; a fresh checkout must establish its own adoption/review state. User-authored project documents, PRDs, Blueprint, verification packets and native specs remain versionable. Tracked local artifacts and explicit include-rule conflicts need a user decision. The kit installs no Git hooks or background watcher, and manual forced staging remains possible. See [generated-artifact Git protection](skills/team-core/references/generated-artifacts.md). The feedback runtime currently supports `$team-dev`, `$team-plan`, `$team-debug`, and `$team-review`; `$team-ai-simulate` keeps its separate bounded local run trace and does not call that runtime. On the standard path, `$team-dev` creates and validates Git-tracked stage verification packets in target projects; eligible light work uses concise existing records while preserving any required stage/spec/manual artifacts. Both paths use `test-first` where practical and documented alternatives where it is not. Persistent repair loops research relevant external evidence after two ordinary failures; applicable new evidence may support one conditional extension, up to five repair attempts total. Debug research uses the existing six-round allocation. Pauses remain evidence-based and require user authorization to resume; long healthy operations have task-specific progress checkpoints, not a universal time cutoff. Test execution uses risk tiers and evidence-based reuse, with scoped Explorer discovery available when the test surface is unclear; required E2E/manual scope and repository gates remain authoritative. See [repair and diagnosis loop guard](skills/team-core/references/repair-loop-guard.md), [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [code readability contract](skills/team-core/references/code-readability.md), [scoped formatter tool](docs/formatter-tool.md), [project rules](skills/team-core/references/project-rules.md), [AI simulation guide](docs/ai-simulation.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
+Current release: `1.0.9` (portable setup and verification, unified `$team` entry, Git delivery checking, risk-proportional web guidance, shared test support, AI development/evaluation guidance, migration completeness and first-use onboarding on the 1.0 preview line; not a stable-release declaration). Kit-owned local generated artifacts use narrow Git protection and an index check. Documentation governance metadata, index and review records stay on disk locally but are not shared through Git; a fresh checkout must establish its own adoption/review state. User-authored project documents, PRDs, Blueprint, verification packets and native specs remain versionable. Tracked local artifacts and explicit include-rule conflicts need a user decision. The kit installs no Git hooks or background watcher, and manual forced staging remains possible. See [generated-artifact Git protection](skills/team-core/references/generated-artifacts.md). The feedback runtime currently supports `$team-dev`, `$team-plan`, `$team-debug`, and `$team-review`; `$team-ai-simulate` keeps its separate bounded local run trace and does not call that runtime. On the standard path, `$team-dev` creates and validates Git-tracked stage verification packets in target projects; eligible light work uses concise existing records while preserving any required stage/spec/manual artifacts. Both paths use `test-first` where practical and documented alternatives where it is not. Persistent repair loops research relevant external evidence after two ordinary failures; applicable new evidence may support one conditional extension, up to five repair attempts total. Debug research uses the existing six-round allocation. Pauses remain evidence-based and require user authorization to resume; long healthy operations have task-specific progress checkpoints, not a universal time cutoff. Test execution uses risk tiers and evidence-based reuse, with scoped Explorer discovery available when the test surface is unclear; required E2E/manual scope and repository gates remain authoritative. See [repair and diagnosis loop guard](skills/team-core/references/repair-loop-guard.md), [feedback recording](skills/team-core/references/feedback-recording.md), [test and acceptance contract](skills/team-core/references/test-acceptance-contract.md), [TDD protocol](skills/team-core/references/tdd-protocol.md), [code comment contract](skills/team-core/references/code-comments.md), [code readability contract](skills/team-core/references/code-readability.md), [scoped formatter tool](docs/formatter-tool.md), [project rules](skills/team-core/references/project-rules.md), [AI simulation guide](docs/ai-simulation.md), [versioning policy](docs/release-versioning.md), and the [changelog](CHANGELOG.md). Version 0.1.0 also renamed `sql-safety` to `database-engineering` and `test-strategy` to `testing-engineering`. Historical Skill directories not recorded in the receipt remain untouched; receipt-owned retired Skills are reconciled against the selected target.
 
 Visible UI work uses [frontend-design](skills/frontend-design/SKILL.md) alongside frontend-engineering. The [UI delivery contract](skills/team-core/references/ui-quality.md) preserves page-level goals through delegation and requires rendered inspection separate from functional tests. No extra design agent, model change or per-page design document is required. Missing browser evidence must be reported as visually unverified, not release-ready.
 

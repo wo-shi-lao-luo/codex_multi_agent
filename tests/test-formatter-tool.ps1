@@ -1,8 +1,14 @@
 # Exercise the installed formatter adapter in isolated project fixtures.
 # Controlled tools test transport and safety, not real formatter quality or Agent selection.
 [CmdletBinding()]
-param([switch]$SourceOnly, [ValidateSet('EditorConfig', 'GitIgnore')][string]$PolicyCase)
+param(
+  [switch]$SourceOnly,
+  [ValidateSet('EditorConfig', 'GitIgnore')][string]$PolicyCase,
+  [switch]$TransportOnly,
+  [ValidateRange(1, 120)][int]$BurstTimeoutSeconds = 30
+)
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $helper = Join-Path $root 'skills/team-core/scripts/format-code.ps1'
 # FT-01: the installed shared Skill must include the requested executable adapter.
@@ -11,11 +17,12 @@ if (-not (Test-Path -LiteralPath $helper -PathType Leaf)) {
   throw 'FT-01 missing formatter helper: skills/team-core/scripts/format-code.ps1'
 }
 if ($SourceOnly) { Write-Output 'FT-01 helper payload exists; runtime safety not checked.'; return }
-$tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\', '/')
+$tempParent = Get-TestTemporaryParent
 $fixture = Join-Path $tempParent ('codex-formatter-test-' + [guid]::NewGuid().ToString('N'))
 $project = Join-Path $fixture 'project with spaces'
 $outside = Join-Path $fixture 'outside.js'
 $utf8 = [Text.UTF8Encoding]::new($false, $true)
+$script:adapterInvocation = 0
 
 function Assert-True([bool]$Value, [string]$Message) {
   # Fail at the behavioral boundary, retaining a scenario-specific diagnostic.
@@ -35,6 +42,25 @@ function Invoke-Adapter([hashtable]$Options) {
   # Invoke the real CLI in a fresh pwsh process; JSON/base64 preserves literal array args.
   $parameters = @{ ProjectRoot = $project; Files = @('src/file with spaces.js') }
   foreach ($key in $Options.Keys) { $parameters[$key] = $Options[$key] }
+  $script:adapterInvocation++
+  $action = if ($parameters.ContainsKey('Action')) { $parameters.Action } else { 'Plan' }
+  $toolTimeout = if ($parameters.ContainsKey('TimeoutSeconds')) { [int]$parameters.TimeoutSeconds } else { 30 }
+  # A Prettier request can run version, policy and candidate processes per file.
+  # Preserve those production deadlines; give this outer fixture host their total
+  # bounded budget plus startup/metadata/JSON allowance instead of racing one call.
+  $childTimeout = 30
+  if ($action -ne 'Plan' -and $parameters.TrustTooling) {
+    $childTimeout += 3 * @($parameters.Files).Count * $toolTimeout
+  }
+  $displayFiles = @($parameters.Files | ForEach-Object {
+    if ([IO.Path]::IsPathRooted($_)) { '<absolute-path>' } else { $_ }
+  }) -join ','
+  $modePath = Join-Path $project 'tool-mode.txt'
+  $mode = if (Test-Path -LiteralPath $modePath -PathType Leaf) { [IO.File]::ReadAllText($modePath).Trim() } else { 'normal' }
+  if ($mode -notin @('normal','timeout','oversize','unicode-oversize','combined-oversize','fail','unicode-boundary')) { $mode = '<other-fixture-mode>' }
+  $scenario = "adapter#$script:adapterInvocation action=$action files=$displayFiles mode=$mode"
+  $trace = $env:CODEX_FORMATTER_TRACE -ceq '1'
+  if ($trace) { Write-Host "FT $scenario begin; child budget=${childTimeout}s" }
   $parameterJson = $parameters | ConvertTo-Json -Depth 8
   $encodedParameters = [Convert]::ToBase64String($utf8.GetBytes($parameterJson))
   $encodedHelper = [Convert]::ToBase64String($utf8.GetBytes($helper))
@@ -46,9 +72,13 @@ function Invoke-Adapter([hashtable]$Options) {
 exit `$LASTEXITCODE
 "@
   $encodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
-  $output = & pwsh -NoProfile -EncodedCommand $encodedCommand 2>&1
-  $code = $LASTEXITCODE
-  $raw = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+  $watch = [Diagnostics.Stopwatch]::StartNew()
+  try { $child = Invoke-TestPowerShell @('-EncodedCommand', $encodedCommand) -TimeoutSeconds $childTimeout }
+  catch { throw "FT $scenario failed after $([Math]::Round($watch.Elapsed.TotalSeconds,2))s: $($_.Exception.Message)" }
+  if ($trace) { Write-Host "FT $scenario finished in $([Math]::Round($watch.Elapsed.TotalSeconds,2))s; exit=$($child.ExitCode)" }
+  $code = $child.ExitCode
+  $raw = $child.Output
+  if ($child.Errors) { throw "Adapter child stderr (exit $code): $($child.Errors)" }
   try {
     $payload = $raw | ConvertFrom-Json
   } catch {
@@ -124,6 +154,48 @@ function Test-PolicyBoundary([string]$Kind) {
   $finalCalls = if (Test-Path -LiteralPath $log) { (Get-Content -LiteralPath $log).Count } else { 0 }
   Assert-True ($finalCalls -eq $initialCalls) "Policy $Kind executed formatter."
 }
+function Test-TransportLimits {
+  # FT-05 actual timeout and bounded output: trusted controlled process stalls or floods.
+  # Expected: Apply errors with unchanged original, no unbounded wait/output.
+  # Normal safety checks use the production default deadline. A caller can select
+  # a shorter burst deadline for focused throughput diagnostics, not a host SLA.
+  Write-Fixture 'src/limits.js' 'UNFORMATTED'
+  $limits = Join-Path $project 'src/limits.js'
+  foreach ($mode in @('timeout', 'oversize', 'unicode-oversize', 'combined-oversize', 'fail')) {
+    Write-Fixture 'tool-mode.txt' $mode
+    $hash = Fingerprint $limits
+    $limitTimeout = if ($mode -eq 'timeout') { 1 } elseif ($mode -in @('oversize','combined-oversize')) { $BurstTimeoutSeconds } else { 30 }
+    $limited = Invoke-Adapter @{
+      Action = 'Apply'; TrustTooling = $true; AllowWrite = $true
+      Files = @('src/limits.js'); TimeoutSeconds = $limitTimeout
+    }
+    Assert-True ($limited.Code -eq 2) "Tool $mode did not fail closed."
+    if ($mode -eq 'timeout') {
+      Assert-True ($limited.Payload.results[0].reason -eq 'tool-timeout') "Tool timeout failed for unrelated reason: $($limited.Raw)"
+    }
+    if ($mode -in @('oversize', 'unicode-oversize', 'combined-oversize')) {
+      Assert-True (
+        $limited.Payload.results[0].reason -eq 'tool-output-limit'
+      ) "Tool $mode failed for unrelated reason: $($limited.Raw)"
+    }
+    Assert-NoChange $limits $hash "FT-05 $mode"
+  }
+  # FT-06 split Unicode transport: supplementary characters split across native pipe chunks.
+  # Expected: below-budget UTF-8 output survives exactly, without surrogate-state rejection.
+  Write-Fixture 'tool-mode.txt' 'unicode-boundary'
+  $unicode = Invoke-Adapter @{
+    Action = 'Apply'; TrustTooling = $true; AllowWrite = $true; Files = @('src/limits.js')
+  }
+  Assert-True ($unicode.Code -eq 0) "Split Unicode candidate failed: $($unicode.Raw)"
+  $unicodeExpected = $utf8.GetBytes(('A' + ('😀' * 6000)))
+  Assert-True (
+    [Convert]::ToBase64String([IO.File]::ReadAllBytes($limits)) -ceq
+    [Convert]::ToBase64String($unicodeExpected)
+  ) 'Supplementary character bytes changed.'
+  Remove-Item -LiteralPath (Join-Path $project 'tool-mode.txt')
+
+}
+
 try {
   [IO.Directory]::CreateDirectory($project) | Out-Null
   $originalSource = "// Meaningful literal and explanation remain.`nconst message = 'UNFORMATTED';`n"
@@ -143,6 +215,11 @@ try {
     Write-Output "Policy $PolicyCase checks passed; native formatter acceptance not observed."
     return
   }
+  if ($TransportOnly) {
+    Test-TransportLimits
+    Write-Output 'FT-05/06 focused transport limits and Unicode byte fidelity passed.'
+    return
+  }
   Test-PolicyBoundary 'EditorConfig'
   Test-PolicyBoundary 'GitIgnore'
 
@@ -153,6 +230,14 @@ try {
   Assert-True ($plan.Payload.results[0].formatter -eq 'Prettier') 'Auto did not select configured Prettier.'
   Assert-True (-not (Test-Path -LiteralPath $log)) 'Plan executed formatter.'
   Assert-NoChange $source $before 'FT-02 Plan'
+  # Verified macOS system aliases select the identical project at the root boundary.
+  # Expected: Plan remains read-only and selects the same formatter through /tmp or /var.
+  if ($IsMacOS -and ($project.StartsWith('/private/tmp/') -or $project.StartsWith('/private/var/'))) {
+    $aliased = Invoke-Adapter @{ ProjectRoot = $project.Substring('/private'.Length) }
+    Assert-True ($aliased.Code -eq 0 -and $aliased.Payload.results[0].formatter -eq 'Prettier') 'Aliased project Plan failed.'
+    Assert-True (-not (Test-Path -LiteralPath $log)) 'Aliased Plan executed formatter.'
+    Assert-NoChange $source $before 'Aliased Plan'
+  } else { Write-Output 'N/A: formatter macOS system alias fixture unavailable on this host.' }
 
   # FT-03 trust/write gates: Check cannot execute without trust; Apply also needs write approval.
   # Expected: structured blocked outcome, no process log and unchanged original.
@@ -179,6 +264,34 @@ try {
   Assert-True (
     $clean.Code -eq 0 -and $clean.Payload.results[0].status -eq 'clean'
   ) "Second Check was not clean: $($clean.Raw)"
+  # Ordinary case-distinct source files must both be precomputed and written once.
+  # Expected: Apply formats both exact paths on a sensitive volume, without duplicate rejection.
+  if (Test-CaseSensitiveFixture $project) {
+    Write-Fixture 'src/Case.js' 'UNFORMATTED upper'
+    Write-Fixture 'src/case.js' 'UNFORMATTED lower'
+    $caseApply = Invoke-Adapter @{
+      Action = 'Apply'; TrustTooling = $true; AllowWrite = $true; Files = @('src/Case.js', 'src/case.js')
+    }
+    Assert-True ($caseApply.Code -eq 0 -and $caseApply.Payload.summary.applied -eq 2) "Case-distinct batch failed: $($caseApply.Raw)"
+    Assert-True ([IO.File]::ReadAllText((Join-Path $project 'src/Case.js')) -ceq 'FORMATTED upper') 'Upper-case source was lost.'
+    Assert-True ([IO.File]::ReadAllText((Join-Path $project 'src/case.js')) -ceq 'FORMATTED lower') 'Lower-case source was lost.'
+  } else {
+    # Case aliases must not acquire two write identities on insensitive volumes.
+    # Expected: the entire batch is blocked before any tool call or first-file write.
+    Write-Fixture 'src/case-alias.js' 'UNFORMATTED alias'
+    $aliasFile = Join-Path $project 'src/case-alias.js'
+    $aliasHash = Fingerprint $aliasFile
+    $callsHash = Fingerprint $log
+    $aliasBatch = Invoke-Adapter @{
+      Action = 'Apply'; TrustTooling = $true; AllowWrite = $true; Files = @('src/case-alias.js', 'src/CASE-ALIAS.js')
+    }
+    Assert-True ($aliasBatch.Code -eq 2 -and $aliasBatch.Payload.summary.applied -eq 0) 'Case-alias batch wrote a duplicate physical file.'
+    $expectedReason = if ($IsWindows) { 'duplicate-file' } else { 'noncanonical-file-case' }
+    Assert-True (@($aliasBatch.Payload.results | Where-Object reason -eq $expectedReason).Count -eq 1) 'Case-alias rejection did not identify duplicate spelling.'
+    Assert-NoChange $aliasFile $aliasHash 'Case-alias batch'
+    Assert-NoChange $log $callsHash 'Case-alias process prevention'
+    Write-Output 'N/A: formatter case-distinct files require a case-sensitive fixture volume; case-alias batch refusal passed.'
+  }
   $calls = Get-Content -LiteralPath $log | ForEach-Object { ,($_ | ConvertFrom-Json) }
   foreach ($call in $calls) {
     Assert-True (
@@ -227,7 +340,7 @@ try {
   [IO.File]::WriteAllText($junctionSource, 'UNFORMATTED', $utf8)
   $junctionHash = Fingerprint $junctionSource
   $junction = Join-Path $project 'src/junction'
-  New-Item -ItemType Junction -Path $junction -Target $outsideDir | Out-Null
+  New-TestDirectoryLink $junction $outsideDir
   try {
     $linked = Invoke-Adapter @{
       Action = 'Apply'; TrustTooling = $true; AllowWrite = $true; Files = @('src/junction/file.js')
@@ -239,8 +352,20 @@ try {
     Assert-NoChange $log $logHash 'FT-03 reparse process prevention'
   } finally {
     # Remove link itself without recursive traversal before cleaning owned fixture tree.
-    if (Test-Path -LiteralPath $junction) { Remove-Item -LiteralPath $junction -Force }
+    Remove-TestLink $junction
   }
+  # A dangling ancestor must fail as unsafe before file existence/tool checks.
+  # Expected: structured unsafe-path, no tool call or recreated target directory.
+  $missingTarget = Join-Path $fixture 'missing-link-target'
+  [IO.Directory]::CreateDirectory($missingTarget) | Out-Null
+  New-TestDirectoryLink $junction $missingTarget
+  Remove-Item -LiteralPath $missingTarget -Force
+  try {
+    $dangling = Invoke-Adapter @{ Files = @('src/junction/file.js') }
+    Assert-True ($dangling.Code -eq 2 -and $dangling.Payload.results[0].reason -eq 'unsafe-path') 'Dangling formatter ancestor was not refused as unsafe.'
+    Assert-NoChange $log $logHash 'Dangling process prevention'
+    Assert-True (-not (Test-Path -LiteralPath $missingTarget)) 'Dangling target was recreated.'
+  } finally { Remove-TestLink $junction }
 
   # FT-05 batch failure: one valid candidate and one formatter rejection.
   # Expected: Apply2 with both originals unchanged, no partial precompute writes.
@@ -353,39 +478,7 @@ try {
     $missing.Code -eq 2 -and $missing.Payload.results[0].status -eq 'blocked'
   ) 'Missing explicit tool did not block.'
 
-  # FT-05 actual timeout and bounded output: trusted controlled process stalls or floods.
-  # Expected: Apply errors with unchanged original, no unbounded wait/output.
-  Write-Fixture 'src/limits.js' 'UNFORMATTED'
-  $limits = Join-Path $project 'src/limits.js'
-  foreach ($mode in @('timeout', 'oversize', 'unicode-oversize', 'fail')) {
-    Write-Fixture 'tool-mode.txt' $mode
-    $hash = Fingerprint $limits
-    $limitTimeout = if ($mode -eq 'timeout') { 1 } else { 30 }
-    $limited = Invoke-Adapter @{
-      Action = 'Apply'; TrustTooling = $true; AllowWrite = $true
-      Files = @('src/limits.js'); TimeoutSeconds = $limitTimeout
-    }
-    Assert-True ($limited.Code -eq 2) "Tool $mode did not fail closed."
-    if ($mode -in @('oversize', 'unicode-oversize')) {
-      Assert-True (
-        $limited.Payload.results[0].reason -eq 'tool-output-limit'
-      ) "Tool $mode failed for unrelated reason: $($limited.Raw)"
-    }
-    Assert-NoChange $limits $hash "FT-05 $mode"
-  }
-  # FT-06 split Unicode transport: supplementary characters split across native pipe chunks.
-  # Expected: below-budget UTF-8 output survives exactly, without surrogate-state rejection.
-  Write-Fixture 'tool-mode.txt' 'unicode-boundary'
-  $unicode = Invoke-Adapter @{
-    Action = 'Apply'; TrustTooling = $true; AllowWrite = $true; Files = @('src/limits.js')
-  }
-  Assert-True ($unicode.Code -eq 0) "Split Unicode candidate failed: $($unicode.Raw)"
-  $unicodeExpected = $utf8.GetBytes(('A' + ('😀' * 6000)))
-  Assert-True (
-    [Convert]::ToBase64String([IO.File]::ReadAllBytes($limits)) -ceq
-    [Convert]::ToBase64String($unicodeExpected)
-  ) 'Supplementary character bytes changed.'
-  Remove-Item -LiteralPath (Join-Path $project 'tool-mode.txt')
+  Test-TransportLimits
 
   # FT-04 PowerShell fixed-worker transport: trusted synthetic installed PSD1 module.
   # Expected: Check detects change without writes; Apply commits only the selected PS file.
@@ -435,7 +528,8 @@ try {
   [IO.File]::WriteAllText((Join-Path $oldPackage 'VERSION'), '1.0.2', $utf8)
   [IO.File]::WriteAllText((Join-Path $newPackage 'VERSION'), '1.0.3', $utf8)
   $worker = Join-Path $root 'skills/team-core/scripts/format-code-powershell.ps1'
-  foreach ($entry in @($helper, $worker)) {
+  $filesystemHelper = Join-Path $root 'skills/team-core/scripts/platform-filesystem.ps1'
+  foreach ($entry in @($helper, $worker, $filesystemHelper)) {
     Assert-True (Test-Path -LiteralPath $entry -PathType Leaf) 'Installed helper/worker asset missing.'
     Copy-Item -LiteralPath $entry `
       -Destination (Join-Path $newPackage ('skills/team-core/scripts/' + [IO.Path]::GetFileName($entry)))
@@ -450,12 +544,12 @@ try {
   [IO.File]::WriteAllText($personal, '# Personal untouched', $utf8)
   $personalHash = Fingerprint $personal
   & $manager -Action Deploy -SourceRoot $newPackage @deployArgs | Out-Null
-  foreach ($entry in @($helper, $worker)) {
+  foreach ($entry in @($helper, $worker, $filesystemHelper)) {
     $installed = Join-Path $fakeAgents ('skills/team-core/scripts/' + [IO.Path]::GetFileName($entry))
     Assert-True ((Fingerprint $entry) -ceq (Fingerprint $installed)) 'Installed formatter byte mismatch.'
   }
   & $manager -Action Deploy -SourceRoot $oldPackage @deployArgs | Out-Null
-  foreach ($entry in @($helper, $worker)) {
+  foreach ($entry in @($helper, $worker, $filesystemHelper)) {
     $removedPath = Join-Path $fakeAgents ('skills/team-core/scripts/' + [IO.Path]::GetFileName($entry))
     Assert-True (-not (Test-Path -LiteralPath $removedPath)) 'Downgrade left formatter helper residue.'
   }

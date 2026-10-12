@@ -2,6 +2,23 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
+
+## [1.0.9] - 2026-10-12
+
+### Changed
+
+- Integrate portable Windows/macOS/Linux support and guided macOS/Linux setup with the 1.0.8 unified `$team` entry, Git delivery checks, web guidance, shared test support, and existing AI development, evaluation, migration, formatting, and onboarding capabilities. Preserve both release histories, the earlier tooling cleanup, and the preview status. Extend macOS system-alias, dangling-link, and case-distinct path handling to the added runtime helpers, and use native Unix link and executable fixtures.
+- Expand the common offline runner to 27 checks: two validators and 25 suites. Derive setup's expected Skill inventory from the selected source; the current package contains 19 Skills and 15 agent profiles. Keep historical 14-check and 13-Skill platform results distinct from fresh integration verification.
+
+### Fixed
+
+- Allow an explicit `Install -Force` repair to reach the existing backup/replacement manager when a managed Skill cannot be parsed. Check client compatibility before deployment and require strict receipt and complete Skill discovery after installation; `Verify` remains read-only and does not repair failures.
+- Synchronize provenance from `documentation.ps1`, `project-rules.ps1`, `format-code.ps1`, and `ai-simulation.ps1` with `1.0.9`. Package validation now checks all four producers against `VERSION`, with regression coverage for mismatches.
+- Reject guided setup layouts whose Skills directory overlaps masked private configuration paths before starting a client probe or writing installation targets. Recommend the default `.agents` root or another non-overlapping unmasked root; retain private configuration isolation and the direct installer's existing path contract.
+- Drain formatter output without per-read pauses, using bounded waits that wake when I/O completes. Preserve fair stdout/stderr handling, Unicode validation, byte limits, and per-process deadlines.
+- Prevent read-only Git delivery diffs from refreshing `.git/index` when timestamps change but file content does not. Apply `diff.autoRefreshIndex=false` only to collector commands, leaving user and repository Git configuration unchanged.
+
 ## [1.0.8] - 2026-10-10
 
 ### Added
@@ -100,6 +117,31 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 - Define four explicit context modes, synthetic cases with criteria kept outside the actor packet, Lead-controlled routing/mock results, approved-proxy versus target-model distinctions, and host-context/identity/usage limits.
 - Add the local `team-core/scripts/ai-simulation.ps1` helper and reusable definition template. It validates bounded definitions, freezes declared source snapshots, records non-replaceable call evidence with a terminal integrity head under an exact protected `_work/ai-sim-<task>/` path, and reports integrity/drift without running models or deciding acceptance.
 - Add the shared AI-simulation contract, engineering guidance and verification entry; keep raw traces separate from the `team-core` feedback runtime, which continues to support `$team-dev`, `$team-plan`, `$team-debug`, and `$team-review` only.
+
+## [0.10.4] - 2026-10-11
+
+- Remove developer-only client/Lima acceptance harnesses, their Python tests and asset locks, run-specific platform reports, and the detailed acceptance guide from the active source tree.
+- Retain workflows, agent profiles, Skills, user setup/installation/recovery, reusable PowerShell tests, and platform CI. Keep a concise historical coverage summary in the platform guide.
+- Preserve previous release entries; previously committed tooling and reports remain recoverable from Git history. This focused cleanup remains a review preview.
+
+## [0.10.3] - 2026-10-11
+
+- Add a macOS/Linux setup entrypoint with `Doctor`, `Install`, and `Verify` actions, operating-system/architecture and existing PowerShell/Codex detection, and manual prerequisite guidance through an approved network route. Default to `Doctor` without installing the kit.
+- Check client capabilities in a disposable offline sandbox before installation, reuse the existing deployment manager, and verify the receipt plus all 13 installed Skills through client discovery. Keep personal configuration and authentication untouched; do not download dependencies, log in, request inference, or add native app packaging.
+- Add isolated setup regressions within the existing 14-check suite and a setup guide. Keep the script entrypoints separate from the developer-only Lima acceptance environment; this focused extension remains a review preview.
+
+## [0.10.2] - 2026-10-10
+
+- Add a reusable Python client acceptance harness with disposable homes, fresh device authentication, strict client-reported role/model/reasoning evidence, a seeded review regression, preservation checks, sanitized results, and bounded cleanup. Keep provider-reported model identity separate and optional.
+- Add a disposable Ubuntu 24.04 arm64 acceptance launcher using Lima and native Apple virtualization, verified local image/runtime assets, a fingerprinted source copy, and no shared host directories. Run the 14-check offline suite and client preflight before live authentication; require an approved network route and explicit installation-identifier authorization.
+- Add synthetic protocol/lifecycle/privacy regression tests and a client acceptance guide. Live checks remain outside the default suite; this tooling release is a review preview and does not establish unexecuted platform or model results.
+
+## [0.10.1] - 2026-10-10
+
+- Extend the shared PowerShell implementation for Windows, macOS, and Linux with verified macOS temporary-directory aliases, contained project paths, exact case-sensitive project inventories, and rejection of case-colliding distributable files. Preserve the standalone recovery manager and existing receipt protocol.
+- Add a portable test runner and regression coverage for native PowerShell invocation, Windows junctions and Unix symbolic links, case-sensitive paths, Unicode paths, and separate-process deployment locking. Keep tests isolated in temporary projects and installation homes without dependency downloads.
+- Permit directory deployment without Git while retaining Git as a prerequisite for local commit deployment. Keep optional OpenSpec dependencies separately installed and explicitly selected where automatic discovery is unavailable.
+- Add cross-platform setup, a preprovisioned self-hosted CI matrix, a GitHub-hosted workflow with pinned actions, and a platform verification record. Record all 14 automated checks passing on Windows x64, Ubuntu x64, and macOS arm64, with additional local macOS coverage on default and case-sensitive APFS. Preserve historical Windows evidence and explicit platform-specific skips; live-client acceptance remains pending. This remains a review preview.
 
 ## [0.10.1] - 2026-10-04
 

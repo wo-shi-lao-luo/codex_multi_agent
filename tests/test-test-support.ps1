@@ -14,7 +14,7 @@ if (-not (Test-Path -LiteralPath $helper -PathType Leaf)) {
 }
 . $helper
 
-$parent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\', '/')
+$parent = Get-TestTemporaryParent
 $prefix = 'codex-test-support-test-'
 $sandbox = Join-Path $parent ($prefix + [guid]::NewGuid().ToString('N'))
 $cleanupRoot = Join-Path $parent ($prefix + [guid]::NewGuid().ToString('N'))
@@ -28,11 +28,19 @@ function Assert-Support([bool]$Condition, [string]$Message) {
   $script:checks++
 }
 
-function Assert-SupportRejects([scriptblock]$Run, [string]$Scenario) {
+function Assert-SupportRejects([scriptblock]$Run, [string]$Scenario, [string]$Pattern = '') {
   # Negative helper calls must throw; no production diagnostic wording is invented here.
-  $rejected = $false
-  try { & $Run | Out-Null } catch { $rejected = $true }
+  $rejected = $false; $diagnostic = ''
+  try { & $Run | Out-Null } catch { $rejected = $true; $diagnostic = $_.Exception.Message }
   Assert-Support $rejected "$Scenario accepted an invalid operation."
+  if ($Pattern) { Assert-Support ($diagnostic -match $Pattern) "$Scenario failed outside the expected boundary: $diagnostic" }
+}
+
+# Compute expected byte identity with APIs available in PowerShell 7.0's .NET.
+function Get-SupportHash([byte[]]$Bytes) {
+  $algorithm = [Security.Cryptography.SHA256]::Create()
+  try { return [BitConverter]::ToString($algorithm.ComputeHash($Bytes)).Replace('-','') }
+  finally { $algorithm.Dispose() }
 }
 
 function Write-SupportFixture([string]$Root, [string]$Relative, [string]$Body) {
@@ -118,6 +126,7 @@ exit 17
     'docs/public/nested.md' = '# Public nested'
     'docs/governance/private.md' = '# Private runtime'
     'docs/superpowers/private.md' = '# Private history'
+    '.github/workflows/fixture.yml' = '# Public workflow link dependency'
     '_work/private.md' = '# Foreign work'
     'unrelated.txt' = 'unrelated'
   }
@@ -135,7 +144,7 @@ exit 17
   $narrow = @('agents/fixture.toml', 'skills/fixture/SKILL.md', $bomRelative, 'scripts/fixture.ps1',
     'VERSION', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md', 'docs/formatter-tool.md',
     'docs/verification/active/formatter-tool.md')
-  $public = $narrow + @('README.md', 'AGENTS.md', 'docs/public/nested.md')
+  $public = $narrow + @('README.md', 'AGENTS.md', 'docs/public/nested.md', '.github/workflows/fixture.yml')
   foreach ($profile in @('Narrow', 'PublicDocs')) {
     foreach ($includeConfig in @($false, $true)) {
       $destination = Join-Path $sandbox "$profile-$includeConfig"
@@ -151,7 +160,7 @@ exit 17
         )
       }
       $copiedBom = [IO.File]::ReadAllBytes((Join-Path $destination $bomRelative))
-      Assert-Support ([Convert]::ToHexString($copiedBom) -ceq 'EFBBBF410D0A') (
+      Assert-Support ([BitConverter]::ToString($copiedBom).Replace('-','') -ceq 'EFBBBF410D0A') (
         'TS02 BOM/CRLF bytes changed during copy.'
       )
     }
@@ -168,6 +177,28 @@ exit 17
         -Profile Narrow -IncludeConfig $true
     } 'TS02 overlap'
   }
+  # Case aliases cannot hide an overlapping destination on default APFS.
+  # Expected: conservative overlap refusal before creating even an absent child.
+  $caseDestination = Join-Path $source.ToUpperInvariant() 'must-not-create'
+  Assert-SupportRejects {
+    Copy-TestPackage -SourceRoot $source -DestinationRoot $caseDestination `
+      -Profile Narrow -IncludeConfig $true
+  } 'TS02 case-alias overlap' 'must not overlap'
+  # macOS system aliases refer to the same checked tree at selected-root boundaries.
+  # Expected: alias copies retain exact bytes; aliased overlap still refuses writes.
+  if ($IsMacOS -and ($source.StartsWith('/private/tmp/') -or $source.StartsWith('/private/var/'))) {
+    $aliasedSource = $source.Substring('/private'.Length)
+    $aliasCopy = Join-Path $sandbox 'alias-copy'
+    Copy-TestPackage -SourceRoot $aliasedSource -DestinationRoot $aliasCopy `
+      -Profile Narrow -IncludeConfig $false
+    Assert-SupportFiles $aliasCopy $narrow 'TS02 system-alias copy'
+    Assert-Support ((Get-TestFingerprint -Root $aliasCopy) -ceq
+      (Get-TestFingerprint -Root (Join-Path $sandbox 'Narrow-False'))) 'TS02 alias copy changed bytes.'
+    Assert-SupportRejects {
+      Copy-TestPackage -SourceRoot $source -DestinationRoot (Join-Path $aliasedSource 'must-not-create') `
+        -Profile Narrow -IncludeConfig $true
+    } 'TS02 system-alias overlap' 'must not overlap'
+  } else { Write-Output 'N/A: TS02 macOS system-alias fixture unavailable on this host.' }
   Assert-Support (-not (Test-Path -LiteralPath (Join-Path $source 'must-not-create'))) (
     'TS02 overlapping destination was created before rejection.'
   )
@@ -184,7 +215,7 @@ exit 17
   # Expected: repeated fingerprints are stable/read-only; each independent edit differs.
   $tree = Join-Path $sandbox 'identity'
   Write-SupportFixture $tree 'alpha.txt' 'alpha'
-  $alphaHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($utf8.GetBytes('alpha')))
+  $alphaHash = Get-SupportHash $utf8.GetBytes('alpha')
   $identity = Get-TestFingerprint -Root $tree
   Assert-Support ($identity -ceq "alpha.txt`t$alphaHash") 'TS03 canonical path/hash changed.'
   Assert-Support ((Get-TestFingerprint -Root $tree) -ceq $identity) 'TS03 unstable identity.'
@@ -203,7 +234,7 @@ exit 17
   # TS03 ordering edge: ordinal uppercase Z precedes lowercase a regardless of locale.
   # Expected: canonical identity retains exact path case and a stable ordinal sequence.
   Write-SupportFixture $tree 'Zulu.txt' 'zulu'
-  $zuluHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($utf8.GetBytes('zulu')))
+  $zuluHash = Get-SupportHash $utf8.GetBytes('zulu')
   Assert-Support ((Get-TestFingerprint -Root $tree) -ceq
     ("Zulu.txt`t$zuluHash`n" + $identity)) 'TS03 ordinal manifest order changed.'
   # TS03 hidden-directory edge: control files beneath a hidden directory matter too.
@@ -229,6 +260,11 @@ exit 17
   # Expected: valid root is removed, repeat absent cleanup is safe; wrong prefix,
   # invalid absent name and nested valid-looking roots reject without touching sentinels.
   Write-SupportFixture $cleanupRoot 'sentinel.txt' 'owned cleanup'
+  if ($IsMacOS -and ($cleanupRoot.StartsWith('/private/tmp/') -or $cleanupRoot.StartsWith('/private/var/'))) {
+    Remove-TestSandbox -Path $cleanupRoot.Substring('/private'.Length) -Prefix $prefix
+    Assert-Support (-not (Test-Path -LiteralPath $cleanupRoot)) 'TS04 aliased cleanup root remains.'
+    Write-SupportFixture $cleanupRoot 'sentinel.txt' 'owned cleanup'
+  } else { Write-Output 'N/A: TS04 macOS system-alias cleanup fixture unavailable on this host.' }
   Remove-TestSandbox -Path $cleanupRoot -Prefix $prefix
   Assert-Support (-not (Test-Path -LiteralPath $cleanupRoot)) 'TS04 owned root remains.'
   Remove-TestSandbox -Path $cleanupRoot -Prefix $prefix
@@ -267,19 +303,23 @@ exit 17
     } else { Write-Output 'TS04 case-swapped parent not applicable: no caseful letters.' }
   } else { Write-Output 'TS04 non-Windows case-sensitive parent check not applicable on Windows.' }
   # TS04 reparse edge: a valid-looking direct temp child links to this test's owned tree.
-  # Expected: reject the junction and preserve its target; remove only the link afterward.
-  if ($IsWindows) {
-    New-Item -ItemType Junction -Path $junction -Target $nested | Out-Null
-    try {
-      Assert-SupportRejects { Remove-TestSandbox -Path $junction -Prefix $prefix } 'TS04 reparse'
-      Assert-Support ([IO.File]::ReadAllText((Join-Path $nested 'sentinel.txt')) -ceq
-        'nested must survive') 'TS04 reparse target changed.'
-    } finally {
-      if ($null -ne (Get-Item -LiteralPath $junction -Force -ErrorAction SilentlyContinue)) {
-        Remove-Item -LiteralPath $junction -Force
-      }
-    }
-  } else { Write-Output 'TS04 Windows junction check not applicable on this platform.' }
+  # Expected: reject links on every host and preserve targets; remove only the link afterward.
+  New-TestDirectoryLink $junction $nested
+  try {
+    Assert-SupportRejects { Remove-TestSandbox -Path $junction -Prefix $prefix } 'TS04 reparse' '^PATH:'
+    Assert-Support ([IO.File]::ReadAllText((Join-Path $nested 'sentinel.txt')) -ceq
+      'nested must survive') 'TS04 reparse target changed.'
+  } finally { Remove-TestLink $junction }
+  # Missing targets must never make a linked cleanup root appear harmlessly absent.
+  # Expected: PATH refusal and no target recreation, then removal of only the link.
+  $missingTarget = Join-Path $sandbox 'missing-link-target'
+  [IO.Directory]::CreateDirectory($missingTarget) | Out-Null
+  New-TestDirectoryLink $junction $missingTarget
+  Remove-Item -LiteralPath $missingTarget -Force
+  try {
+    Assert-SupportRejects { Remove-TestSandbox -Path $junction -Prefix $prefix } 'TS04 dangling reparse' '^PATH:'
+    Assert-Support (-not (Test-Path -LiteralPath $missingTarget)) 'TS04 dangling target recreated.'
+  } finally { Remove-TestLink $junction }
   Write-Output "TS01-04 shared test support passed: $script:checks assertions."
 } finally {
   # Independent cleanup avoids relying on the helper under test after an assertion fails.

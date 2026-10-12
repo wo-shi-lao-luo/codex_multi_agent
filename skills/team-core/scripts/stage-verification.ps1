@@ -12,6 +12,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
 $script:FinalManualStatuses = @('manual pending', 'manually verified', 'failed', 'deferred by user')
 $script:Tracks = @('test-first', 'test-after', 'manual-or-environmental')
 $script:RowStatuses = @('planned', 'written', 'failing as intended', 'passing', 'manual pending', 'manually verified', 'exception accepted')
@@ -19,14 +20,13 @@ $script:CoverageCategories = @('unit', 'integration', 'contract/API', 'E2E', 're
 
 function Get-StagePaths {
   param([Parameter(Mandatory = $true)][string]$Root, [Parameter(Mandatory = $true)][string]$Slug)
-  $resolvedRoot = [System.IO.Path]::GetFullPath($Root)
-  if (-not (Test-Path -LiteralPath $resolvedRoot -PathType Container)) { throw "Project root does not exist: $resolvedRoot" }
-  $active = Join-Path $resolvedRoot 'docs\verification\active'
+  $resolvedRoot = Get-TeamCanonicalRoot $Root
+  $active = Resolve-TeamContainedPath $resolvedRoot 'docs/verification/active'
   [PSCustomObject]@{
     Root = $resolvedRoot
     Active = $active
-    Packet = Join-Path $active ($Slug + '.md')
-    Archive = Join-Path $resolvedRoot 'docs\verification\archive'
+    Packet = Resolve-TeamContainedPath $resolvedRoot ('docs/verification/active/' + $Slug + '.md')
+    Archive = Resolve-TeamContainedPath $resolvedRoot 'docs/verification/archive'
   }
 }
 
@@ -201,6 +201,7 @@ function Test-Packet {
 }
 
 $paths = Get-StagePaths -Root $ProjectRoot -Slug $StageSlug
+$ProjectRoot = $paths.Root
 if ($PacketPath) {
   if ($Action -ne 'Validate' -or $PacketPath -notmatch '^docs/verification/(active|archive)/[a-z0-9_-]+\.md$') { throw 'PacketPath is limited to validation of canonical active/archive packets.' }
   . (Join-Path $PSScriptRoot 'openspec-common.ps1')
@@ -225,6 +226,7 @@ Blueprint amendment:
 "@
   }
   New-Item -ItemType Directory -Force -Path $paths.Active | Out-Null
+  Assert-TeamPlainPath $paths.Packet
   @"
 # Verification: $StageTitle
 
@@ -314,7 +316,8 @@ if ($validation.finalManualStatus -notin @('manually verified', 'deferred by use
   throw 'Archive requires Final manual status: manually verified or deferred by user.'
 }
 New-Item -ItemType Directory -Force -Path $paths.Archive | Out-Null
-$destination = Join-Path $paths.Archive ((Get-Date -Format 'yyyy-MM-dd') + '_' + $StageSlug + '.md')
+$destination = Resolve-TeamContainedPath $paths.Root ('docs/verification/archive/' + (Get-Date -Format 'yyyy-MM-dd') + '_' + $StageSlug + '.md')
 if (Test-Path -LiteralPath $destination) { throw "Archived packet already exists: $destination" }
+Assert-TeamPlainPath $paths.Packet
 Move-Item -LiteralPath $paths.Packet -Destination $destination
 [PSCustomObject]@{ action = 'archived'; packetPath = $destination } | ConvertTo-Json

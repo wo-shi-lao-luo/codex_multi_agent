@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'helpers/package-test.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $shell = (Get-Process -Id $PID).Path
-$temporaryParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+$temporaryParent = Get-TestTemporaryParent
 $testRoot = Join-Path $temporaryParent (
   'codex-multi-agent-architecture-migration-test-' + [guid]::NewGuid().ToString('N')
 )
@@ -60,13 +60,14 @@ function Invoke-Validation {
   }
 }
 
-$sourceFiles = @{}
+$sourceFiles = New-TeamOrdinalMap
 try {
   Copy-TestPackage -SourceRoot $root -DestinationRoot $testRoot `
     -Profile PublicDocs -IncludeConfig $true
   # Preserve the independent final source-byte proof for the distributable roots.
-  foreach ($directory in @('agents', 'skills', 'scripts', 'config')) {
-    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $root $directory) -File -Recurse) {
+  foreach ($directory in @('agents', 'skills', 'scripts', 'config', '.github')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $root $directory) -PathType Container)) { continue }
+    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $root $directory) -File -Recurse -Force) {
       $sourceFiles[$file.FullName] = (Get-FileHash -LiteralPath $file.FullName).Hash
     }
   }

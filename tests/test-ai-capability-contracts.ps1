@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'helpers/package-test.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $shell = (Get-Process -Id $PID).Path
-$temporaryParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+$temporaryParent = Get-TestTemporaryParent
 $testRoot = Join-Path $temporaryParent (
   'codex-multi-agent-ai-contract-test-' + [guid]::NewGuid().ToString('N')
 )

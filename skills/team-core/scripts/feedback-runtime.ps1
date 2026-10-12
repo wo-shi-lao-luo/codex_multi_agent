@@ -13,6 +13,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
 
 function Get-DefaultFeedbackHome {
   $skillDirectory = Split-Path -Parent $PSScriptRoot
@@ -26,10 +27,12 @@ function Get-UtcTimestamp { return (Get-Date).ToUniversalTime().ToString('o') }
 function Write-AtomicJson {
   param([Parameter(Mandatory = $true)][string]$Path, [Parameter(Mandatory = $true)]$Value)
   $directory = Split-Path -Parent $Path
+  Assert-TeamPlainPath $Path
   New-Item -ItemType Directory -Force -Path $directory | Out-Null
   $temporaryPath = Join-Path $directory ('.' + [Guid]::NewGuid().ToString('N') + '.tmp')
   try {
     $Value | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $temporaryPath -Encoding utf8 -NoNewline
+    Assert-TeamPlainPath $Path
     Move-Item -LiteralPath $temporaryPath -Destination $Path -Force
   } finally {
     if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath -Force -ErrorAction SilentlyContinue }
@@ -39,8 +42,7 @@ function Write-AtomicJson {
 function Get-HashId {
   param([Parameter(Mandatory = $true)][string]$Value)
   $bytes = [System.Text.Encoding]::UTF8.GetBytes($Value)
-  $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
-  return -join ($hash | ForEach-Object { $_.ToString('x2') })
+  return Get-TeamSha256Hex $bytes
 }
 
 function Assert-RunPayload {
@@ -80,15 +82,17 @@ function Get-DerivedSignals {
 
 function Invoke-Maintenance {
   param([Parameter(Mandatory = $true)][string]$FeedbackStore, [switch]$AllowDeletion)
-  $runsDirectory = Join-Path $FeedbackStore 'runs'
-  $archiveDirectory = Join-Path $FeedbackStore 'archive\runs'
+  $runsDirectory = Resolve-TeamContainedPath $FeedbackStore 'runs'
+  $archiveDirectory = Resolve-TeamContainedPath $FeedbackStore 'archive/runs'
   $cutoff = (Get-Date).ToUniversalTime().AddDays(-90)
   $archived = 0
   if (Test-Path -LiteralPath $runsDirectory) {
     Get-ChildItem -LiteralPath $runsDirectory -Filter '*.json' -File | ForEach-Object {
+      Assert-TeamPlainPath $_.FullName
       if ($_.LastWriteTimeUtc -lt $cutoff) {
         New-Item -ItemType Directory -Force -Path $archiveDirectory | Out-Null
-        Move-Item -LiteralPath $_.FullName -Destination (Join-Path $archiveDirectory $_.Name) -Force
+        $archivePath = Resolve-TeamContainedPath $FeedbackStore ('archive/runs/' + $_.Name)
+        Move-Item -LiteralPath $_.FullName -Destination $archivePath -Force
         $archived++
       }
     }
@@ -97,7 +101,10 @@ function Invoke-Maintenance {
   $deletionCutoff = (Get-Date).ToUniversalTime().AddDays(-180)
   $eligible = @()
   if (Test-Path -LiteralPath $archiveDirectory) {
-    $eligible = @(Get-ChildItem -LiteralPath $archiveDirectory -Filter '*.json' -File | Where-Object { $_.LastWriteTimeUtc -lt $deletionCutoff })
+    $eligible = @(Get-ChildItem -LiteralPath $archiveDirectory -Filter '*.json' -File | Where-Object {
+      Assert-TeamPlainPath $_.FullName
+      $_.LastWriteTimeUtc -lt $deletionCutoff
+    })
   }
   $deleted = 0
   if ($AllowDeletion) {
@@ -112,7 +119,7 @@ function Invoke-Maintenance {
 }
 
 if ([string]::IsNullOrWhiteSpace($FeedbackHome)) { $FeedbackHome = Get-DefaultFeedbackHome }
-$FeedbackHome = [System.IO.Path]::GetFullPath($FeedbackHome)
+$FeedbackHome = Get-TeamCanonicalRoot $FeedbackHome -AllowMissing
 
 switch ($Action) {
   'Record' {
@@ -127,10 +134,9 @@ switch ($Action) {
       status = [string]$payload.status; rework = $payload.rework; remainingRisks = @($payload.remainingRisks)
       feedbackCandidateIds = @()
     }
-    $candidateDirectory = Join-Path $FeedbackHome 'feedback\candidates'
     foreach ($signal in Get-DerivedSignals -Payload $payload) {
       $candidateId = Get-HashId -Value ([string]$signal.key)
-      $candidatePath = Join-Path $candidateDirectory ($candidateId + '.json')
+      $candidatePath = Resolve-TeamContainedPath $FeedbackHome ('feedback/candidates/' + $candidateId + '.json')
       if (Test-Path -LiteralPath $candidatePath) {
         $candidate = Get-Content -LiteralPath $candidatePath -Raw | ConvertFrom-Json -ErrorAction Stop
         $candidate.count = [int]$candidate.count + 1
@@ -142,7 +148,7 @@ switch ($Action) {
       Write-AtomicJson -Path $candidatePath -Value $candidate
       $record.feedbackCandidateIds += $candidateId
     }
-    $runPath = Join-Path $FeedbackHome ('runs\' + $record.recordedAt.Replace(':', '').Replace('-', '').Replace('.', '') + '-' + $runId + '.json')
+    $runPath = Resolve-TeamContainedPath $FeedbackHome ('runs/' + $record.recordedAt.Replace(':', '').Replace('-', '').Replace('.', '') + '-' + $runId + '.json')
     Write-AtomicJson -Path $runPath -Value $record
     $maintenance = Invoke-Maintenance -FeedbackStore $FeedbackHome
     [PSCustomObject]@{ action = 'recorded'; runId = $runId; candidateCount = @($record.feedbackCandidateIds).Count; maintenance = $maintenance } | ConvertTo-Json -Depth 5
@@ -154,7 +160,9 @@ switch ($Action) {
   }
   'SetCandidateState' {
     if ([string]::IsNullOrWhiteSpace($CandidateId) -or [string]::IsNullOrWhiteSpace($CandidateState)) { throw 'SetCandidateState requires -CandidateId and -CandidateState.' }
-    $candidatePath = Join-Path $FeedbackHome ('feedback\candidates\' + $CandidateId + '.json')
+    $candidateName = Normalize-TeamRelativePath ($CandidateId + '.json')
+    if ($candidateName.Contains('/')) { throw 'SetCandidateState requires a single candidate filename.' }
+    $candidatePath = Resolve-TeamContainedPath $FeedbackHome ('feedback/candidates/' + $candidateName)
     if (-not (Test-Path -LiteralPath $candidatePath)) { throw "Candidate not found: $CandidateId" }
     $candidate = Get-Content -LiteralPath $candidatePath -Raw | ConvertFrom-Json -ErrorAction Stop
     $candidate.state = $CandidateState

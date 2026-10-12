@@ -2,6 +2,7 @@
 [CmdletBinding()]
 param([switch]$DiscoveryOnly,[switch]$BehaviorOnly,[switch]$NumericRed)
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'helpers/platform.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 function Assert-Condition {
   # Report an observable contract violation without swallowing failures.
@@ -29,7 +30,7 @@ if(-not $BehaviorOnly){
 }
 if ($DiscoveryOnly) { Write-Output 'AI simulation discovery checks passed.'; return }
 $helper = Join-Path $root 'skills/team-core/scripts/ai-simulation.ps1'
-$tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\','/')
+$tempParent = Get-TestTemporaryParent
 $fixture = Join-Path $tempParent ('codex-ai-simulation-test-' + [guid]::NewGuid().ToString('N'))
 function Write-Json([string]$Relative,[object]$Value) {
   # Only fixture JSON is generated; never modify repository or installed source.
@@ -45,13 +46,21 @@ function Invoke-Simulation([string]$Action,[string]$CallInput='',[string]$Select
 }
 function Fingerprint([string]$Path) {
   # Include names and hashes to detect partial evidence or overwritten records.
-  (@(Get-ChildItem -LiteralPath $Path -File -Recurse -Force | Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' } | ForEach-Object { [IO.Path]::GetRelativePath($Path,$_.FullName)+':'+(Get-FileHash -LiteralPath $_.FullName).Hash } | Sort-Object) -join "`n")
+  (@(Get-ChildItem -LiteralPath $Path -Recurse -Force | Where-Object {
+    $_.FullName -notmatch '[\\/]\.git(?:[\\/]|$)' -and
+      (-not $_.PSIsContainer -or ($_.Attributes -band [IO.FileAttributes]::ReparsePoint))
+  } | ForEach-Object {
+    # Link identity is fixture evidence; never hash/follow its possibly absent target.
+    $identity=if ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) { 'link:' + (@($_.Target) -join '|') } else { (Get-FileHash -LiteralPath $_.FullName).Hash }
+    [IO.Path]::GetRelativePath($Path,$_.FullName)+':'+$identity
+  } | Sort-Object) -join "`n")
 }
-function Assert-Rejected([scriptblock]$Run,[string]$Label) {
+function Assert-Rejected([scriptblock]$Run,[string]$Label,[string]$Pattern='') {
   # Every negative case checks unchanged disk evidence, not merely an exception.
-  $before=Fingerprint $fixture; $failed=$false
-  try { & $Run | Out-Null } catch { $failed=$true }
+  $before=Fingerprint $fixture; $failed=$false; $diagnostic=''
+  try { & $Run | Out-Null } catch { $failed=$true; $diagnostic=$_.Exception.Message }
   Assert-Condition $failed "$Label was accepted."
+  if ($Pattern) { Assert-Condition ($diagnostic -cmatch $Pattern) "$Label failed outside the expected safety boundary: $diagnostic" }
   Assert-Condition ((Fingerprint $fixture) -eq $before) "$Label changed fixture evidence on rejection."
 }
 function New-Call([string]$Node,[int]$Sequence) {
@@ -89,11 +98,36 @@ try {
   $before=Fingerprint $fixture
   Invoke-Simulation Validate | Out-Null
   Assert-Condition ((Fingerprint $fixture) -eq $before) 'Validate wrote files.'
+  # System temporary aliases are verified only at the selected project boundary.
+  # Expected: macOS /tmp or /var selects the same plain tree without writing.
+  if ($IsMacOS -and ($fixture.StartsWith('/private/tmp/') -or $fixture.StartsWith('/private/var/'))) {
+    & $helper -Action Validate -ProjectRoot $fixture.Substring('/private'.Length) -DefinitionPath "$base/definition.json" | Out-Null
+    Assert-Condition ((Fingerprint $fixture) -eq $before) 'Aliased Validate wrote files.'
+  } else { Write-Output 'N/A: simulation macOS system alias fixture unavailable on this host.' }
   Invoke-Simulation InitializeRun | Out-Null
   # SIM-08: new local run metadata identifies the same release as the shipped package.
   # Expected: manifest kitVersion equals VERSION, without claiming actual model identity.
   $releaseManifest=Get-Content -LiteralPath "$fixture/_work/ai-sim-fixture/runs/run-one/manifest.json" -Raw | ConvertFrom-Json
   Assert-Condition ($releaseManifest.kitVersion -eq (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()) 'Run manifest release does not match package VERSION.'
+  # Case-distinct declared sources remain separate immutable snapshots on sensitive volumes.
+  # Expected: both authored rule files are frozen with their exact source identities.
+  if (Test-CaseSensitiveFixture $fixture) {
+    Set-Content -LiteralPath "$fixture/$base/Rules.md" -Value 'A distinct rule source.'
+    $originalRules=$definition.rules
+    try {
+      $definition.rules=@("$base/rules.md","$base/Rules.md")
+      Write-Json "$base/definition.json" $definition
+      Invoke-Simulation InitializeRun '' 'run-case-distinct' | Out-Null
+      $caseManifest=Get-Content -LiteralPath "$fixture/_work/ai-sim-fixture/runs/run-case-distinct/manifest.json" -Raw | ConvertFrom-Json
+      foreach ($sourceName in $definition.rules) {
+        Assert-Condition (@($caseManifest.snapshots | Where-Object { $_.source -ceq $sourceName }).Count -eq 1) 'Case-distinct rule source snapshot was lost.'
+      }
+    } finally {
+      $definition.rules=$originalRules
+      Write-Json "$base/definition.json" $definition
+      Remove-Item -LiteralPath "$fixture/$base/Rules.md" -Force
+    }
+  } else { Write-Output 'N/A: simulation case-distinct sources require a case-sensitive fixture volume.' }
   # SIM-04 precision regression: authored raw JSON numbers must never be silently rounded.
   # Expected: supported Decimal values preserve exact value; harmless lexical .0 is allowed.
   Invoke-Simulation InitializeRun '' 'run-numeric' | Out-Null
@@ -132,11 +166,17 @@ try {
   Set-Content -LiteralPath "$foreign/user-owned.txt" -Value 'Preserve this unrelated file.'
   Assert-Rejected {Invoke-Simulation InitializeRun '' 'foreign-run'} 'Foreign run initialization'
   # SIM-03 follow-up: a linked path inside a project is not a trustworthy plain source ancestor.
-  # Expected: refuse the junction path before writes; inability to create one is reported, not passed.
-  $junctionCreated=$false
-  try { New-Item -ItemType Junction -Path "$fixture/docs/ai-workflows/linked" -Target "$fixture/$base" -ErrorAction Stop | Out-Null; $junctionCreated=$true }
-  catch { Write-Output 'Junction fixture unavailable; linked-path check not executed.' }
-  if($junctionCreated){Assert-Rejected {& $helper -Action Validate -ProjectRoot $fixture -DefinitionPath 'docs/ai-workflows/linked/definition.json'} 'Reparse definition ancestor'}
+  # Expected: reject existing and dangling links before writes on every supported host.
+  $linked="$fixture/docs/ai-workflows/linked"
+  New-TestDirectoryLink $linked "$fixture/$base"
+  try { Assert-Rejected {& $helper -Action Validate -ProjectRoot $fixture -DefinitionPath 'docs/ai-workflows/linked/definition.json'} 'Reparse definition ancestor' }
+  finally { Remove-TestLink $linked }
+  $missingTarget="$fixture/link-target"
+  New-Item -ItemType Directory -Path $missingTarget | Out-Null
+  New-TestDirectoryLink $linked $missingTarget
+  Remove-Item -LiteralPath $missingTarget -Force
+  try { Assert-Rejected {& $helper -Action Validate -ProjectRoot $fixture -DefinitionPath 'docs/ai-workflows/linked/definition.json'} 'Dangling definition ancestor' '^PATH:' }
+  finally { Remove-TestLink $linked }
   & git -C $fixture check-ignore --quiet --no-index '_work/ai-sim-fixture/probe.json'
   Assert-Condition ($LASTEXITCODE -eq 0) 'Run work path not ignored.'
   & git -C $fixture check-ignore --quiet --no-index '_work/unrelated/probe.json'

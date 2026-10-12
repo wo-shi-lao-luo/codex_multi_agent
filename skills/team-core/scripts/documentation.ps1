@@ -18,26 +18,19 @@ param(
   [string]$WorkItem
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
 # Semantic checking requirements invalidate prior reviews without changing schema.
 $policyVersion = 3
 # Kit provenance is independent of review policy and runtime schema.
-$kitVersion = '1.0.6'
+$kitVersion = '1.0.9'
 $categories = @('requirements','architecture','interfaces-data','ui-ux','runtime','testing-acceptance','security-migration')
-$root = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd('/','\')
-if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'PATH: ProjectRoot must be an existing directory.' }
+$root = Get-TeamCanonicalRoot $ProjectRoot
+$pathComparison = Get-TeamPathComparison
 
 # Every filesystem operation uses a normalized repository-relative path and rejects
 # linked ancestors. Even an explicitly supplied path cannot opt into secrets or builds.
 function Assert-Plain([string]$Path) {
-  $cursor = $Path
-  while ($cursor) {
-    if (Test-Path -LiteralPath $cursor) {
-      $item = Get-Item -LiteralPath $cursor -Force
-      if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'PATH: Linked paths are unsupported.' }
-    }
-    $next = Split-Path -Parent $cursor
-    if ($next -eq $cursor) { break }; $cursor = $next
-  }
+  Assert-TeamPlainPath $Path
 }
 function Test-Excluded([string]$Relative) {
   foreach ($part in ($Relative -split '/')) {
@@ -48,21 +41,13 @@ function Test-Excluded([string]$Relative) {
   return $false
 }
 function Normalize-Path([string]$Relative) {
-  if ([string]::IsNullOrWhiteSpace($Relative) -or [IO.Path]::IsPathRooted($Relative)) { throw 'PATH: Require a repository-relative path.' }
-  $normalized = $Relative.Replace('\','/')
-  foreach ($part in ($normalized -split '/')) {
-    if ($part -in @('','.','..') -or $part -match '[<>:"|?*\x00-\x1f]' -or $part -match '[ .]$' -or $part -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)') { throw 'PATH: Unsafe path segment.' }
-  }
+  $normalized = Normalize-TeamRelativePath $Relative
   if (Test-Excluded $normalized) { throw 'PATH: Credentials, dependencies and generated locations are excluded.' }
   return $normalized
 }
 function Resolve-Project([string]$Relative) {
   $normalized = Normalize-Path $Relative
-  $absolute = [IO.Path]::GetFullPath((Join-Path $root $normalized))
-  $prefix = $root + [IO.Path]::DirectorySeparatorChar
-  if (-not $absolute.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)) { throw 'PATH: Path leaves ProjectRoot.' }
-  Assert-Plain $absolute
-  return $absolute
+  return Resolve-TeamContainedPath $root $normalized
 }
 Assert-Plain $root
 $DocsRoot = Normalize-Path $DocsRoot
@@ -75,7 +60,7 @@ $pendingPath = Resolve-Project "$governance/.pending.json"
 $lock = $null
 
 function Get-Hash([string]$Path) { return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant() }
-function Get-TextHash([string]$Text) { return [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($Text))).ToLowerInvariant() }
+function Get-TextHash([string]$Text) { return Get-TeamSha256Hex ([Text.Encoding]::UTF8.GetBytes($Text)) }
 # Sort keys recursively to make structured fingerprints independent of JSON property order.
 function Canonical($Value) {
   if ($null -eq $Value) { return 'null' }
@@ -106,7 +91,7 @@ function Read-State {
   if ($state.reviews -isnot [Collections.IDictionary]) { throw 'STATE: Missing review registry.' }
   Assert-Array $state.inventory 'inventory'; Assert-Array $state.additionalPaths 'additionalPaths'
   foreach ($path in $state.additionalPaths) { $null = Resolve-Project $path }
-  $seen = @{}
+  $seen = New-TeamOrdinalMap
   foreach ($doc in $state.inventory) {
     if ($doc -isnot [Collections.IDictionary]) { throw 'STATE: Invalid inventory.' }
     $key = Normalize-Path $doc.path; $null = Resolve-Project $key
@@ -123,9 +108,11 @@ function Read-State {
   return $state
 }
 function Get-Inventory($State) {
-  $paths=[Collections.Generic.List[string]]::new(); $observed=@{}
+  $paths=[Collections.Generic.List[string]]::new(); $observed=New-TeamOrdinalMap
   function Visit([string]$Relative) {
-    if ($Relative -eq $governance -or $Relative.StartsWith("$governance/",[StringComparison]::OrdinalIgnoreCase)) { return }
+    # Protected runtime namespaces remain case-folded on every host. macOS may
+    # resolve a differently cased spelling to the same governed state files.
+    if ([string]::Equals($Relative,$governance,[StringComparison]::OrdinalIgnoreCase) -or $Relative.StartsWith("$governance/",[StringComparison]::OrdinalIgnoreCase)) { return }
     if (Test-Excluded $Relative) { return }
     $absolute=Resolve-Project $Relative
     if (-not (Test-Path -LiteralPath $absolute)) { return }
@@ -140,21 +127,21 @@ function Get-Inventory($State) {
   foreach ($path in @('README.md','AGENTS.md','AGENTS.override.md')) { Visit $path }
   $extras = if ($null -ne $State) { @($State.additionalPaths) } else { @($AdditionalPaths) }
   foreach ($path in $extras) { $normalized=Normalize-Path $path; Visit $normalized }
-  return @($paths | Sort-Object | ForEach-Object {
+  return @($paths | Sort-Object -CaseSensitive | ForEach-Object {
     $path=Resolve-Project $_
     @{path=$_;sha256=Get-Hash $path;kind=if ([IO.Path]::GetExtension($path) -match '^\.(md|mdx|txt|rst|json|yaml|yml|toml|xml|html|csv)$') {'text'} else {'attachment'}}
   })
 }
 function Get-Delta($State,$Inventory) {
-  $old=@{}; if ($null -ne $State) { foreach ($doc in $State.inventory) { $old[$doc.path]=$doc.sha256 } }
-  $now=@{}; foreach ($doc in $Inventory) { $now[$doc.path]=$doc.sha256 }
+  $old=New-TeamOrdinalMap; if ($null -ne $State) { foreach ($doc in $State.inventory) { $old[$doc.path]=$doc.sha256 } }
+  $now=New-TeamOrdinalMap; foreach ($doc in $Inventory) { $now[$doc.path]=$doc.sha256 }
   return @{added=@($now.Keys | Where-Object { -not $old.ContainsKey($_) } | Sort-Object);changed=@($now.Keys | Where-Object { $old.ContainsKey($_) -and $old[$_] -cne $now[$_] } | Sort-Object);removed=@($old.Keys | Where-Object { -not $now.ContainsKey($_) } | Sort-Object)}
 }
 function Get-Dependencies($Paths,[switch]$ForFreshness) {
-  $seen=@{}; $result=@()
+  $seen=New-TeamOrdinalMap; $result=@()
   foreach ($path in $Paths) {
     $key=Normalize-Path $path; $absolute=Resolve-Project $key
-    if ($key -eq $governance -or $key.StartsWith("$governance/",[StringComparison]::OrdinalIgnoreCase)) { throw 'PATH: Governance records cannot be their own dependencies.' }
+    if ([string]::Equals($key,$governance,[StringComparison]::OrdinalIgnoreCase) -or $key.StartsWith("$governance/",[StringComparison]::OrdinalIgnoreCase)) { throw 'PATH: Governance records cannot be their own dependencies.' }
     if ($seen.ContainsKey($key)) { throw 'REVIEW: Duplicate dependency.' }; $seen[$key]=$true
     if (Test-Path -LiteralPath $absolute -PathType Container) {
       if (-not $ForFreshness) { throw 'REVIEW: Dependencies must name files, including expected absent files.' }
@@ -164,7 +151,7 @@ function Get-Dependencies($Paths,[switch]$ForFreshness) {
     $exists=Test-Path -LiteralPath $absolute -PathType Leaf
     $result+=@{path=$key;exists=[bool]$exists;sha256=if ($exists) { Get-Hash $absolute } else { $null }}
   }
-  return @($result | Sort-Object { $_.path })
+  return @($result | Sort-Object -CaseSensitive { $_.path })
 }
 # Structural constraints never convert an agent's inference into a confirmed decision.
 function Assert-Assessment($Review,$Inventory) {
@@ -175,8 +162,8 @@ function Assert-Assessment($Review,$Inventory) {
   foreach ($name in @('documents','dependencies','evidence','findings','runnableWork','coverage')) { Assert-Array $Review[$name] $name }
   if (@($Review.evidence).Count -eq 0) { throw 'REVIEW: Inspected/confirmed evidence is required.' }
   foreach ($value in $Review.evidence) { Assert-String $value 'evidence' }
-  $known=@{}; foreach ($doc in $Inventory) { $known[$doc.path]=$true }
-  $classified=@{}; $unavailable=[Collections.Generic.List[string]]::new()
+  $known=New-TeamOrdinalMap; foreach ($doc in $Inventory) { $known[$doc.path]=$true }
+  $classified=New-TeamOrdinalMap; $unavailable=[Collections.Generic.List[string]]::new()
   foreach ($doc in $Review.documents) {
     if ($doc -isnot [Collections.IDictionary]) { throw 'REVIEW: Invalid document classification.' }
     $key=Normalize-Path $doc.path
@@ -226,7 +213,7 @@ function Assert-Assessment($Review,$Inventory) {
   }
   foreach ($path in $unavailable) {
     $coveredUnavailable=@($Review.findings | Where-Object {
-      $_.kind -eq 'unavailable' -and $_.severity -eq 'blocking' -and $_.resolution.state -eq 'pending' -and @($_.evidence | Where-Object { $_ -ceq $path -or $_.StartsWith("${path}:",[StringComparison]::OrdinalIgnoreCase) }).Count -gt 0
+      $_.kind -eq 'unavailable' -and $_.severity -eq 'blocking' -and $_.resolution.state -eq 'pending' -and @($_.evidence | Where-Object { $_ -ceq $path -or $_.StartsWith("${path}:",$pathComparison) }).Count -gt 0
     })
     if (-not $coveredUnavailable.Count) { throw 'READINESS: Applicable unavailable sources need explicit blocking findings and affected work.' }
   }
@@ -263,7 +250,7 @@ function Read-OwnedReview($State,[string]$Id) {
 function Render-Index($State,$Assessment=$null) {
   $lines=[Collections.Generic.List[string]]::new()
   $lines.Add('# Documentation index'); $lines.Add(''); $lines.Add('Generated navigation, not a project-wide readiness claim. Inspect task reviews and unresolved decisions before development.'); $lines.Add('')
-  $byPath=@{}
+  $byPath=New-TeamOrdinalMap
   if ($null -ne $Assessment) {
     $lines.Add("Classification context: scope $($Assessment.scope), task $($Assessment.task.Replace("`n",' ').Replace("`r",' ')). These classifications are scoped, not universal authority or a freshness result.")
     $lines.Add('')
@@ -301,7 +288,7 @@ function Acquire-Lock {
 # Marker is published last. A durable journal blocks all reads after hard interruption.
 # Ordinary errors restore exact previous bytes; never silently reset an unknown record.
 function Commit-Files($Files) {
-  $before=@{}; foreach ($relative in $Files.Keys) { $absolute=Resolve-Project $relative; $before[$relative]=if (Test-Path -LiteralPath $absolute) { [IO.File]::ReadAllBytes($absolute) } else { $null } }
+  $before=New-TeamOrdinalMap; foreach ($relative in $Files.Keys) { $absolute=Resolve-Project $relative; $before[$relative]=if (Test-Path -LiteralPath $absolute) { [IO.File]::ReadAllBytes($absolute) } else { $null } }
   $journal=@{schemaVersion=1;operation='documentation';paths=@($Files.Keys);startedAt=[DateTime]::UtcNow.ToString('o')}
   Atomic-Text "$governance/.pending.json" ($journal | ConvertTo-Json -Depth 20)
   try {

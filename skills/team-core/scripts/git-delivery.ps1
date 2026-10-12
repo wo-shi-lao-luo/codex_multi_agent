@@ -60,23 +60,14 @@ $result = [ordered]@{
 # Hash bytes rather than decoded lines: NUL filenames and entry object identities
 # must survive unchanged. A missing index is legitimate for an unborn repository.
 function Get-DeliveryHash([byte[]]$Bytes) {
-  return [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($Bytes)).ToLowerInvariant()
+  return Get-TeamSha256Hex $Bytes
 }
 
 # Hashing a Git path must not follow a linked ancestor into unrelated local data.
 # Git metadata may live outside the worktree; its resolved index is read only.
 function Test-DeliveryPlainPath([string]$Path) {
-  $cursor = $Path
-  while ($cursor) {
-    if ((Test-Path -LiteralPath $cursor) -and
-        ((Get-Item -LiteralPath $cursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
-      return $false
-    }
-    $parent = Split-Path -Parent $cursor
-    if ($parent -eq $cursor) { break }
-    $cursor = $parent
-  }
-  return $true
+  try { Assert-TeamPlainPath $Path; return $true }
+  catch { return $false }
 }
 
 # Each process uses a fixed built-in Git command with separate argv entries.
@@ -103,6 +94,9 @@ function Invoke-DeliveryGit([string[]]$Arguments, [int[]]$Allowed = @(0)) {
   $configuration = @(
     '--no-optional-locks', '--no-pager', '-c', 'core.fsmonitor=false',
     '-c', 'core.untrackedCache=false', '-c', 'core.quotePath=false',
+    # Git diff can refresh cached stat entries even when optional locks are off.
+    # Override repository configuration per process without changing its bytes.
+    '-c', 'diff.autoRefreshIndex=false',
     '-c', 'core.hooksPath=/dev/null', '-c', 'diff.external=',
     '-c', 'core.excludesFile=/dev/null', '-c', 'submodule.recurse=false',
     '-c', "safe.directory=$($root.Replace('\','/'))"
@@ -176,6 +170,18 @@ function Get-DeliveryPaths([string[]]$Arguments) {
   return ,$paths
 }
 
+# Git path identities are exact bytes decoded as UTF-8, independent of the host's
+# case behavior. Default PowerShell uniqueness would omit case-distinct evidence.
+function Get-DeliveryUniquePaths([string[]]$Paths) {
+  $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+  $ordered=[Collections.Generic.List[string]]::new()
+  foreach ($path in $Paths) {
+    if ($seen.Add($path)) { $ordered.Add($path) }
+  }
+  $ordered.Sort([StringComparer]::Ordinal)
+  return ,$ordered.ToArray()
+}
+
 # Fingerprint HEAD, symbolic branch, actual index entries/raw bytes and working
 # diff. Untracked content is bounded and excludes credential/dependency locations;
 # excluded content cannot count as an exact Install source snapshot.
@@ -187,9 +193,15 @@ function Get-DeliverySnapshot {
   $diff = Invoke-DeliveryGit @('diff', '--no-ext-diff', '--no-textconv', '--no-renames', '--binary', '--ignore-submodules=all')
   $indexPath = (Invoke-DeliveryGit @('rev-parse', '--git-path', 'index')).text.Trim()
   if (-not [IO.Path]::IsPathRooted($indexPath)) { $indexPath = Join-Path $root $indexPath }
+  # A worktree index can live outside the selected repository. Canonicalize only
+  # its verified parent anchor; arbitrary/dangling links remain unsupported.
+  try {
+    $indexParent=Get-TeamCanonicalRoot ([IO.Path]::GetDirectoryName($indexPath))
+    $indexPath=Join-Path $indexParent ([IO.Path]::GetFileName($indexPath))
+  } catch { throw 'BOUNDARY' }
+  if (-not (Test-DeliveryPlainPath $indexPath)) { throw 'BOUNDARY' }
   $indexHash = $null
   if (Test-Path -LiteralPath $indexPath -PathType Leaf) {
-    if (-not (Test-DeliveryPlainPath $indexPath)) { throw 'BOUNDARY' }
     $item = Get-Item -LiteralPath $indexPath -Force
     if ($item.Length -gt 32MB) { throw 'LIMIT' }
     $indexHash = Get-DeliveryHash ([IO.File]::ReadAllBytes($indexPath))
@@ -236,16 +248,20 @@ function Test-DeliveryArtifact([string]$Path) {
 }
 
 try {
+  # Keep missing/invalid packaged dependencies within the sanitized JSON failure
+  # contract. Shared hashing remains compatible with PowerShell 7.0.
+  . (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
   if ($Operation -notin @('Commit','Push','PullRequest','Merge','Release','Install') -or
       [string]::IsNullOrWhiteSpace($ProjectRoot) -or
       $RemoteName -notmatch '^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$') { throw 'INPUT' }
   $root = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd('/','\')
   if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'INPUT' }
-  if (-not (Test-DeliveryPlainPath $root)) { throw 'BOUNDARY' }
+  try { $root=Get-TeamCanonicalRoot $root } catch { throw 'BOUNDARY' }
   $git = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
   if (-not $git) { throw 'DEPENDENCY' }
   $top = (Invoke-DeliveryGit @('rev-parse', '--show-toplevel')).text.Trim()
-  if ([IO.Path]::GetFullPath($top).TrimEnd('/','\') -ne $root) { throw 'BOUNDARY' }
+  try { $top=Get-TeamCanonicalRoot $top } catch { throw 'BOUNDARY' }
+  if (-not [string]::Equals($top,$root,(Get-TeamPathComparison))) { throw 'BOUNDARY' }
   # Missing objects in a partial/promisor clone may trigger implicit network fetch
   # and object writes. Older Git may ignore GIT_NO_LAZY_FETCH, so reject configured
   # partial clones before any object-reading command, even when objects are local.
@@ -290,7 +306,7 @@ try {
   $result.changes.unstaged = Get-DeliveryPaths @('diff', '--name-only', '-z', '--no-renames', '--no-ext-diff', '--no-textconv', '--ignore-submodules=all')
   $result.changes.untracked = $before.untracked
   $conflicts = Get-DeliveryPaths @('ls-files', '--unmerged', '-z')
-  $conflictPaths = @($conflicts | ForEach-Object { ($_ -split "`t",2)[-1] } | Sort-Object -Unique)
+  $conflictPaths = Get-DeliveryUniquePaths @($conflicts | ForEach-Object { ($_ -split "`t",2)[-1] })
   $result.checks.conflicts = @{ status = 'clean'; paths = $conflictPaths }
   if ($conflictPaths.Count) {
     $result.checks.conflicts.status = 'blocked'
@@ -357,7 +373,7 @@ try {
     ForEach-Object { ($_ -split "`t",2)[-1] })
   $artifactCandidates = @($indexPaths)
   if ($null -ne $introducedArtifacts) { $artifactCandidates += @($introducedArtifacts) }
-  $artifacts = @($artifactCandidates | Where-Object { Test-DeliveryArtifact $_ } | Sort-Object -Unique)
+  $artifacts = Get-DeliveryUniquePaths @($artifactCandidates | Where-Object { Test-DeliveryArtifact $_ })
   $result.checks.generatedArtifacts = @{ status = 'clean'; paths = $artifacts }
   if ($artifacts.Count) {
     $result.checks.generatedArtifacts.status = 'blocked'

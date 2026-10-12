@@ -116,8 +116,17 @@ function Get-ReleaseSignals {
   elseif ($published[0].Version -cne $Version) { $failures.Add("$Name first release must match VERSION $Version.") }
   $seen = @{}
   foreach ($release in $releases) {
-    if ($seen.ContainsKey($release.Version)) { $failures.Add("$Name repeats release $($release.Version).") }
-    $seen[$release.Version] = $true
+    if ($seen.ContainsKey($release.Version)) {
+      # Both pre-integration branches used this preview number. Preserve their
+      # original dated records without permitting arbitrary duplicate releases.
+      $priorDates=@($seen[$release.Version])
+      $historicalPair=$release.Version -ceq '0.10.1' -and $priorDates.Count -eq 1 -and
+        $priorDates[0] -cne $release.Date -and
+        $priorDates[0] -cin @('2026-10-04','2026-10-10') -and
+        $release.Date -cin @('2026-10-04','2026-10-10')
+      if (-not $historicalPair) { $failures.Add("$Name repeats release $($release.Version).") }
+      $seen[$release.Version]=@($priorDates)+@($release.Date)
+    } else { $seen[$release.Version]=@($release.Date) }
     if ($release.BulletCount -eq 0) { $failures.Add("$Name release $($release.Version) has no change items.") }
     # Produce deterministic primitive signatures instead of comparing unordered hashtables.
     '{0}|{1}|{2}|{3}|{4}' -f $release.Version, $release.Date, $release.BulletCount, ($release.Sections -join ','), ($release.Counts -join ',')
