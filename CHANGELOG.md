@@ -4,11 +4,16 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
 
-## [Unreleased]
+## [1.0.10] - 2026-10-14
 
 ### Added
 
 - Strengthen task-scoped QA inputs, bounded user-perspective observations, evidence-led defect triage and fixed-revision retesting; distinguish defects, requirement questions, suggestions and quality advice from repair authority and user acceptance. Reuse existing Skills, records and proportional test rules without adding roles or status schemas.
+- Require the Lead to fetch the confirmed PR target, preserve a recovery point and safely rebase before authorized PR delivery. Stop for uncertain conflicts, unseen source-branch commits or repeated target drift; keep the checker read-only and require separate authority plus an exact source-ref lease for remote history rewrites. Native workflow adherence remains pending verification.
+
+### Changed
+
+- Synchronize public release metadata and the four runtime provenance producers with `1.0.10`; retain the `1.0.9` platform integration and all historical release records. This focused extension remains on the 1.0 preview line, not a stable-release declaration.
 
 ## [1.0.9] - 2026-10-12
 
