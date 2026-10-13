@@ -68,6 +68,9 @@ Target viewports, states and core interactions:
 ```text
 Check performed:
 Test execution outcome: planned/skipped/timed out/failed/executed/passing distinctions, summary, retained result-artifact reference, drill-down performed or needed, and remaining gaps (see [efficient test execution](test-acceptance-contract.md#efficient-test-execution)):
+QA input and expected-behavior authority (when applicable; reference existing source):
+User-perspective findings or bounded coverage gaps (when applicable; reference existing packet/record):
+Finding disposition and fixed-revision retest (when applicable):
 Per-batch disposition: executed | reused | skipped | blocked | failed; relevant input identity and evidence reference; actual cost or `unknown`; due/progress checkpoint and decision; for deferred work, owner, scope/status, next trigger and flush condition:
 Close reconciliation: start/Work contract obligations versus actual roles, checks, outcomes and gaps:
 Invocation reconciliation: planned roles, actual selector arguments, returned handles/observed identity, deviations and user decisions

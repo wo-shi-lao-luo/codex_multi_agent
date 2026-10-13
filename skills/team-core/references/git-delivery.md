@@ -51,9 +51,77 @@ change materially. A nonempty authored record cannot authenticate user approval.
 | Release | Require an independent explicit previous-release base, a target branch pinned to the intended source at HEAD, and confirmed user release intent. Inspect BaseRef..HEAD without requiring base=target; a target differing from HEAD needs a decision. Check target-specific release policy; a helper cannot infer release intent or stable status. |
 | Install | Bind the source snapshot, dirty/index/worktree state and selected source provenance. Require the existing deployment manager's preview for the exact source and targets before any separately authorized installation. Source readiness does not prove installed equality or active-session loading. |
 
-Do not stage, commit, push, fetch, rebase, merge, tag, force-update refs or install.
-The Lead executes an action only under separate existing user authority and after
-rechecking current evidence. A request to check readiness supplies no such authority.
+The collector/checker must not stage, commit, push, fetch, rebase, merge, tag,
+force-update refs or install. The Lead executes an action only under separate
+existing user authority and after rechecking current evidence. A request to check
+readiness supplies no such authority.
+
+## Pull-request target synchronization
+
+For an authorized request to create or update a PR, the Lead confirms the source
+repository/branch, destination repository, remote and exact target branch. Do not
+assume the default branch or infer a fork's destination from its name. A
+readiness-only request authorizes assessment only.
+
+Before synchronization, inspect the worktree/index and active Git operation. If
+there are uncommitted changes or an in-progress merge, rebase, cherry-pick or
+revert, stop the dependent action and ask how to proceed; do not stash, commit,
+discard or override the operation implicitly. Check the project's branch policy
+and whether the source is shared or protected. If policy disallows rebasing or
+the branch ownership makes rewriting unsafe, pause for the required decision.
+
+Fetch the exact PR target from the confirmed remote and pin the fetched commit
+OID with its as-of observation. If fetching fails or the target cannot be
+resolved, report the failure; the stale local target is not a substitute. Before
+rebasing, create and verify a durable local recovery ref for the original source
+commit. Do not overwrite an existing recovery ref.
+
+Rebasing an already-pushed source rewrites its history and requires separate
+user authorization; without it, stop and ask before rebasing. Confirm and fetch
+the exact remote source repository/ref being rewritten; it may differ from the
+target remote. Compare that pinned source tip with the preserved pre-rebase source
+commit. Proceed only if the remote source tip is equal to or an ancestor of the
+pre-rebase commit, so all remote source commits are already represented locally.
+If it is not, retain the recovery ref and stop; report both identities and the
+divergence, then ask for a specific integration decision. Do not use a newer
+captured OID as a lease expectation to overwrite source commits missing from the
+local branch.
+
+Rebase the source branch onto the pinned target OID, then inspect the resulting
+source contribution and complete outgoing history.
+
+Resolve a conflict automatically only when the correct result follows clearly
+from approved behavior and the conflict is a bounded mechanical application.
+For substantive, architectural or otherwise uncertain conflicts, stop and report
+the affected paths, cause, work completed, preserved recovery point, safe options
+and the specific decision needed. Do not select ours/theirs in bulk, discard
+conflicting work, or abort/reset the operation implicitly. Keep the recovery ref
+until the authorized PR operation is complete and the result is confirmed.
+
+After rebasing, re-evaluate the final diff and outgoing history. Invalidate review
+or test evidence whose inputs changed; run the checks affected by the rebase and
+any mandatory current gates, without rerunning unrelated suites by default. Fetch
+the exact target once more before delivery and record that observation. If this
+fetch fails, pause and report. If the target has advanced, one catch-up rebase
+and reassessment may be made under the same authority, followed by one final
+target fetch and observation. If that fetch fails or the target has advanced
+again, pause and report without another rebase. The final observation is
+point-in-time evidence, not a lock; do not claim the target cannot move afterward.
+
+For an authorized history rewrite of an existing remote source ref, capture the
+expected OID from the pre-rebase exact source-ref fetch and verify that ref has
+not changed before pushing. Use an explicit
+`--force-with-lease=<source-ref>:<expected-oid>` only with separate user
+authorization. Never use bare force, infer the expected OID from the target
+branch, or treat target fetch/rebase authority as permission to rewrite the
+remote source. If the source remote/ref is unknown or has moved, stop and
+reassess with the user. For a never-pushed source, use an ordinary authorized
+first push; no history-rewrite permission or overwrite lease is needed.
+Push successfully before creating or updating the PR. Record the exact target OID,
+as-of observation, source and recovery refs, rebase/conflict outcome, changed
+checks, and any remote lease decision in the task handoff.
+
+## Shared delivery assessment
 
 Apply the shared [risk-proportional light path](execution-contract.md#risk-proportional-light-path) to role selection and evidence reuse. For a known, non-material routine commit, push or PR, the Lead may perform a scoped self-check and label it non-independent; do not force a checker child. An explicit independent request, material/complex outgoing scope, release execution, installation-source assessment, or material merge/rebase risk uses the named independent checker. In every case, bind the exact operation and snapshot, inspect every outgoing commit and relevant intermediate history for leaks, establish freshness, and keep read-only assessment separate from authority to execute delivery.
 

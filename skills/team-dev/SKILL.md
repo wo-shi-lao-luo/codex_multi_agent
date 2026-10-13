@@ -79,7 +79,7 @@ Read and apply the [code comment contract](../team-core/references/code-comments
 
 Read and apply the [code readability contract](../team-core/references/code-readability.md) in full alongside project conventions. Route standalone formatting requests through `$team-code-maintain`; a post-freeze formatting transfer must finish before the already planned final tests and review.
 
-Create a Verification record from actual checks. Record commands and outcomes, inspected behavior, and checks that could not run. Do not close the task until acceptance checks have evidence or the user-facing remaining risk is explicit.
+Create a Verification record from actual checks. Record commands and outcomes, inspected behavior, and checks that could not run. For QA, summarize relevant coverage gaps, findings and retest state, UX decisions, and risks in the existing packet or record; follow the [canonical QA inputs and user-perspective verification guidance](../team-core/references/test-acceptance-contract.md#qa-inputs-and-user-perspective-verification). Do not close the task until acceptance checks have evidence or the user-facing remaining risk is explicit.
 
 Reconcile planned roles against actual spawn arguments and returned handles under role routing. Distinguish source/tool profiles from confirmed runtime identity and leave unreported model data unknown.
 

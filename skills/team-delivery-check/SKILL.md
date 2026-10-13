@@ -23,6 +23,11 @@ assessment. A source TOML or installed receipt does not prove this session expos
 the role. If unavailable, disclose the runtime testing limitation and ask the Lead
 for the specific next step; do not silently substitute a generic agent or the Lead.
 
+For an authorized PR creation or update, the Lead follows the contract's
+[target synchronization procedure](../team-core/references/git-delivery.md#pull-request-target-synchronization)
+before delivery. The checker remains read-only: it does not fetch, rebase, resolve
+conflicts or update refs. A readiness-only request authorizes assessment only.
+
 Supply the operation, exact project root, user intent/authorization, local base and
 target identities, applicable policy sources and existing verification/review
 evidence. The checker reads and reports; the Lead retains policy proposals and any
