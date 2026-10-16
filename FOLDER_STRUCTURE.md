@@ -14,6 +14,7 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 
 - `agents/` — native Codex custom-agent TOML files.
 - `agents/team-docs-maintainer.toml` — Luna/high documentation specialist; bounded assigned-doc maintenance and evidence-backed findings.
+- `agents/team-designer.toml` — Sol/medium conditional page-design specialist; returns a concrete brief or isolated prototype and does not own production page files.
 - `agents/team-ai-simulation-actor-basic.toml` and `team-ai-simulation-actor-advanced.toml` — bounded read-only AI workflow actors with the same behavior contract and basic/advanced profiles.
 - `agents/team-ai-architect.toml` — Sol/xhigh read-only AI-domain architect, separate from software-wide `team-architect`.
 - `agents/team-ai-engineer.toml` — Sol/medium implementation role for assigned AI prompts, context, model/tool protocols and workflow state.
@@ -52,8 +53,9 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `skills/team-core/references/code-readability.md` — formatter-first code readability rules, bounded helper use, safe formatting boundaries, and writer self-check.
 - `skills/team-core/references/formatter-tool.md` — portable installed-helper interface, formatter/configuration boundaries, caller authority, result codes and failure limits.
 - `skills/team-core/references/role-routing.md` and `handoff-format.md` — named-role availability, explicit invocation evidence and final actual child-agent roster contracts.
-- `skills/frontend-design/` — implementation-oriented interface design and rendered refinement Skill, distributed by the installer.
-- `skills/team-core/references/ui-quality.md` — shared UI brief, page ownership and visual-verification contract.
+- `skills/frontend-design/` — page-design guidance and rendered refinement Skill; paired with frontend-engineering for implementation and distributed by the installer.
+- `skills/team-core/references/ui-quality.md` — conditional Designer triggers, UI brief, production page ownership and visual-verification contract.
+- `skills/team-core/references/impeccable-integration.md` — optional third-party Impeccable guidance; the Kit does not bundle or install it.
 - `skills/team-core/references/web-engineering.md` — selective risk map for actual frontend/backend boundaries; it routes to relevant references without adding a workflow or blanket audit.
 - `skills/frontend-engineering/references/state-data.md` and `usability-performance.md` — conditional frontend state/data and interaction/performance guidance.
 - `skills/backend-engineering/references/service-reliability.md` — conditional API, job, dependency, retry, and side-effect reliability guidance.
@@ -63,8 +65,8 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `config/` — an optional, manually merged Codex configuration fragment.
 - `scripts/` — user-level validation, installation, and safe update helpers.
 - `scripts/setup.sh` and `scripts/setup-user.ps1` — macOS/Linux setup entrypoints; default readiness checks, explicit installation, and offline client Skill verification using existing runtimes.
-- `docs/setup.md` — setup commands, manual dependency guidance, sandbox prerequisites, and failure recovery.
-- `scripts/test.ps1` — common offline test runner for Windows, macOS and Linux; two validators and 25 suites, with per-check process results and prerequisite reporting.
+- `docs/setup.md` — setup commands, manual dependency guidance, sandbox prerequisites, optional Impeccable reminder, and failure recovery.
+- `scripts/test.ps1` — common offline test runner for Windows, macOS and Linux; two validators and 26 suites, with per-check process results and prerequisite reporting.
 - `skills/team-core/scripts/platform-filesystem.ps1` — installed runtime filesystem primitives; the standalone deployment manager keeps its own recovery-safe implementation.
 - `tests/test-portability.ps1` — isolated platform path, link, case-identity and runtime regressions.
 - `tests/helpers/platform.ps1` — test-only temporary-root, executable and link-fixture helpers.
