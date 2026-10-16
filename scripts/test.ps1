@@ -38,6 +38,7 @@ $checks = @(
   @{name='git-delivery';path='tests/test-git-delivery.ps1';arguments=@()},
   @{name='install-user';path='tests/test-install-user.ps1';arguments=@()},
   @{name='openspec';path='tests/test-openspec.ps1';arguments=@()},
+  @{name='optional-designer';path='tests/test-optional-designer.ps1';arguments=@()},
   @{name='project-blueprint';path='tests/test-project-blueprint.ps1';arguments=@()},
   @{name='project-rules';path='tests/test-project-rules.ps1';arguments=@()},
   @{name='stage-verification';path='tests/test-stage-verification.ps1';arguments=@()},
@@ -59,7 +60,7 @@ if (-not $shell -or -not (Test-Path -LiteralPath $shell -PathType Leaf)) { throw
 Write-Host ("Platform: {0}; OS architecture: {1}; process architecture: {2}" -f [Runtime.InteropServices.RuntimeInformation]::OSDescription,[Runtime.InteropServices.RuntimeInformation]::OSArchitecture,[Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)
 Write-Host ("Runtime: PowerShell {0}; {1}" -f $PSVersionTable.PSVersion,[Runtime.InteropServices.RuntimeInformation]::FrameworkDescription)
 foreach ($prerequisite in @(
-  @{name='git';suites=@('deployment','ai-development-guidance','ai-simulation','generated-artifacts','git-delivery','formatter-tool','documentation','openspec','portability');argument='--version'},
+  @{name='git';suites=@('deployment','ai-development-guidance','ai-simulation','generated-artifacts','git-delivery','formatter-tool','documentation','openspec','optional-designer','portability');argument='--version'},
   @{name='node';suites=@('openspec','formatter-tool');argument='--version'}
 )) {
   $dependentChecks=@($checks.name | Where-Object { $_ -in $prerequisite.suites })

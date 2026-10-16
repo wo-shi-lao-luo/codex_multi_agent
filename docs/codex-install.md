@@ -70,6 +70,8 @@ Run the matching command without `-WhatIf` only when the user has explicitly req
 .\scripts\update-user.ps1
 ```
 
+After a successful actual installation or update, the Kit displays a brief optional Impeccable reminder linking to its [getting-started guide](https://impeccable.style/tutorials/getting-started/). This third-party design capability is not required. The Kit does not detect, download, or install it, and the reminder is not shown for a preview or failed deployment. Review Impeccable's own instructions separately if you choose to install it; its [official repository](https://github.com/pbakaus/impeccable) is also available.
+
 Do not add `-Force` to get past a conflict. Stop, inspect the named destination and ownership, and choose a documented recovery path. `-Force` backs up and replaces the selected managed unit; it is a separate, consequential choice. Do not run recovery or pruning automatically. See [safe deployment](safe-deployment.md) for conflict resolution, backup retention, interruption recovery, and rollback.
 
 The manager installs receipt-owned agents and complete Skill directories in the current user's Codex homes (by default `~/.codex/agents` and `~/.agents/skills`). If you use custom homes, pass the same explicit home options to status, verification, preview, and deployment commands; see [safe deployment](safe-deployment.md). It does not merge or rewrite global Codex configuration, install tools or dependencies, or change the source checkout. Configuration fragments in `config/` are optional and must be handled separately by the user.

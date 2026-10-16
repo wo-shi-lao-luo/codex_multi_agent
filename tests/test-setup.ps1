@@ -209,6 +209,11 @@ printf 'SETUP_UPDATECHECK=%s\n' "${POWERSHELL_UPDATECHECK-unset}"
       $doctor=Invoke-SetupCase -CodexHome $codex -AgentsHome $agents
       Assert-Setup ($doctor.success -and $doctor.status -eq 'ready' -and $doctor.prerequisites.powershell -and $doctor.prerequisites.codex -and $doctor.prerequisites.protocol) ('Doctor did not confirm healthy prerequisites: ' + ($doctor | ConvertTo-Json -Depth 8 -Compress))
       Assert-Setup (-not $doctor.installation.attempted -and -not (Test-Path $codex) -and -not (Test-Path $agents)) 'Doctor installed or changed supplied homes.'
+      # OD05 negative action: readiness is not an installation event.
+      # Expected: Doctor guidance does not advertise a completed optional integration.
+      Assert-Setup (
+        ($doctor.guidance -join "`n") -notmatch 'impeccable\.(style)|pbakaus/impeccable'
+      ) 'Doctor emitted install-only optional guidance.'
 
       $inheritedPath=$env:PATH; $expectedPath=$script:ExpectedPathEntry
       try {
@@ -238,16 +243,34 @@ printf 'SETUP_UPDATECHECK=%s\n' "${POWERSHELL_UPDATECHECK-unset}"
       $preview=Invoke-SetupCase -Action Install -CodexHome $codex -AgentsHome $agents -Preview $true
       Assert-Setup ($preview.success -and $preview.status -eq 'what_if' -and $preview.installation.preview -and -not $preview.installation.attempted) 'Install preview status is incorrect.'
       Assert-Setup (-not (Test-Path $codex) -and -not (Test-Path $agents)) 'Install preview created target files.'
+      # OD06 preview: optional install advice is reserved for completed installation.
+      # Expected: successful WhatIf has no install-only provider reminder.
+      Assert-Setup (
+        ($preview.guidance -join "`n") -notmatch 'impeccable\.(style)|pbakaus/impeccable'
+      ) 'Setup preview emitted install-only optional guidance.'
 
       $installed=Invoke-SetupCase -Action Install -CodexHome $codex -AgentsHome $agents
       Assert-Setup ($installed.success -and $installed.status -eq 'installed_verified' -and $installed.installation.attempted -and $installed.installation.verified -and $installed.discovery.passed -and $installed.discovery.expectedCount -eq $expectedSkillCount -and $installed.discovery.matchedCount -eq $expectedSkillCount) 'Install did not verify receipt and every source Skill.'
       $receiptPath=Join-Path $agents 'codex-multi-agent/install-receipt.json'
       Assert-Setup (Test-Path -LiteralPath $receiptPath) 'Setup installation omitted its managed receipt.'
+      # OD05 successful setup: add a non-blocking optional provider reminder once.
+      # Expected: report remains successful with one optional official-provider link.
+      $optionalGuidance = @($installed.guidance | Where-Object {
+        $_ -match 'impeccable\.(style)|pbakaus/impeccable'
+      })
+      Assert-Setup (
+        $optionalGuidance.Count -eq 1 -and $optionalGuidance[0] -match '(?i)optional'
+      ) 'Verified setup omitted/duplicated optional guidance.'
       $beforeCodex=Get-SetupTestFingerprint $codex; $beforeAgents=Get-SetupTestFingerprint $agents
 
       $verified=Invoke-SetupCase -Action Verify -CodexHome $codex -AgentsHome $agents
       Assert-Setup ($verified.success -and $verified.status -eq 'verified' -and $verified.discovery.passed -and -not $verified.installation.attempted) 'Verify did not validate the selected existing installation.'
       Assert-Setup ((Get-SetupTestFingerprint $codex) -eq $beforeCodex -and (Get-SetupTestFingerprint $agents) -eq $beforeAgents) 'Read-only verification changed installed files.'
+      # OD05 read-only verification: a healthy existing installation is not a new install.
+      # Expected: Verify does not emit the install-only optional reminder.
+      Assert-Setup (
+        ($verified.guidance -join "`n") -notmatch 'impeccable\.(style)|pbakaus/impeccable'
+      ) 'Verify emitted install-only optional guidance.'
 
       foreach ($mode in @('missing-skill','disabled-skill','wrong-path','duplicate-skill','string-enabled','skill-errors')) {
         $failed=Invoke-SetupCase -Mode $mode -Action Verify -CodexHome $codex -AgentsHome $agents
@@ -261,6 +284,11 @@ printf 'SETUP_UPDATECHECK=%s\n' "${POWERSHELL_UPDATECHECK-unset}"
       $conflictBefore=Get-SetupTestFingerprint $codex
       $conflict=Invoke-SetupCase -Action Install -CodexHome $codex -AgentsHome $agents
       Assert-Setup (-not $conflict.success -and 'installer_failed' -in $conflict.errors -and (Get-SetupTestFingerprint $codex) -eq $conflictBefore) 'Setup replaced a conflicting user file without Force.'
+      # OD06 failed deployment: preserve error guidance, never add install-only advice.
+      # Expected: conflict is still failure without optional-success reminder.
+      Assert-Setup (
+        ($conflict.guidance -join "`n") -notmatch 'impeccable\.(style)|pbakaus/impeccable'
+      ) 'Failed setup emitted install-only optional guidance.'
       $forced=Invoke-SetupCase -Action Install -CodexHome $codex -AgentsHome $agents -Force $true
       Assert-Setup ($forced.success -and $forced.installation.verified) 'Explicit Force did not recover a conflicting managed install.'
       $backups=@(Get-ChildItem -LiteralPath (Join-Path $agents 'codex-multi-agent/backups') -Filter 'team-architect.toml' -File -Recurse | Where-Object { (Get-Content -LiteralPath $_.FullName -Raw) -eq '# setup fixture user customization' })
@@ -286,6 +314,11 @@ printf 'SETUP_UPDATECHECK=%s\n' "${POWERSHELL_UPDATECHECK-unset}"
 
       $postFailure=Invoke-SetupCase -Mode skill-errors -Action Install -CodexHome (Join-Path $testRoot 'post-error codex') -AgentsHome (Join-Path $testRoot 'post-error agents')
       Assert-Setup (-not $postFailure.success -and $postFailure.installation.attempted -and $postFailure.installation.verified -and 'skill_discovery_errors' -in $postFailure.errors) 'Protocol readiness hid discovery errors in the strict post-install probe.'
+      # OD06 post-install probe failure: deployment alone is not setup success.
+      # Expected: a later discovery failure suppresses install-only optional advice.
+      Assert-Setup (
+        ($postFailure.guidance -join "`n") -notmatch 'impeccable\.(style)|pbakaus/impeccable'
+      ) 'Failed post-install discovery emitted optional guidance.'
 
       # A later valid Skill extends the expected inventory without a count edit.
       # Reuse the complete isolated validator fixture, then install all resources.

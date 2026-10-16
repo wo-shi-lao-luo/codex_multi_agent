@@ -70,6 +70,7 @@ $expectedAgentProfiles = @{
   'team-code-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
   'team-delivery-checker' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
   'team-database-specialist' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
+  'team-designer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-docs-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
   'team-explorer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
   'team-frontend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }

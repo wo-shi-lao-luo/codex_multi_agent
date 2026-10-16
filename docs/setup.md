@@ -26,7 +26,20 @@ sh scripts/setup.sh -Action Install
 sh scripts/setup.sh -Action Verify
 ```
 
-The first command defaults to `Doctor`. It checks prerequisite readiness without installing or changing the kit; a `ready` result can still mean the kit is missing or its discovery check did not pass. Use `Verify` for the complete installed-state check. `Install` first checks the client interface, then uses the existing installer and validates the installed result. `Verify` checks an existing installation's receipt and client discovery; a missing receipt is a failure, and it does not install missing files or repair a failed check.
+The first command defaults to `Doctor`. It checks prerequisite readiness without installing or changing the kit; a `ready` result can still mean the kit is missing or its discovery check did not pass. Use `Verify` for the complete installed-state check. `Install` first checks the client interface, then uses the existing installer and validates the installed result. After a successful actual `Install`, the setup output includes a short optional Impeccable reminder linking to its [getting-started guide](https://impeccable.style/tutorials/getting-started/). It is not shown by `Doctor`, `Verify`, or `-WhatIf` preview and does not check whether Impeccable is installed. `Verify` checks an existing installation's receipt and client discovery; a missing receipt is a failure, and it does not install missing files or repair a failed check.
+
+## Optional integrations
+
+These integrations are not prerequisites for the Kit. Installing or updating the Kit does not install or enable them.
+
+| Integration | Purpose | Requirements and activation |
+| --- | --- | --- |
+| [Impeccable](https://github.com/pbakaus/impeccable) | Frontend design and visual refinement. | Install separately with user approval. Use only when its instructions are accessible in the active Agent context; see the [Impeccable adapter](../skills/team-core/references/impeccable-integration.md). |
+| [OpenSpec](https://github.com/Fission-AI/OpenSpec/tree/v1.13.2) | Specification, change and archive management. | The adapter supports `@fission-ai/openspec` **1.13.2**, PowerShell 7 and Node.js **20.19+**. Install separately with user approval, then explicitly enable integration in each target project; see the [supported profile, setup and recovery guide](../skills/team-core/references/openspec-integration.md). Do not substitute the latest upstream version without compatibility verification. |
+
+The Kit does not download or install Impeccable, enable its hooks, or require it for frontend work. The setup reminder is informational; a link or file on disk does not prove the active client loaded the capability. OpenSpec does not generate an installation reminder, and projects without an opt-in marker continue using the normal Kit workflow.
+
+## Additional setup options
 
 The shell wrapper accepts an explicit PowerShell executable before forwarding the remaining arguments:
 

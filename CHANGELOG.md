@@ -4,6 +4,13 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
 
+## [Unreleased]
+
+### Added
+
+- Add conditional `team-designer` routing for design consultation, missing pages within actual UI tasks, and explicit page-design requests. Keep the frontend engineer as the sole production UI owner and preserve the existing verification and approval boundaries.
+- Add an optional Impeccable adapter and a non-blocking install/update reminder linking to its official source. Do not bundle or automatically install the third-party capability; unavailable or unloaded support falls back to the Kit's frontend guidance.
+
 ## [1.0.10] - 2026-10-14
 
 ### Added

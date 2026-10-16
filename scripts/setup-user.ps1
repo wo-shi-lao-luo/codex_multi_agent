@@ -1,3 +1,6 @@
+# Coordinate isolated Codex prerequisite/discovery checks and explicitly requested
+# installation into selected homes. Report results without exposing client output;
+# this entrypoint never installs optional enhancements or changes host policy.
 #requires -Version 7.0
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
@@ -281,6 +284,11 @@ function Get-SetupPreview([string]$Output, [string]$CodexHome, [string]$AgentsHo
   throw 'installer_preview_invalid'
 }
 
+# Doctor/Verify inspect the selected installation without deploying payloads;
+# their client probes still create owned temporary resources that must be cleaned.
+# Install explicitly delegates deployment into CodexHome/AgentsHome unless Preview.
+# Return a structured report: expected failures become success=false with sanitized
+# errors; completed cleanup is required before success-only installation advice.
 function Invoke-SetupMain {
   [CmdletBinding()]
   param([string]$Action='Doctor',[string]$CodexPath,[string]$CodexHome,[string]$AgentsHome,[int]$TimeoutSeconds=120,[bool]$Preview=$false,[bool]$Force=$false)
@@ -371,6 +379,16 @@ function Invoke-SetupMain {
       $report.cleanup.scratchRemoved=$report.cleanup.scratchRemoved -and $prior.scratchRemoved
     }
     if (-not $report.cleanup.processesStopped -or -not $report.cleanup.scratchRemoved) { $report.success=$false; $report.status='failed'; if ('cleanup_failed' -notin $report.errors) { $report.errors+='cleanup_failed' } }
+  }
+  # Installer output stays private. Add shared optional advice only after an
+  # actual installation and all verification/cleanup have succeeded.
+  if ($report.success -and $Action -eq 'Install' -and -not $Preview) {
+    try {
+      . (Join-Path $script:SetupRoot 'scripts/optional-capabilities.ps1')
+      $report.guidance += Get-OptionalCapabilityGuidance
+    } catch {
+      # Optional advice must not invalidate an otherwise verified installation.
+    }
   }
   return $report
 }

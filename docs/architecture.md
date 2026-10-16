@@ -36,7 +36,7 @@ Every assigned codewriter and tester follows the shared [code-readability contra
 
 ## UI work
 
-For new pages and visible UI changes, the Lead passes a lightweight UI brief and names one owner for the coherent page or user flow. The owner uses frontend-design for hierarchy, styling and rendered refinement alongside frontend-engineering for implementation correctness. Small demos normally stay with one implementer; independent work may still be delegated. File boundaries must include necessary shared styles or be adjusted explicitly.
+For a missing page within an actual UI task, an explicit page-design/adjustment request, or design consultation, the Lead may route a concrete design brief to `team-designer`. For implementation, one `team-frontend-engineer` remains the sole production page/flow owner and uses frontend-design with frontend-engineering. Ordinary bug fixes or incidental polish without explicit design intent do not add Designer. Small demos normally have one production implementer; independent design input may still be assigned without shared production-page writes. File boundaries must include necessary shared styles or be adjusted explicitly. Impeccable is an optional design capability only when available in the active agent context.
 
 Functional tests and rendered visual inspection are separate evidence. The Lead checks the final integrated page's evidence, and missing browser access remains an explicit unverified state. Agent inspection never replaces user manual acceptance. See the [UI delivery contract](../skills/team-core/references/ui-quality.md). This workflow does not claim measured visual improvement until a matched-task comparison is actually run.
 

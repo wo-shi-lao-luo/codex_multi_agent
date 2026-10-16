@@ -35,7 +35,7 @@
 
 ## 团队成员
 
-`team-explorer`、`team-architect`、`team-ai-architect`、`team-docs-maintainer`、`team-frontend-engineer`、`team-backend-engineer`、`team-database-specialist`、`team-tester`、`team-ai-tester`、`team-reviewer`、`team-ai-simulation-actor-basic`、`team-ai-simulation-actor-advanced`、`team-ai-engineer`、`team-code-maintainer` 和 `team-delivery-checker` 是 Codex 自定义智能体。基础和高级模拟角色都只负责一个受限的行为节点，并遵守相同边界；`team-ai-architect` 负责提出 AI 领域设计方案，`team-ai-engineer` 实现分配给它的应用 AI 行为，`team-ai-tester` 负责评估分配给它的应用 AI 行为和模拟用例，`team-code-maintainer` 负责在指定范围内进行不改变行为的格式整理，`team-delivery-checker` 则检查 Git 交付范围、项目策略和证据，不修改 Git 或执行交付操作。主 Codex 对话负责 Lead 工作，持有任务状态、整合结果并给出最终答复。
+`team-explorer`、`team-architect`、`team-ai-architect`、`team-docs-maintainer`、`team-designer`、`team-frontend-engineer`、`team-backend-engineer`、`team-database-specialist`、`team-tester`、`team-ai-tester`、`team-reviewer`、`team-ai-simulation-actor-basic`、`team-ai-simulation-actor-advanced`、`team-ai-engineer`、`team-code-maintainer` 和 `team-delivery-checker` 是 Codex 自定义智能体。`team-designer` 按需提供页面设计指导；前端工程师仍是生产界面的负责人。基础和高级模拟角色都只负责一个受限的行为节点，并遵守相同边界；`team-ai-architect` 负责提出 AI 领域设计方案，`team-ai-engineer` 实现分配给它的应用 AI 行为，`team-ai-tester` 负责评估分配给它的应用 AI 行为和模拟用例，`team-code-maintainer` 负责在指定范围内进行不改变行为的格式整理，`team-delivery-checker` 则检查 Git 交付范围、项目策略和证据，不修改 Git 或执行交付操作。主 Codex 对话负责 Lead 工作，持有任务状态、整合结果并给出最终答复。
 
 `$team` 是由 Lead 使用的 Skill 入口，不是新增的自定义智能体或模型分配。原有各流程入口仍可直接使用。
 
@@ -46,6 +46,7 @@
 | 架构师 | `gpt-6.1-sol` | xhigh |
 | 探索员 | `gpt-6-luna` | medium |
 | 文档维护者 | `gpt-6-luna` | high |
+| Designer | `gpt-6.1-sol` | medium |
 | 前端、后端、测试 | `gpt-6.1-sol` | medium |
 | AI 测试员 | `gpt-6.1-sol` | medium |
 | 数据库专家、审查员 | `gpt-6.1-sol` | high |
@@ -138,7 +139,7 @@ agent 名称使用 `team-` 前缀，以避免与个人 agent 重名。安装收�
 
 当前版本: `1.0.10`（1.0 预览产品线上的用户视角 QA、安全的 PR 目标同步、可移植设置与验证、统一 `$team` 入口、Git 交付检查、按风险选择检查的 Web 指引、共享测试支持、AI 开发与评估指引、迁移完整性检查及首次使用引导；不代表宣告稳定版）。工具包自有的本地产物采用范围明确的 Git 保护，并检查实际索引。文档治理元数据、导航索引和审查记录保留在当前检出目录中，但不会通过 Git 共享；新检出的仓库需要根据现有文档自行建立采用及审查状态。用户编写的项目文档、PRD、蓝图、阶段验证包和原生规格仍可纳入版本控制。已跟踪的本地产物或与用户显式包含规则冲突的情况需要用户决定如何处理。工具包不会安装 Git hook 或后台监控，用户仍可手动强制暂存。详见[生成产物 Git 保护约定](skills/team-core/references/generated-artifacts.md)。反馈运行时目前支持 `$team-dev`、`$team-plan`、`$team-debug` 和 `$team-review`；`$team-ai-simulate` 使用单独的本地运行记录，不调用该运行时。在标准路径下，`$team-dev` 会在目标项目中创建并校验由 Git 跟踪的阶段验证包；符合轻量路径的任务使用简短的现有记录，同时保留已有阶段、规格及人工核验产物要求。两条路径都在条件允许时使用 `test-first`，否则记录采用的替代路径。普通修复失败两次后，工作流会查找相关外部证据；适用的新证据最多可支持一次有条件的扩展，修复总次数不超过五次。Debug 模式的资料检索计入原有六轮诊断额度。暂停依据证据进行；恢复需要用户授权。正常推进的长时间操作按任务设置进度检查点，不设统一时间上限。测试执行采用风险分层和基于证据的结果复用；测试范围不清楚时可定向请 Explorer 查找，但 E2E/人工覆盖和仓库门禁仍具有约束力。请参阅[修复与诊断循环约定](skills/team-core/references/repair-loop-guard.md)、[反馈记录规则](skills/team-core/references/feedback-recording.md)、[测试与验收约定](skills/team-core/references/test-acceptance-contract.md)、[TDD 流程](skills/team-core/references/tdd-protocol.md)、[代码注释约定](skills/team-core/references/code-comments.md)、[代码可读性约定](skills/team-core/references/code-readability.md)、[代码格式化工具](docs/formatter-tool.md)、[项目指引约定](skills/team-core/references/project-rules.md)、[AI 模拟指南](docs/ai-simulation.md)、[版本规则](docs/release-versioning.md)和[更新日志](CHANGELOG.zh-CN.md)。0.1.0 版本还将 `sql-safety` 更名为 `database-engineering`，并将 `test-strategy` 更名为 `testing-engineering`。历史 Skill 目录如果未记录在安装收据中，会保持不变；由收据管理且已停用的 Skills 会与所选目标版本保持一致。
 
-涉及可见界面的工作会将 [frontend-design](skills/frontend-design/SKILL.md) 与 frontend-engineering 配合使用。[UI 交付约定](skills/team-core/references/ui-quality.md)会保留页面级目标，明确完整页面或流程的负责人，并要求将渲染检查与功能测试分别留证。无需为此增加专门的设计智能体、改变模型或为每个页面单独编写设计文档。缺少浏览器证据时，必须注明尚未进行视觉验证，不能称为已可发布。
+设计咨询、实际 UI 任务中缺少页面，或用户明确要求设计/调整页面时，可以路由给 `team-designer`；附带修复和后端任务不会触发该角色。实现页面时，仍由一名 `team-frontend-engineer` 负责生产界面，详见 [UI 交付约定](skills/team-core/references/ui-quality.md)。Impeccable 是可选能力，只有当前角色上下文能访问其指引时才使用；工具包不会替用户安装。详见 [Impeccable 适配说明](skills/team-core/references/impeccable-integration.md)和[官方项目](https://github.com/pbakaus/impeccable)。渲染检查仍须与功能测试分别留证；缺少浏览器证据时，必须注明尚未进行视觉验证，不能称为已可发布。
 
 如果新安装的 Skill 没有立即显示，请重启 Codex。
 
