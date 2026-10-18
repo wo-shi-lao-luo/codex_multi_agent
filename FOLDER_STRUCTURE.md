@@ -55,7 +55,9 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `skills/team-core/references/role-routing.md` and `handoff-format.md` — named-role availability, explicit invocation evidence and final actual child-agent roster contracts.
 - `skills/frontend-design/` — page-design guidance and rendered refinement Skill; paired with frontend-engineering for implementation and distributed by the installer.
 - `skills/team-core/references/ui-quality.md` — conditional Designer triggers, UI brief, production page ownership and visual-verification contract.
-- `skills/team-core/references/impeccable-integration.md` — optional third-party Impeccable guidance; the Kit does not bundle or install it.
+- `skills/team-core/references/impeccable-integration.md` — applicability, mandatory relevant use, availability resolution, permission and evidence rules for the optional-to-install Impeccable capability.
+- `skills/team-core/references/impeccable-usage.md` — adapted, pinned-source guide for choosing a proportionate Impeccable workflow by design intent; distributed with its license and attribution in `skills/team-core/references/licenses/`.
+- `skills/team-core/references/licenses/impeccable-LICENSE.txt` and `skills/team-core/references/licenses/impeccable-NOTICE.md` — exact Apache-2.0 license and scoped attribution for the adapted usage guide; not a bundled Impeccable runtime.
 - `skills/team-core/references/web-engineering.md` — selective risk map for actual frontend/backend boundaries; it routes to relevant references without adding a workflow or blanket audit.
 - `skills/frontend-engineering/references/state-data.md` and `usability-performance.md` — conditional frontend state/data and interaction/performance guidance.
 - `skills/backend-engineering/references/service-reliability.md` — conditional API, job, dependency, retry, and side-effect reliability guidance.
@@ -65,7 +67,7 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `config/` — an optional, manually merged Codex configuration fragment.
 - `scripts/` — user-level validation, installation, and safe update helpers.
 - `scripts/setup.sh` and `scripts/setup-user.ps1` — macOS/Linux setup entrypoints; default readiness checks, explicit installation, and offline client Skill verification using existing runtimes.
-- `docs/setup.md` — setup commands, manual dependency guidance, sandbox prerequisites, optional Impeccable reminder, and failure recovery.
+- `docs/setup.md` — setup commands, manual dependency guidance, sandbox prerequisites, optional Impeccable reminder and usage links, and failure recovery.
 - `scripts/test.ps1` — common offline test runner for Windows, macOS and Linux; two validators and 26 suites, with per-check process results and prerequisite reporting.
 - `skills/team-core/scripts/platform-filesystem.ps1` — installed runtime filesystem primitives; the standalone deployment manager keeps its own recovery-safe implementation.
 - `tests/test-portability.ps1` — isolated platform path, link, case-identity and runtime regressions.

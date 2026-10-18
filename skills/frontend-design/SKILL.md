@@ -5,7 +5,7 @@ description: Provide concrete design guidance and refine web interfaces with cle
 
 # Frontend design
 
-Apply the shared [execution contract](../team-core/references/execution-contract.md) and [UI delivery contract](../team-core/references/ui-quality.md), including its conditional Designer triggers and page ownership. For optional Impeccable use, read [the integration adapter](../team-core/references/impeccable-integration.md). This Skill supports concrete design proposals as well as interface implementation. During implementation, pair it with [frontend-engineering](../frontend-engineering/SKILL.md) and preserve its architecture, comment and test requirements; design-only consultation does not require production edits.
+Apply the shared [execution contract](../team-core/references/execution-contract.md) and [UI delivery contract](../team-core/references/ui-quality.md), including its conditional Designer triggers and page ownership. For relevant assigned design or UI work, follow [the Impeccable integration adapter](../team-core/references/impeccable-integration.md); use its [workflow guide](../team-core/references/impeccable-usage.md) to choose only the relevant provider workflow. This Skill supports concrete design proposals as well as interface implementation. During implementation, pair it with [frontend-engineering](../frontend-engineering/SKILL.md) and preserve its architecture, comment and test requirements; design-only consultation does not require production edits.
 
 ## When to activate
 

@@ -34,10 +34,10 @@ These integrations are not prerequisites for the Kit. Installing or updating the
 
 | Integration | Purpose | Requirements and activation |
 | --- | --- | --- |
-| [Impeccable](https://github.com/pbakaus/impeccable) | Frontend design and visual refinement. | Install separately with user approval. Use only when its instructions are accessible in the active Agent context; see the [Impeccable adapter](../skills/team-core/references/impeccable-integration.md). |
+| [Impeccable](https://github.com/pbakaus/impeccable) | Frontend design and visual refinement. | Install separately with user approval. For relevant assigned UI/design work, use its accessible guidance unless the user opts out; see the [usage guide](../skills/team-core/references/impeccable-usage.md) and [adapter](../skills/team-core/references/impeccable-integration.md). |
 | [OpenSpec](https://github.com/Fission-AI/OpenSpec/tree/v1.13.2) | Specification, change and archive management. | The adapter supports `@fission-ai/openspec` **1.13.2**, PowerShell 7 and Node.js **20.19+**. Install separately with user approval, then explicitly enable integration in each target project; see the [supported profile, setup and recovery guide](../skills/team-core/references/openspec-integration.md). Do not substitute the latest upstream version without compatibility verification. |
 
-The Kit does not download or install Impeccable, enable its hooks, or require it for frontend work. The setup reminder is informational; a link or file on disk does not prove the active client loaded the capability. OpenSpec does not generate an installation reminder, and projects without an opt-in marker continue using the normal Kit workflow.
+The Kit does not download or install Impeccable or enable its hooks. It is not a setup prerequisite. The reminder is informational; a link or file on disk does not prove the active client loaded the capability. Follow the adapter when a relevant task encounters a known installation that the active role cannot access. OpenSpec does not generate an installation reminder, and projects without an opt-in marker continue using the normal Kit workflow.
 
 ## Additional setup options
 
