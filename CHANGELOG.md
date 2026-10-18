@@ -9,7 +9,7 @@ The two historical `0.10.1` preview records came from separate development branc
 ### Added
 
 - Add conditional `team-designer` routing for design consultation, missing pages within actual UI tasks, and explicit page-design requests. Keep the frontend engineer as the sole production UI owner and preserve the existing verification and approval boundaries.
-- Add an optional Impeccable adapter and a non-blocking install/update reminder linking to its official source. Do not bundle or automatically install the third-party capability; unavailable or unloaded support falls back to the Kit's frontend guidance.
+- Clarify that Impeccable is optional to install but its accessible guidance is used for relevant assigned design/UI work unless the user opts out; distinguish an absent provider, inaccessible installation, and engine failure. Add a concise usage guide adapted from pinned Impeccable 4.6.0 with its Apache-2.0 license and applicable attribution; do not bundle the upstream Skill, runtime, or native references or install it. The informational setup reminder remains non-blocking.
 
 ## [1.0.10] - 2026-10-14
 

@@ -19,7 +19,20 @@ function Assert-Optional([bool]$Condition, [string]$Message) {
 Assert-Optional (Test-Path -LiteralPath $guidancePath -PathType Leaf) (
   'OD05: optional-capabilities provider is missing.'
 )
-if ($RedOnly) { Write-Output 'OD05 provider discovery passed.'; exit 0 }
+# OD12 additive-resource scenario: the conditional manual and its legal resources
+# must share the managed Skill tree so normal recursive distribution includes them.
+# Expected: missing resources fail before production without creating a fixture.
+$impeccableResources = @(
+  'skills/team-core/references/impeccable-usage.md'
+  'skills/team-core/references/licenses/impeccable-LICENSE.txt'
+  'skills/team-core/references/licenses/impeccable-NOTICE.md'
+)
+foreach ($relative in $impeccableResources) {
+  Assert-Optional (Test-Path -LiteralPath (Join-Path $repo $relative) -PathType Leaf) (
+    "OD12: distributable resource is missing: $relative"
+  )
+}
+if ($RedOnly) { Write-Output 'OD05/OD12 provider/resource discovery passed.'; exit 0 }
 
 $sandbox = Join-Path (Get-TestTemporaryParent) (
   'codex-optional-designer-test-' + [guid]::NewGuid().ToString('N')
@@ -37,6 +50,17 @@ function Invoke-OptionalScript([string]$Relative, [string[]]$Arguments = @()) {
 try {
   Copy-TestPackage -SourceRoot $repo -DestinationRoot $package `
     -Profile PublicDocs -IncludeConfig $true
+
+  # OD12 package scenario: selected references and both role callers survive copy.
+  # Expected: exact source bytes; semantic routing is assessed separately by hand.
+  foreach ($relative in $impeccableResources + @(
+    'agents/team-designer.toml', 'agents/team-frontend-engineer.toml'
+  )) {
+    Assert-Optional ((Get-FileHash -LiteralPath (Join-Path $repo $relative)).Hash -ceq
+      (Get-FileHash -LiteralPath (Join-Path $package $relative)).Hash) (
+      "OD12: copied package bytes differ: $relative"
+    )
+  }
 
   # OD05 helper scenario: requesting advice has no package writes and is optional.
   # Expected: one static string with upstream URL, no success-pipeline diagnostics.
