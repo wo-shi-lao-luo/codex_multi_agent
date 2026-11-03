@@ -46,6 +46,8 @@ Good: “Compare the supplied facts with each applicable criterion in the suppli
 
 ## Verify
 
+When repairing an instruction or context failure, use the [repair decision check](repair-loop-guard.md#repair-decision-check) to establish that this layer caused the behavior and to state applicable conditions, relevant boundaries and proportionate checks. Keep this developer-side decision process out of the application call unless its content is independently required product behavior.
+
 Inspect the authoritative instruction source and test the assembled call input for representative normal, ambiguous, missing-reference and conflicting-data cases. Assert selected revision/provenance, required fields and safe failure behavior; compare expected and observed behavior with the existing AI evaluation contract. Do not treat prompt text inspection alone as proof of runtime availability.
 
 ## Design reading

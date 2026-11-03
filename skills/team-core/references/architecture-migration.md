@@ -6,7 +6,7 @@ Do not run an exhaustive migration pass for an internal implementation or model 
 
 ## Authorities and scope
 
-Reuse the applicable active PRD or confirmed user decision for intended behavior, the existing API or architecture source for contract and structure, the [Project Blueprint contract](project-blueprint.md) for module boundaries and structural change, and the existing stage packet for acceptance evidence and results. This guide links those authorities; it does not replace them. Observed implementation is evidence of current behavior, not proof of approved intent.
+Reuse the applicable active PRD or confirmed user decision for intended behavior, the existing API or architecture source for contract and structure, the [Project Blueprint contract](project-blueprint.md) for module boundaries and structural change, and the existing stage packet for acceptance evidence and results. Carry approved constraints through actual consumer wiring, fallback, verification and handoff under [approved constraint continuity](approved-constraints.md). This guide links those authorities; it does not replace them. Observed implementation is evidence of current behavior, not proof of approved intent.
 
 Bound the migration to affected capabilities, data, callers, versions, and rollout paths. Distinguish confirmed facts, approved decisions, and unknowns. Ask the Lead to obtain focused Explorer facts, architecture judgment, or test-acceptance judgment when the relevant evidence or decision is missing. Keep independent, authorized work separate from work blocked by a contract or user decision.
 

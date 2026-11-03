@@ -15,6 +15,8 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `agents/` — native Codex custom-agent TOML files.
 - `agents/team-docs-maintainer.toml` — Luna/high documentation specialist; bounded assigned-doc maintenance and evidence-backed findings.
 - `agents/team-designer.toml` — Sol/medium conditional page-design specialist; returns a concrete brief or isolated prototype and does not own production page files.
+- `agents/team-researcher.toml` — Luna/medium optional external evidence collector with bounded peer handoffs; Lead owns scope and shared budget.
+- `agents/team-data-scientist.toml` — Sol/high on-demand analyst/model-prototyping role; bounded research and prototype ownership, with no automatic paid compute/data/model downloads or independent acceptance/trading authority.
 - `agents/team-ai-simulation-actor-basic.toml` and `team-ai-simulation-actor-advanced.toml` — bounded read-only AI workflow actors with the same behavior contract and basic/advanced profiles.
 - `agents/team-ai-architect.toml` — Sol/xhigh read-only AI-domain architect, separate from software-wide `team-architect`.
 - `agents/team-ai-engineer.toml` — Sol/medium implementation role for assigned AI prompts, context, model/tool protocols and workflow state.
@@ -30,6 +32,7 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `skills/team-delivery-check/` — conditional Lead adapter for read-only delivery checks when commit, push, pull request, merge, release, or installation-source intent is clear.
 - `skills/team-core/scripts/format-code.ps1` and `format-code-powershell.ps1` — bounded Plan/Check/Apply adapter for supported installed formatters; its portable contract is `skills/team-core/references/formatter-tool.md`.
 - `skills/ai-engineering/` — AI application behavior Skill for authorized engineering of prompts, context, model/tool protocols and workflow state.
+- `skills/data-science/` — optional data analysis and model prototyping Skill; `references/` conditionally covers data preparation, model development, and time-series evaluation. `agents/openai.yaml` supplies Skill UI metadata; the package source does not establish runtime loading.
 - `skills/ai-testing-engineering/` — AI application behavior evaluation Skill, with detailed case, rubric and evidence rules in the shared `skills/team-core/references/ai-evaluation.md`.
 - `skills/team-core/references/ai-workflow-design.md`, `ai-instruction-design.md`, `ai-context-design.md`, and `ai-tool-design.md` — conditional application AI design guides routed by `ai-engineering`; existing capability, simulation, record/replay and evaluation contracts remain authoritative for their scopes.
 - `skills/team-core/references/ai-simulation.md` — shared local simulation context, evidence, privacy and acceptance contract.
@@ -42,9 +45,13 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `skills/team-doc-check/` — documentation readiness/adoption entrypoint; distributed Skill source, not repository discovery configuration.
 - `skills/team-project-rules/` — entrypoint for reviewing, drafting and maintaining target-project `AGENTS.md` files.
 - `skills/team-core/references/documentation-governance.md` — task-scoped sufficiency, topic-scoped document authority, semantic consolidation and conflict handling, ambiguity and legacy contract with runtime schema.
+- `skills/team-core/references/external-research.md` — bounded source quality, citation and same-task peer research handoff contract.
+- skills/team-core/references/peer-communication.md — initial Lead-granted peer messaging scope, shared budgets, escalation and role-specific boundaries.
+- `skills/team-core/references/approved-constraints.md`, `agent-documentation.md`, and `agent-handoffs.md` — constraint continuity, conditional source-linked Agent guidance with read-only Inspect, and outcome-based work handoffs.
 - `skills/team-core/references/git-delivery.md` — operation-specific Git scope, project-policy authority, evidence freshness, semantic reporting, and read-only collector limits.
 - `skills/team-core/references/project-rules.md` — target-project instruction-file authority, candidate discovery, approval and maintenance contract.
 - `skills/team-core/scripts/documentation.ps1` — local document inventory, adoption, scoped review and stale-evidence detector.
+- `skills/team-core/scripts/agent-docs.ps1` — read-only bounded Inspect for a target project's optional Agent-document source map; no baseline/page/map/Git writes.
 - `skills/team-core/scripts/generated-artifacts.ps1` — narrow profile-based local artifact protection and read-only Git-index checks; see `skills/team-core/references/generated-artifacts.md`.
 - `skills/team-core/scripts/git-delivery.ps1` — bounded PowerShell 7 collection of local Git delivery evidence; it does not stage, alter refs, access remotes, or execute delivery.
 - `skills/team-core/references/generated-artifacts.md` — artifact profiles, durable evidence boundaries, result schema, conflict handling and caller lifecycle.
@@ -68,7 +75,7 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `scripts/` — user-level validation, installation, and safe update helpers.
 - `scripts/setup.sh` and `scripts/setup-user.ps1` — macOS/Linux setup entrypoints; default readiness checks, explicit installation, and offline client Skill verification using existing runtimes.
 - `docs/setup.md` — setup commands, manual dependency guidance, sandbox prerequisites, optional Impeccable reminder and usage links, and failure recovery.
-- `scripts/test.ps1` — common offline test runner for Windows, macOS and Linux; two validators and 26 suites, with per-check process results and prerequisite reporting.
+- `scripts/test.ps1` — common offline test runner for Windows, macOS and Linux; two validators and selected suites, with per-check process results and prerequisite reporting.
 - `skills/team-core/scripts/platform-filesystem.ps1` — installed runtime filesystem primitives; the standalone deployment manager keeps its own recovery-safe implementation.
 - `tests/test-portability.ps1` — isolated platform path, link, case-identity and runtime regressions.
 - `tests/helpers/platform.ps1` — test-only temporary-root, executable and link-fixture helpers.
@@ -80,6 +87,7 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `docs/codex-install.md` — local Codex user installation and update steps, source checks, preview, and runtime-discovery limits.
 - `tests/test-deployment.ps1` — isolated fake-home deployment and fault-injection suite; no actual installation.
 - `tests/test-documentation.ps1` — isolated existing-project adoption and readiness/ambiguity regression tests.
+- `tests/test-agent-documentation.ps1` — isolated source-map Inspect regression coverage, registered as one of the runner's suites.
 - `tests/` — isolated package, installation, feedback, AI-simulation, AI-design/evaluation, generated-artifact, formatter, Team routing, Git delivery, shared test support, web engineering, stage-verification and project-blueprint tests.
 - `tests/helpers/` — shared test-only process capture, bounded package copying, complete fingerprints and owned sandbox cleanup; scenarios remain in their suites.
 - `tests/fixtures/` — controlled CLI doubles for transport and partial-failure regression tests; never production runtimes.

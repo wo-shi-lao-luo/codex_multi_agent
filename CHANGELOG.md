@@ -8,8 +8,14 @@ The two historical `0.10.1` preview records came from separate development branc
 
 ### Added
 
+- Add optional `team-researcher` (`gpt-6-luna` / medium) and an external research contract for cited, bounded source collection. Within one Lead-set task budget, authorized peers may exchange scoped requests directly with the existing researcher when host tools allow; Lead keeps scope, lifecycle and integration. No token savings or runtime availability are guaranteed.
+- Add a shared peer communication contract for Lead-granted same-task factual evidence and clarification exchanges. The initial grant defines participating handles, scope, shared budget and stop condition; Lead retains authority and integration, and host capabilities remain runtime-dependent.
+
+- Add the optional `team-data-scientist` role (`gpt-6.1-sol` / high) and distributable `data-science` Skill for reproducible analysis, data preparation, statistics, dataset splitting, and traditional/deep-learning research prototypes. Keep production data-layer and application LLM workflow ownership with their existing domain roles; research metrics do not replace independent acceptance or authorize trades. Bound compute, downloads, provenance, holdout use and artifacts; provide conditional data-preparation, model-development and time-series references.
+- Add shared guidance for preserving approved constraints throughout development, maintaining conditional source-linked Agent documentation through read-only Inspect evidence, and handing off coherent outcomes without a competing task list. Add the bounded source-map Inspect helper and isolated regression coverage; hashes do not imply semantic approval or native workflow acceptance.
 - Add conditional `team-designer` routing for design consultation, missing pages within actual UI tasks, and explicit page-design requests. Keep the frontend engineer as the sole production UI owner and preserve the existing verification and approval boundaries.
 - Clarify that Impeccable is optional to install but its accessible guidance is used for relevant assigned design/UI work unless the user opts out; distinguish an absent provider, inaccessible installation, and engine failure. Add a concise usage guide adapted from pinned Impeccable 4.6.0 with its Apache-2.0 license and applicable attribution; do not bundle the upstream Skill, runtime, or native references or install it. The informational setup reminder remains non-blocking.
+- Add a shared repair decision check before the first repair proposal and each materially changed strategy, with risk-proportionate evidence and verification. Require explicit bounded approval for case-specific workarounds while preserving existing persistent repair/debug budgets; evidence-based corrections to incorrect tests or evaluators remain allowed.
 
 ## [1.0.10] - 2026-10-14
 

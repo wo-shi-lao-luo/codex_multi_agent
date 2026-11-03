@@ -24,6 +24,8 @@ Owner:
 Task type, risk rationale and applicable obligations:
 Design depth and rationale; user-approved decisions reused; material decisions still open:
 Context/reference supplied to each proposal/check child (goal, applicable PRD revision, non-goals, relevant constraints/evidence/accepted decisions/unknowns; exact shared reference):
+Constraint continuity (when applicable: authority/revision, conditions/exceptions, affected wiring/fallback, and exact guide; see [approved constraint continuity](approved-constraints.md)):
+Outcome continuity (same outcome/reopen/independent child/successor, existing record/history, pending acceptance and next owner; see [outcome-based handoffs](agent-handoffs.md) when due):
 Design outcome/readiness and affected blocked versus independent work (when full exploration applies):
 Planned roles and active tool catalog availability evidence:
 Named implementation owner; Tester packet/test ownership; Reviewer when material:
@@ -45,6 +47,7 @@ Expected result:
 Shared contract or compatibility concern:
 Verification:
 Persistent issue guard (when applicable; see [repair and diagnosis loop guard](repair-loop-guard.md)): acceptance/conditions/deviation identity; mode and user authorization; prior history reference; diagnostic/repair allocation; external research question/sources/applicability and local validation (when relevant); whether the single evidence-qualified ordinary extension is used; long-operation progress checkpoints; stop condition:
+Repair decision summary (before first proposal and each materially changed strategy; see [repair decision check](repair-loop-guard.md#repair-decision-check)): approved behavior/failure class; causal layer and evidence or unresolved hypothesis; applicable conditions and boundary; smallest verification and known uncertainty; case-specific workaround approval and limits, if any:
 Test execution choices (before implementation): entrypoint and real boundary, runner/command, observation mode and rationale, browser/visual checkpoints, iteration and first-usable-chain checks, named due acceptance checkpoints, and any API/integration evidence used to reduce duplicate browser permutations (see [efficient test execution](test-acceptance-contract.md#efficient-test-execution)):
 Tier/reuse plan (when applicable): target test/CASE IDs; selected tier and rationale; prior artifact input identity/provenance or rerun trigger; deferred check owner, scope/status, next concrete trigger/checkpoint and flush condition; known failure dependencies; expansion/full-suite gates; forecast or `unknown`; user hard budget, if any:
 Recovery or rollout consideration:
@@ -88,6 +91,7 @@ UI visual status: verified | issues remain | not verified | not applicable (reas
 UI rendered evidence: revision, route/page, viewport, state, observation or screenshot reference
 UI fixes, re-inspection and remaining gaps:
 Persistent issue guard (when applicable; see [repair and diagnosis loop guard](repair-loop-guard.md)): issue identity (acceptance + conditions + deviation); mode and user authorization; repair failures / diagnostic rounds and prior history reference; external research question, sources, applicability, adopted/rejected evidence and local validation; extension used/remaining; next allowed attempt and stop condition:
+Repair decision summary (when proposing or materially changing a repair strategy; see [repair decision check](repair-loop-guard.md#repair-decision-check)): responsible layer and mechanism/hypothesis evidence; applicability and boundary; proportionate verification; uncertainty; whether the proposal is a general fix or an explicitly approved bounded workaround:
 Long operation checkpoint (when applicable): expected progress evidence, checkpoint, observed state, continue/pause decision:
 Pause report / human decision (when applicable): trigger, facts vs ranked hypotheses, exact input and reason, bounded recommendation, preserved state, user decision:
 ```
