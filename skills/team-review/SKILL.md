@@ -7,6 +7,8 @@ description: Review a branch, diff, pull request, or change set with independent
 
 When reviewing development readiness or document alignment, read [documentation governance](../team-core/references/documentation-governance.md) in full. Check review scope/freshness, applicable PRDs, actual read evidence and unresolved findings; a marker/hash alone cannot prove sufficiency. Compare changes with confirmed intent; do not rewrite/archive disputed material.
 
+Trace applicable confirmed constraints across actual entrypoints/wiring and focused evidence with [approved constraint continuity](../team-core/references/approved-constraints.md). If the project maintains source-linked Agent guidance, use [Agent documentation](../team-core/references/agent-documentation.md) to assess relevant changes; Inspect results are not approval and aggregate deltas do not automatically block unrelated work. Reviews are read-only: report a bounded document/map gap rather than editing it. Preserve current outcome, invalidated evidence and pending acceptance through [outcome-based handoffs](../team-core/references/agent-handoffs.md).
+
 Act as the Lead. Read the shared [execution contract](../team-core/references/execution-contract.md) in full. This workflow owns **Discover → Verify → Handoff** and reviews existing work; do not edit code unless the user explicitly starts a follow-up implementation task.
 
 
@@ -42,7 +44,7 @@ Read and apply the [code comment contract](../team-core/references/code-comments
 
 Read and apply the [code readability contract](../team-core/references/code-readability.md) in full when reviewing layout; follow project conventions and report concrete issues, not taste. Formatting alone does not authorize behavior changes.
 
-When returning a confirmed finding for implementation, link it to the owning issue and its existing repair history under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md). A review finding does not create a fresh retry budget.
+When returning a confirmed finding for implementation, link it to the owning issue and its existing repair history under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md), and require the [repair decision check](../team-core/references/repair-loop-guard.md#repair-decision-check) before the first or materially changed proposal. Review the evidence and applicability rather than relying on a self-declared general-fix label; a review finding does not create a fresh retry budget. When the reviewed diff already contains a repair, inspect its actual branch, mechanism, applicability, relevant variant/boundary evidence, and any required bounded workaround approval—not only the next proposal.
 
 When a Blueprint governs the project, read the [Project Blueprint contract](../team-core/references/project-blueprint.md) in full. Compare the diff to declared modules/file responsibilities and explicit refactor approval; respect declined/deferred decisions. Structural review is semantic, not document-validation alone.
 

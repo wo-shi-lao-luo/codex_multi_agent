@@ -10,11 +10,15 @@ For deterministic behavior, write a failing practical automated test before impl
 
 When a failed or blocked check turns into repeated diagnosis or repair, follow the [repair and diagnosis loop guard](repair-loop-guard.md). An expected TDD Red, a healthy long-running test, or an incomplete/timed-out check is not by itself a completed failed repair; retain the actual result status and the issue's cumulative history.
 
+Before recommending a repair, including after a first or standalone small failure, use the guard's [repair decision check](repair-loop-guard.md#repair-decision-check); repeat it when the repair strategy materially changes. Preserve the approved expected-behavior source, causal evidence, applicable boundaries and proportionate verification. A test/evaluator correction needs confirmed requirements or independent evidence, a recorded rationale and re-verification; do not weaken criteria to fit the current output.
+
 ## Efficient test execution
 
 Codex development workflows assume an AI Agent may run the tests. By default, plan each check around the lowest Agent-interaction and observation-cost entrypoint that still gives reliable evidence for its risk. The optimization concerns the testing Agent's repeated actions and evidence-reading; it does not imply fewer application/model calls. Choose the execution boundary, runner, and observation method before implementation; run fast deterministic checks before costly browser interaction when practical and when dependencies allow. This is a prioritization, not a mandatory serial gate for every test.
 
 For applications that use an Agent or Workflow behind a replaceable capability boundary, also use the [AI record/replay testing contract](ai-record-replay-testing.md) to distinguish live behavior, integrated runs and offline replay. It supplements the test tiers below and does not waive required acceptance evidence.
+
+Keep test inputs, call-path assertions and expected behavior aligned with applicable confirmed constraints using [approved constraint continuity](approved-constraints.md); a green test proves only its observed path and does not amend intent. When source-linked Agent guidance is in use, read relevant mapped sources rather than treating Inspect hashes as semantic approval. Keep test results and pending manual acceptance in the existing packet and reconcile them at outcome handoff.
 
 For a material architecture, contract, workflow/state, configuration/eligibility, persisted-data/job, or compatibility migration, also consult the conditional [architecture and contract migration guide](architecture-migration.md) for applicable boundary verification. It does not change this packet's test tiers, status schema, or acceptance authority.
 

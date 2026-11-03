@@ -22,6 +22,12 @@ Other implementation work retains one exact named domain writer plus the appropr
 | --- | --- | --- |
 | Unified Team entry (TEAM-ENTRY) | `skills/team/SKILL.md` provides the task-matched or explicit Lead entry; `skills/team/agents/openai.yaml` permits implicit selection without guaranteeing host matching/loading; `skills/team-core/references/workflow-routing.md` selects existing workflows and links their contracts | Existing workflow Skills, role routing, TDD and repair guards, and feedback schema; no router role, runtime, or new lifecycle |
 
+## External research and peer handoffs
+
+`team-researcher` is an optional Luna/medium source collector under `skills/team-core/references/external-research.md`. The Lead sets scope, shared budget, authorized peers, lifecycle and integration. Peers may request bounded evidence directly from the existing researcher when host tools support it. Research does not replace domain judgment, testing, review or acceptance, and no token reduction is promised.
+
+More generally, the Lead may authorize direct same-task factual or clarification messages among named existing peers through the [peer communication contract](../skills/team-core/references/peer-communication.md). The initial grant defines the shared scope, budget and stop condition; peers need no per-message approval within it. The Lead retains decisions and integration authority, higher-priority limits still apply, and actual messaging behavior depends on host capabilities.
+
 ## Risk-proportional design exploration
 
 `$team-plan` and `$team-dev` choose a light check or fuller design exploration based on material risk and unresolved uncertainty, not task/file size. The Lead owns the context brief and decision; Explorer supplies bounded repository facts, Architects provide read-only proposals when a material question warrants them, and assigned Developers/Testers check only their scopes. The normative source is [`design-exploration.md`](../skills/team-core/references/design-exploration.md), linked through the shared Team contracts. Reuse the active PRD, existing Blueprint/OpenSpec where applicable, Work contract and stage packet; do not add a competing planner, design runtime or mandatory document. AI simulation actors are excluded from this design guidance. Existing acceptance, approval, target-instruction, refactor and repair/debug-budget boundaries remain unchanged.
@@ -53,6 +59,8 @@ For actual frontend/backend work, `skills/team-core/references/web-engineering.m
 ## Data work
 
 `team-database-specialist` owns SQL safety, schema design, migrations, indexing, query plans, transaction boundaries, and data-change rollback. It is invoked only when data-layer changes are material.
+
+`team-data-scientist` is an optional, on-demand research role for dataset profiling/preparation, approved analytical SQL/extraction, statistical analysis, feature and split design, and traditional or deep-learning prototypes through evaluation/export/inference. Its distributed `skills/data-science/` Skill uses progressive references for preparation, model development and temporal evaluation. Preserve raw data and provenance, report assumptions and negative results, and bound compute/download/artifact use before experiments. Research results do not replace independent acceptance or authorize trades. Material production schema, transaction, query optimization and data repair remain with `team-database-specialist`; application LLM prompts/context/tools/workflow and product integration remain with `team-ai-engineer`.
 
 ## Git delivery readiness
 
@@ -109,12 +117,14 @@ Task-scoped documentation review runs before planning/implementation and is refr
 | Module | Responsibility and owned files | Dependencies |
 | --- | --- | --- |
 | Documentation runtime (DOC-RUNTIME) | team-core/scripts/documentation.ps1: contained discovery, adoption, review validation, fingerprints and current-record pointers | PowerShell 7 and local repository files only |
+| Agent source inspection (AGENT-DOCS) | team-core/scripts/agent-docs.ps1: read-only Inspect of a portable source map, mapped document/source hashes, bounded Git delta hints and coverage gaps; never writes pages, maps or Git state | PowerShell 7, platform-filesystem.ps1; conditional target-project `docs/agent/` or equivalent |
+| Agent development guidance (AGENT-GUIDANCE) | team-core/references/approved-constraints.md, agent-documentation.md and agent-handoffs.md: constraint propagation, source-map reconciliation and outcome continuity | Existing project authorities and task records; no required target-project tree |
 | Shared contract (DOC-CONTRACT) | team-core/references/documentation-governance.md: PRD authority, ambiguity, optional information requirements and legacy decisions | Existing Blueprint, OpenSpec and stage acceptance contracts |
 | Routing (DOC-ROUTING) | team-doc-check Skill, docs maintainer agent and existing team workflow routes | Shared contract; one Lead, bounded doc ownership |
 | Project instructions (DOC-RULES) | team-project-rules Skill, team-core/references/project-rules.md and team-core/scripts/project-rules.ps1: proactive material-gap proposals at task/module checkpoints and bounded approved maintenance of AGENTS.md, overrides and configured equivalents | Explorer repository facts; existing Work/docs-governance evidence; user approval for every target instruction-file write |
 | Verification (DOC-TEST) | tests/test-documentation.ps1 and canonical stage packet | Disposable project copies and existing package/installer suites |
 
-The documentation runtime keeps its adoption metadata and reviews under docs/governance locally; PRDs live in docs/PRD and confirmed historical docs in docs/legacy. The runtime never resolves semantic conflicts, moves original documents or rewrites source. Policy version is separate from Kit version; a local adoption record is not a readiness decision. Reviews bind task wording, document inventory/classification and declared code dependencies. Hashes do not establish approval authenticity or semantic sufficiency. Existing project layout is preserved; no code refactor is part of this capability.
+The documentation runtime keeps its adoption metadata and reviews under docs/governance locally; PRDs live in docs/PRD and confirmed historical docs in docs/legacy. The runtime never resolves semantic conflicts, moves original documents or rewrites source. Policy version is separate from Kit version; a local adoption record is not a readiness decision. Reviews bind task wording, document inventory/classification and declared code dependencies. Hashes do not establish approval authenticity or semantic sufficiency. Existing project layout is preserved; no code refactor is part of this capability. Agent source inspection is a separate conditional, report-only helper: a fresh fingerprint is not semantic approval, and a changed/unknown aggregate does not automatically block unrelated authorized work.
 
 ## Generated-artifact Git protection boundary
 
