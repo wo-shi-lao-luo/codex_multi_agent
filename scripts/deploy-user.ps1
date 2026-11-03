@@ -388,7 +388,12 @@ if ((Get-FileHash -LiteralPath $entry -Algorithm SHA256).Hash.ToLowerInvariant()
 '@
   $launcherPath=Join-Path $managerRoot 'rollback.ps1'
   if (Test-Path -LiteralPath $launcherPath) {
-    if ((Get-Content -LiteralPath $launcherPath -Raw).Trim() -cne $launcher.Trim()) { throw 'MANAGER: Customized launcher; inspect instead of overwriting.' }
+    # Checkout line endings do not customize the launcher; preserve the installed bytes.
+    $installedLauncher=(Get-Content -LiteralPath $launcherPath -Raw).Replace("`r`n","`n").Trim()
+    $expectedLauncher=$launcher.Replace("`r`n","`n").Trim()
+    if ($installedLauncher -cne $expectedLauncher) {
+      throw 'MANAGER: Customized launcher; inspect instead of overwriting.'
+    }
   } else { Set-Content -LiteralPath $launcherPath -Value $launcher -Encoding utf8 }
   Write-Json (Join-Path $managerRoot 'manager.json') @{ protocol=1; digest=$digest }
 }
@@ -424,7 +429,8 @@ try {
       $temporaryRoot = (Resolve-SystemPathAlias ([IO.Path]::GetTempPath())).TrimEnd('\','/')
       Assert-PlainPath $temporaryRoot
       $exportRoot=Join-Path $temporaryRoot ('codex-kit-export-'+[guid]::NewGuid().ToString('N'))
-      New-Item -ItemType Directory $exportRoot | Out-Null
+      # Preview still needs a disposable export to validate and plan the requested commit.
+      [IO.Directory]::CreateDirectory($exportRoot) | Out-Null
       & $gitCommand.Source -C $SourceRoot archive --format=zip "--output=$exportRoot/package.zip" $commit
       if ($LASTEXITCODE -ne 0) { throw 'SOURCE: Git export failed.' }
       $zip=[IO.Compression.ZipFile]::OpenRead("$exportRoot/package.zip")
@@ -433,7 +439,7 @@ try {
           if ($entry.FullName -match '(^|/)\.\.(/|$)|^[\\/]|:|\\' -or (($entry.ExternalAttributes -shr 16) -band 0xF000) -eq 0xA000) { throw 'SOURCE: Unsafe archive entry.' }
         }
       } finally { $zip.Dispose() }
-      Expand-Archive -LiteralPath "$exportRoot/package.zip" -DestinationPath "$exportRoot/source"
+      Expand-Archive -LiteralPath "$exportRoot/package.zip" -DestinationPath "$exportRoot/source" -WhatIf:$false
       $payload="$exportRoot/source"; $provenance=@{kind='git';commit=$commit;dirty=$false}
     } else {
       $payload=$SourceRoot
@@ -550,6 +556,7 @@ try {
     $resolved=[IO.Path]::GetFullPath($exportRoot)
     if (-not [string]::Equals((Split-Path $resolved -Parent),$temporaryRoot,$pathComparison) -or (Split-Path $resolved -Leaf) -notlike 'codex-kit-export-*') { throw 'PATH: Unsafe export cleanup.' }
     $null=@(Get-Tree $resolved)
-    Remove-Item -LiteralPath $resolved -Recurse -Force
+    # Scratch cleanup is required even when target mutations were only previewed.
+    Remove-Item -LiteralPath $resolved -Recurse -Force -WhatIf:$false
   }
 }

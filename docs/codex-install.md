@@ -40,6 +40,14 @@ Run the Git commands from the selected repository. If the selected source is not
 
 ## Preview and install
 
+For a combined commit, push and install request, finish the authorized commit and
+publication first and confirm the final remote commit. Then preview and install
+that exact source once. Reuse matching review and test evidence under the
+[delivery contract](../skills/team-core/references/git-delivery.md#bounded-combined-delivery);
+refresh only affected evidence and the operation's current source/target checks.
+An installation-only request may still use its explicitly selected local source;
+it does not require publication or authorize Git actions.
+
 Validate the selected source first:
 
 ```powershell

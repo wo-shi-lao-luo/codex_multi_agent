@@ -6,6 +6,14 @@ The two historical `0.10.1` preview records came from separate development branc
 
 ## [Unreleased]
 
+### Changed
+
+- Bound combined delivery to matching evidence reuse, changed-input checks and compact handoffs; confirm the final published commit before a combined commit/push/install deployment. Preserve independent review, required gates and local-only installation support.
+
+### Fixed
+
+- Allow `-GitRef` deployment previews to inspect and clean a disposable export without changing installation targets. Accept LF/CRLF differences in the managed rollback launcher while preserving its bytes and rejecting substantive customizations.
+
 ### Added
 
 - Add optional `team-researcher` (`gpt-6-luna` / medium) and an external research contract for cited, bounded source collection. Within one Lead-set task budget, authorized peers may exchange scoped requests directly with the existing researcher when host tools allow; Lead keeps scope, lifecycle and integration. No token savings or runtime availability are guaranteed.

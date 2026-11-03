@@ -17,6 +17,9 @@ operation scope, policy decisions, freshness and the distinction between mechani
 evidence and semantic readiness. Installation execution remains with the existing
 installation guide and its separately authorized deployment preview.
 
+For combined delivery, apply [bounded combined delivery](../team-core/references/git-delivery.md#bounded-combined-delivery)
+to reuse valid evidence, order publication and installation, and bound network retries and context.
+
 When the risk-proportional path calls for independent checking, use [role routing](../team-core/references/role-routing.md) to check the active
 catalog for the exact `team-delivery-checker` role before assigning its bounded
 assessment. A source TOML or installed receipt does not prove this session exposes
