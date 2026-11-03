@@ -83,11 +83,7 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `tests/` — isolated package, installation, feedback, AI-simulation, AI-design/evaluation, generated-artifact, formatter, Team routing, Git delivery, shared test support, web engineering, stage-verification and project-blueprint tests.
 - `tests/helpers/` — shared test-only process capture, bounded package copying, complete fingerprints and owned sandbox cleanup; scenarios remain in their suites.
 - `tests/fixtures/` — controlled CLI doubles for transport and partial-failure regression tests; never production runtimes.
-- `docs/verification/active/` — implementation verification records awaiting maintainer review; not automated manual acceptance.
-- `docs/verification/active/role-invocation.md` — role-routing regression evidence, actual invocation roster and pending human checks for the bounded workflow correction.
-- `docs/verification/active/coverage-sync.md` — manual-to-E2E/other-layer synchronization contract evidence, isolated regressions and pending real-workflow acceptance.
-- `docs/verification/active/small-task-routing.md` — minimal named-team routing, Lead-only exception and complete-workflow evidence; isolated regressions and pending runtime acceptance.
-- `docs/verification/active/ai-simulation.md` — bounded simulation helper and routing evidence, isolated regressions and pending real Codex actor/manual acceptance.
+- `docs/verification/` — local-only verification notes and task records; retained on disk, ignored by Git and absent from fresh clones. Versioned reusable tests remain under `tests/`.
 - `docs/governance/` — local documentation-adoption metadata, navigation index and scoped review runtime state, when initialized. The Kit keeps `documentation.json`, `doc-index.md` and the entire `reviews/` subtree on disk but outside Git; user-authored governance documents elsewhere remain versionable. A fresh checkout establishes its own adoption/review state from available documents. See `skills/team-core/references/generated-artifacts.md` for exact protection boundaries.
 - `docs/PRD/` — product requirements when needed; do not create an empty folder merely for template completeness.
 - `docs/legacy/` — confirmed superseded project documentation, preserving replacement/reason and references; no automatic age-based moves.

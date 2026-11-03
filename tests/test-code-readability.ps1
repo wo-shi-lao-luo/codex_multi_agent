@@ -46,9 +46,9 @@ try {
   foreach ($item in 'agents', 'skills', 'scripts', 'VERSION', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md') {
     Copy-Item -LiteralPath (Join-Path $root $item) -Destination $testRoot -Recurse -Force
   }
-  # CR-02 fixture completeness: release history links the real formatter guide and packet.
-  # Expected: preserve these exact source documents/paths rather than weakening link checks.
-  foreach ($relative in @('docs/formatter-tool.md', 'docs/verification/active/formatter-tool.md')) {
+  # CR-02 fixture completeness: release history links the versionable formatter guide.
+  # Expected: preserve the exact guide; local-only packets are not package prerequisites.
+  foreach ($relative in @('docs/formatter-tool.md')) {
     $destination = Join-Path $testRoot $relative
     [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination)) | Out-Null
     Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $destination

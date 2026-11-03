@@ -327,7 +327,8 @@ printf 'SETUP_UPDATECHECK=%s\n' "${POWERSHELL_UPDATECHECK-unset}"
       foreach ($item in @('agents','skills','scripts','VERSION','CHANGELOG.md','CHANGELOG.zh-CN.md')) {
         Copy-Item -LiteralPath (Join-Path $repo $item) -Destination $expandedSource -Recurse
       }
-      foreach ($relative in @('docs/formatter-tool.md','docs/verification/active/formatter-tool.md')) {
+      # Keep the versionable guide; local verification packets are not setup inputs.
+      foreach ($relative in @('docs/formatter-tool.md')) {
         $destination=Join-Path $expandedSource $relative
         $null=[IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination))
         Copy-Item -LiteralPath (Join-Path $repo $relative) -Destination $destination
