@@ -35,8 +35,8 @@ function Invoke-TestProcess {
 }
 
 # Copy exact package bytes with an explicit config choice and existing docs boundary.
-# Narrow copies only formatter link dependencies; PublicDocs excludes local history
-# and governance. Reject overlapping roots before creating or copying any files.
+# Narrow copies only the formatter guide; PublicDocs excludes this repository's
+# local verification, history and governance. Reject overlapping roots before writes.
 function Copy-TestPackage {
   param(
     [Parameter(Mandatory)][string]$SourceRoot,
@@ -69,7 +69,7 @@ function Copy-TestPackage {
     Copy-Item -LiteralPath (Join-Path $source $item) -Destination $destination -Recurse -Force
   }
   if ($Profile -eq 'Narrow') {
-    foreach ($relative in @('docs/formatter-tool.md', 'docs/verification/active/formatter-tool.md')) {
+    foreach ($relative in @('docs/formatter-tool.md')) {
       $target = Join-Path $destination $relative
       New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
       Copy-Item -LiteralPath (Join-Path $source $relative) -Destination $target
@@ -78,7 +78,7 @@ function Copy-TestPackage {
     $docsRoot = Join-Path $source 'docs'
     foreach ($document in Get-ChildItem -LiteralPath $docsRoot -File -Recurse -Force) {
       $relative = [IO.Path]::GetRelativePath($docsRoot, $document.FullName).Replace('\', '/')
-      if ($relative -match '^(governance|superpowers)/') { continue }
+      if ($relative -match '^(governance|superpowers|verification)/') { continue }
       $target = Join-Path $destination "docs/$relative"
       New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
       Copy-Item -LiteralPath $document.FullName -Destination $target
