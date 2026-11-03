@@ -41,6 +41,13 @@ MarkStable snapshots the currently installed bytes; it does not install the sour
 
 Git targets are resolved to a commit and exported to a disposable directory, with unsafe archive entries rejected. Source code is treated as package data; its scripts are not executed. This preserves the active branch and uncommitted changes. A direct `-SourceRoot` deployment includes working-tree edits and records that provenance. For reproducible rollback prefer a commit or verified snapshot.
 
+A `-GitRef ... -WhatIf` preview creates and cleans a disposable source export so
+the exact commit can be inspected; it does not write installation homes, receipts
+or manager state. For a combined commit, push and install request, confirm the
+final published commit before previewing and installing it once. An explicitly
+selected local-only installation remains supported. See the
+[combined delivery contract](../skills/team-core/references/git-delivery.md#bounded-combined-delivery).
+
 The installed entrypoint is `~/.agents/codex-multi-agent/rollback.ps1`. It validates a content-addressed manager copy outside Skill/agent discovery paths. Invoke that entrypoint with the same action/arguments after switching the repository to an older commit, or when the checkout is unavailable. The recovery engine is not downgraded with the Kit; newer management protocols must be handled deliberately, not overwritten by old payloads. Existing copies are retained for recovery rather than silently deleted.
 
 ## What survives a rollback

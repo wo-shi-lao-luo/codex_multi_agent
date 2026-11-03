@@ -140,6 +140,45 @@ project, or infer a release merely from version-file changes. Keep generated loc
 runtime artifacts separate from versionable project evidence under the canonical
 [generated-artifact contract](generated-artifacts.md).
 
+## Bounded combined delivery
+
+For combined commit/push/install work, assess the source once with the named
+independent checker when the existing risk rules require it. Establish scope,
+snapshot, policy, targets and evidence once; reuse reachable review/test provenance
+only while its inputs and semantic coverage match. After mutations, refresh cheap
+operation-specific freshness and delta checks; reinspect affected conclusions.
+Staging, committing or changing model/agent alone does not require another checker
+round or full suite. Mandatory gates and inspection of all outgoing intermediate
+history still apply.
+
+When publishing and installing, commit, publish and confirm the remote final OID
+before previewing the exact final source and installing once. Install-only requests
+may use a local source. Authorization remains operation-specific; source readiness
+does not authorize publishing or installation. If final payload or provenance
+changes after installation, reassess the affected preview/installation under the
+deployment guide; do not manufacture a matching receipt.
+
+On network failure, inspect the result, including the remote state when success
+is ambiguous. Do not repeat an identical attempt without new evidence. Allow at
+most one evidence-based retry by the same method, then use a bounded existing
+connector fallback within the same authorization or report the blocked operation.
+A transport fallback grants no additional authority to force updates or rewrite
+published history; preserve separately authorized operation and lease rules.
+Never falsify authorship, launch unattended parallel writers or default to a
+custom bulk publisher.
+This retry limit is separate from the existing repair budget; it imposes no
+universal timeout or total task budget.
+
+Pass scoped briefs, necessary resources and result summaries; avoid broad context
+reads or retransmitting source already reachable by the recipient. Reuse a child
+only when its retained context fits the task; otherwise use a fresh bounded fork
+when supported. No universal thread count is prescribed. Preserve the existing
+role and approval boundaries.
+
+Report meaningful progress at delivery checkpoints and, on a stall, state the
+last confirmed result, blocker and next decision. These instructions do not provide
+a host watchdog or guarantee interruption of a pending tool call.
+
 ## Read-only collector
 
 Apply branch-role decisions only when confirmed by the target project. These

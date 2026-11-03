@@ -81,6 +81,28 @@ try {
   Assert-True ($receipt.schemaVersion -eq 2 -and $receipt.kitVersion -eq '0.11.0') 'Wrong receipt.'
   Assert-True (-not(Test-Path -LiteralPath "$management/stable.json")) 'Initial major-line lifecycle test implicitly marked stable.'
   Assert-True (Test-Path "$management/rollback.ps1") 'Missing persistent recovery entrypoint.'
+  # DELIVERY-LINE: equivalent LF and CRLF launchers remain owned across manager updates.
+  # Expected: both representations survive byte-for-byte; genuine edits still block deployment.
+  $launcherPath = "$management/rollback.ps1"
+  $launcherText = [IO.File]::ReadAllText($launcherPath).Replace("`r`n", "`n")
+  foreach ($lineEnding in @("`n", "`r`n")) {
+    [IO.File]::WriteAllText($launcherPath, $launcherText.Replace("`n", $lineEnding))
+    $launcherHash = (Get-FileHash $launcherPath).Hash
+    & $manager -Action Deploy -SourceRoot $old @arguments | Out-Null
+    Assert-True ((Get-FileHash $launcherPath).Hash -eq $launcherHash) 'Manager rewrote launcher representation.'
+  }
+  [IO.File]::AppendAllText($launcherPath, "`n# user customization`n")
+  $customCodex = Fingerprint "$fakeCodex/agents"
+  $customAgents = Fingerprint "$fakeAgents/skills"
+  $customReceipt = (Get-FileHash "$management/install-receipt.json").Hash
+  $customLauncher = (Get-FileHash $launcherPath).Hash
+  Assert-Fails { & $manager -Action Deploy -SourceRoot $old @arguments } 'MANAGER: Customized'
+  Assert-True ((Fingerprint "$fakeCodex/agents") -eq $customCodex -and
+    (Fingerprint "$fakeAgents/skills") -eq $customAgents -and
+    (Get-FileHash "$management/install-receipt.json").Hash -eq $customReceipt -and
+    (Get-FileHash $launcherPath).Hash -eq $customLauncher) `
+    'Customized launcher rejection mutated payload, receipt or launcher.'
+  [IO.File]::WriteAllText($launcherPath, $launcherText)
   # Scenario: an explicitly selected source/home is an arbitrary link.
   # Expected: refuse even a preview, retaining the same managed installation.
   $selectedLink = Join-Path $testRoot 'selected-root-link'
@@ -262,6 +284,35 @@ try {
   & git -C $old -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false -c "core.hooksPath=$emptyBin" commit --quiet -m fixture
   $commit = (& git -C $old rev-parse HEAD).Trim()
   Set-Content "$old/VERSION" '9.9.9'
+  # DELIVERY-PREVIEW: a dirty source previews its pinned commit without touching any owned state.
+  # Expected: commit version is selected, Git refs/index/worktree and homes remain exact,
+  # and scratch exports are removed after both a successful preview and package rejection.
+  $sourceBefore = Fingerprint $old
+  $codexBefore = Fingerprint $fakeCodex
+  $agentsBefore = Fingerprint $fakeAgents
+  $exportsBefore = @(Get-ChildItem $tempParent -Directory -Filter 'codex-kit-export-*' |
+    Select-Object -ExpandProperty Name | Sort-Object) -join "`n"
+  $preview = & $manager -Action Deploy -SourceRoot $old -GitRef $commit @arguments -WhatIf
+  Assert-True (($preview -join "`n") -match 'preview') 'GitRef preview did not return its plan.'
+  Assert-True ((Fingerprint $old) -eq $sourceBefore -and
+    (Fingerprint $fakeCodex) -eq $codexBefore -and
+    (Fingerprint $fakeAgents) -eq $agentsBefore) 'GitRef preview mutated source or homes.'
+  $exportsAfter = @(Get-ChildItem $tempParent -Directory -Filter 'codex-kit-export-*' |
+    Select-Object -ExpandProperty Name | Sort-Object) -join "`n"
+  Assert-True ($exportsAfter -eq $exportsBefore) 'Successful preview leaked export scratch.'
+  # A local commit without VERSION fails after export rather than at ref resolution.
+  & git -C $old rm --cached --quiet VERSION
+  & git -C $old -c user.name=Fixture -c user.email=fixture@example.invalid `
+    -c commit.gpgsign=false -c "core.hooksPath=$emptyBin" commit --quiet -m invalid-package
+  $invalidCommit = (& git -C $old rev-parse HEAD).Trim()
+  $sourceBefore = Fingerprint $old
+  Assert-Fails { & $manager -Action Deploy -SourceRoot $old -GitRef $invalidCommit @arguments -WhatIf } 'PACKAGE|VERSION'
+  Assert-True ((Fingerprint $old) -eq $sourceBefore -and
+    (Fingerprint $fakeCodex) -eq $codexBefore -and
+    (Fingerprint $fakeAgents) -eq $agentsBefore) 'Rejected preview mutated source or homes.'
+  $exportsAfter = @(Get-ChildItem $tempParent -Directory -Filter 'codex-kit-export-*' |
+    Select-Object -ExpandProperty Name | Sort-Object) -join "`n"
+  Assert-True ($exportsAfter -eq $exportsBefore) 'Rejected preview leaked export scratch.'
   & $manager -Action Deploy -SourceRoot $old -GitRef $commit @arguments | Out-Null
   $gitReceipt = Get-Content $receiptPath -Raw | ConvertFrom-Json
   Assert-True ($gitReceipt.kitVersion -eq '0.11.0' -and $gitReceipt.source.commit -eq $commit) 'Git target not honored.'
