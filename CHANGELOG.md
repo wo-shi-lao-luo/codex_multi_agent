@@ -8,6 +8,8 @@ The two historical `0.10.1` preview records came from separate development branc
 
 ### Changed
 
+- Extend the evidence-based light path to understood, reversible, low-impact application changes such as small features, simple wiring and configuration relocation. Select mode before domain routing; retain relevant checks and gates without scope, suite or packaging expansion absent a relevant reason.
+
 - Bound combined delivery to matching evidence reuse, changed-input checks and compact handoffs; confirm the final published commit before a combined commit/push/install deployment. Preserve independent review, required gates and local-only installation support.
 
 ### Fixed

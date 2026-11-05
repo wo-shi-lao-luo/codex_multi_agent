@@ -157,7 +157,7 @@ agent 名称使用 `team-` 前缀，以避免与个人 agent 重名。安装收�
 
 用户直接提出代码排版或可读性整理请求时，使用 `$team-code-maintain` 和 `team-code-maintainer`，沿用项目已有的格式化工具并执行适当范围的检查；辅助工具不会安装依赖或替换不受支持的格式化工具。在重要功能开发任务中转交格式整理时，须等原编写者冻结文件，并保留该任务原有的 Tester/Reviewer 门槛。详见[代码可读性约定](skills/team-core/references/code-readability.md)和[格式化工具指南](docs/formatter-tool.md)。
 
-使用 Team 不等于必须调用多个 Agent。按[执行约定](skills/team-core/references/execution-contract.md)，边界已知、范围清楚且低风险的文档或元数据维护，以及普通代码的局部小修复，可以由 Lead 直接完成，不需要额外申请 Lead 单独处理，也不强制启动实现者、Tester 或 Reviewer 子智能体。适用的项目规则、领域指引、实际回归/TDD、注释和真实边界验证仍须遵守，已有项目、阶段与人工核验要求也要保留。不会仅因任务符合轻量路径就自动创建全量文档清单、结构化阶段包或反馈记录。实际检查须标为自检，不能冒充独立证据。重要的 harness、权限、契约、安全、数据变更或边界不清的任务，仍使用相应具名实现与测试角色，并保留重要改动的独立审查；容量不足不是降级理由。用户明确要求独立检查或多 Agent 时，以该要求为准。详见[角色分配规则](skills/team-core/references/role-routing.md)和[AI 评估约定](skills/team-core/references/ai-evaluation.md)。
+使用 Team 本身不要求多 Agent 执行。按[执行约定](skills/team-core/references/execution-contract.md)，边界清楚、范围明确、可逆且影响较低的应用变更（包括小型功能、简单接线和配置迁移），可以由 Lead 轻量完成，也可由一个匹配的专家承担。适用的项目规则、领域指引、实际回归/TDD、注释和真实边界验证仍须遵守，已有项目、阶段与人工核验要求也要保留。不会仅因任务符合轻量路径就自动创建全量文档清单、结构化阶段包或反馈记录。实际检查须标为自检，不能冒充独立证据。实质风险和必要门禁仍须执行相应角色与检查。详见[角色分配规则](skills/team-core/references/role-routing.md)和[AI 评估约定](skills/team-core/references/ai-evaluation.md)。
 
 `$team-delivery-check` 只在交付意图明确时触发。常规轻量 Commit/Push/PullRequest 评估可以由 Lead 自检并明确标注；用户要求独立检查、重要或复杂的范围、正式发布操作与安装源码评估，仍按 [Git 交付约定](skills/team-core/references/git-delivery.md)使用具名检查器。可复用仍有效的范围内证据，但须检查当前操作和新增待交付提交的中间历史。评估不会授权 Git 操作或安装。仅运行测试的请求不需要生产代码编写者或虚构的待审查差异。任务匹配仍是尽力而为、仅限当前任务，用户直接选择的工作流或退出要求优先。
 
