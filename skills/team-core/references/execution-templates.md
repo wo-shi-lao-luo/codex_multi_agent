@@ -44,6 +44,7 @@ Purpose/source of truth for each assigned documentation path; allowed adjacent f
 Applicable PRD/specification and confirmed decisions:
 Unresolved documentation findings and permitted independent work:
 Expected result:
+Progress (when substantial/multi-phase): expected output, next checkpoint, estimate or `unknown`; update actual phase/result, remaining work and coarse cause evidence:
 Shared contract or compatibility concern:
 Verification:
 Persistent issue guard (when applicable; see [repair and diagnosis loop guard](repair-loop-guard.md)): acceptance/conditions/deviation identity; mode and user authorization; prior history reference; diagnostic/repair allocation; external research question/sources/applicability and local validation (when relevant); whether the single evidence-qualified ordinary extension is used; long-operation progress checkpoints; stop condition:
@@ -93,6 +94,7 @@ UI fixes, re-inspection and remaining gaps:
 Persistent issue guard (when applicable; see [repair and diagnosis loop guard](repair-loop-guard.md)): issue identity (acceptance + conditions + deviation); mode and user authorization; repair failures / diagnostic rounds and prior history reference; external research question, sources, applicability, adopted/rejected evidence and local validation; extension used/remaining; next allowed attempt and stop condition:
 Repair decision summary (when proposing or materially changing a repair strategy; see [repair decision check](repair-loop-guard.md#repair-decision-check)): responsible layer and mechanism/hypothesis evidence; applicability and boundary; proportionate verification; uncertainty; whether the proposal is a general fix or an explicitly approved bounded workaround:
 Long operation checkpoint (when applicable): expected progress evidence, checkpoint, observed state, continue/pause decision:
+Migration batch status (when applicable): pilot/module and real test/load chain; baseline and issue attribution; batch owner, checkpoint and remaining groups:
 Pause report / human decision (when applicable): trigger, facts vs ranked hypotheses, exact input and reason, bounded recommendation, preserved state, user decision:
 ```
 

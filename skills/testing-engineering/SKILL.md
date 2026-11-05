@@ -7,6 +7,8 @@ description: Plan and implement focused, evidence-backed tests for changed behav
 
 Use this Skill to design and verify meaningful tests. Read the shared [execution contract](../team-core/references/execution-contract.md), [execution templates](../team-core/references/execution-templates.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md) in full; tests should demonstrate behavior and risk coverage, not mirror implementation details.
 
+When a migration changes test sources or harnesses across modules, treat that work as implementation with an explicit owner and exact paths under the shared [migration batching guidance](../team-core/references/execution-contract.md#migration-batches-and-progress). Keep it distinct from test execution and the Tester’s assigned acceptance/verification work. Report batch progress through the existing packet or record; Lead inquiries follow [role routing](../team-core/references/role-routing.md#lead-progress-inquiries).
+
 For a real web client or service boundary, use the relevant portions of [risk-proportional web engineering](../team-core/references/web-engineering.md) to select focused state, interaction, API, or reliability evidence. Keep the existing packet and Tester selection authoritative; do not turn the guide into an extra test layer or blanket audit.
 
 When a tested application includes a replaceable Agent/Workflow capability, read the [AI record/replay testing contract](../team-core/references/ai-record-replay-testing.md) for evidence boundaries, fixture safety and invalidation. Keep stage coverage and results in the packet; a replay is not live E2E evidence.

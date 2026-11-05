@@ -71,7 +71,7 @@ Before assigning any child, including the selected Tester role for packet planni
 
 ## Execute and integrate
 
-Wait for required discovery or contract decisions before dependent work begins. Communicate only at integration points: a shared contract is agreed, a dependency is ready, a handoff identifies a blocker, or verification changes the plan.
+Wait for required discovery or contract decisions before dependent work begins. Communicate at integration points: a shared contract is agreed, a dependency is ready, a handoff identifies a blocker, or verification changes the plan. For substantial delegated work, also follow the execution contract's [migration batching and progress guidance](../team-core/references/execution-contract.md#migration-batches-and-progress) and [Lead progress inquiries](../team-core/references/role-routing.md#lead-progress-inquiries).
 
 After a coherent implementation pass, the assigned Tester verifies standard-path scope; for an eligible light task the Lead runs scoped checks as self-check. Under a separately approved Lead-only exception outside the light path, the Lead performs Tester duties as self-check rather than independent evidence. Every material implementation still receives independent `team-reviewer` review. Include `team-database-specialist` for material data work. The Lead de-duplicates findings, assigns focused fixes, and keeps the original owner responsible for the changed boundary.
 

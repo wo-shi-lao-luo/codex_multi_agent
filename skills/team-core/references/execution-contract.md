@@ -46,6 +46,12 @@ Outside the eligible light path, Lead-only implementation requires either the us
 
 At start, briefly record task type/risk, applicable standards, intended named roles/ownership and planned checks. At close, reconcile them with actual role-selector/handle evidence, completed checks, outcomes and gaps in the existing Work/Verification record or stage packet. These are inspectable workflow obligations, not an unbypassable runtime gate.
 
+## Migration batches and progress
+
+For substantial migrations that repeat changes across modules, source and tests, establish the existing source, typecheck, runtime and test baseline when relevant. Pilot one representative real module through its test and entry/load chain before batching independent modules. Preserve runtime paths and approved semantics. Diagnose shared config, type or import-root causes before treating a cascade of downstream errors as separate failures; attribute issues as pre-existing, newly introduced or unknown when evidence permits. After the pilot, group genuinely independent local batches and checkpoints. Treat test code and harness migration as implementation workload with an explicit owner and exact file scope; it is not test execution, and must not be dumped wholesale on the Tester. Route root causes to the fitting owner. This migration workflow does not apply to every small edit or require an exhaustive architecture migration.
+
+For these migrations and other delegated work with meaningful multi-phase effort, the Lead and child maintain proportionate progress evidence in the existing Work/Verification record or packet: expected output and next checkpoint, estimate or `unknown`, then actual phase, completed delta/result, remaining work and coarse cause evidence. The child proactively reports at the first batch and when a material blocker, workload mismatch or lack of convergence appears. Exact Lead inquiry triggers and response actions are in [role routing](role-routing.md#lead-progress-inquiries). Reviews may be useful before all work finishes when their input is stable; later changes require retesting and rereview of affected scope, not automatic repetition of unaffected suites or reviews.
+
 ## 1. Context
 
 **Input:** user request and applicable project instructions.
