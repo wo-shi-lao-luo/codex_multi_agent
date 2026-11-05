@@ -108,7 +108,8 @@ exit 17
 
   # TS02: narrow and public profiles have intentionally different source boundaries.
   # Expected: exact selected bytes/config/root docs; private governance/history and
-  # unrelated root work are never copied. Copying must leave synthetic source intact.
+  # local verification records and unrelated root work are never copied.
+  # Copying must leave synthetic source intact.
   $source = Join-Path $sandbox 'source'
   $bodies = [ordered]@{
     'agents/fixture.toml' = 'name = "fixture"'
@@ -122,7 +123,7 @@ exit 17
     'README.md' = '# Public root'
     'AGENTS.md' = '# Public root instruction bytes'
     'docs/formatter-tool.md' = '# Exact linked formatter guide'
-    'docs/verification/active/formatter-tool.md' = '# Exact linked packet'
+    'docs/verification/active/formatter-tool.md' = '# Local-only exclusion control'
     'docs/public/nested.md' = '# Public nested'
     'docs/governance/private.md' = '# Private runtime'
     'docs/superpowers/private.md' = '# Private history'
@@ -142,8 +143,7 @@ exit 17
     $sourceHashes[$relative] = (Get-FileHash -LiteralPath (Join-Path $source $relative)).Hash
   }
   $narrow = @('agents/fixture.toml', 'skills/fixture/SKILL.md', $bomRelative, 'scripts/fixture.ps1',
-    'VERSION', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md', 'docs/formatter-tool.md',
-    'docs/verification/active/formatter-tool.md')
+    'VERSION', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md', 'docs/formatter-tool.md')
   $public = $narrow + @('README.md', 'AGENTS.md', 'docs/public/nested.md', '.github/workflows/fixture.yml')
   foreach ($profile in @('Narrow', 'PublicDocs')) {
     foreach ($includeConfig in @($false, $true)) {

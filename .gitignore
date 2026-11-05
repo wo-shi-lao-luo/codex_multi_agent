@@ -18,3 +18,5 @@
 # Repository-local backlog and planning records; preserve on disk, exclude from Git.
 /backlog/
 /docs/superpowers/
+# Repository-local verification records; keep on disk, exclude from Git.
+/docs/verification/

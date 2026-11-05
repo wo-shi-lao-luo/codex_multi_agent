@@ -70,10 +70,13 @@ $expectedAgentProfiles = @{
   'team-code-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
   'team-delivery-checker' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
   'team-database-specialist' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
+  'team-data-scientist' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
+  'team-designer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-docs-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
   'team-explorer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
   'team-frontend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-reviewer' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
+  'team-researcher' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
   'team-tester' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-ai-tester' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
   'team-ai-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
@@ -132,6 +135,87 @@ foreach ($reference in @('repair-loop-guard.md','feedback-recording.md','role-ro
   }
 }
 foreach ($route in $teamEntryRoutes) {
+  $path = Join-Path $root $route.path
+  $content = if (Test-Path -LiteralPath $path -PathType Leaf) {
+    Get-Content -LiteralPath $path -Raw
+  } else { $null }
+  if ([string]::IsNullOrWhiteSpace($content) -or
+      -not $content.Contains("]($($route.target))")) {
+    $failures.Add("$($route.path) must link to $($route.target)")
+  }
+}
+
+# Keep the optional specialist and its progressive guidance in one distribution.
+# These checks establish discovery, not scientific quality or native role loading.
+$dataScienceReferences = @('data-preparation.md', 'model-development.md', 'time-series.md')
+$dataScienceResources = @(
+  'skills/data-science/SKILL.md'
+  'skills/data-science/agents/openai.yaml'
+)
+foreach ($reference in $dataScienceReferences) {
+  $dataScienceResources += "skills/data-science/references/$reference"
+}
+foreach ($resource in $dataScienceResources) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) {
+    $failures.Add("Missing data science resource: $resource")
+  }
+}
+$dataScienceRoutes = @(
+  @{
+    path = 'skills/team-core/references/role-routing.md'
+    target = '../../data-science/SKILL.md'
+  }
+)
+foreach ($reference in $dataScienceReferences) {
+  $dataScienceRoutes += @{
+    path = 'skills/data-science/SKILL.md'
+    target = "references/$reference"
+  }
+}
+foreach ($route in $dataScienceRoutes) {
+  $path = Join-Path $root $route.path
+  $content = if (Test-Path -LiteralPath $path -PathType Leaf) {
+    Get-Content -LiteralPath $path -Raw
+  } else { $null }
+  if ([string]::IsNullOrWhiteSpace($content) -or
+      -not $content.Contains("]($($route.target))")) {
+    $failures.Add("$($route.path) must link to $($route.target)")
+  }
+}
+
+# Keep the research role discoverable with its portable evidence/communication contract.
+# These guards check package wiring, not live search, peer delivery or token savings.
+$researchReference = 'skills/team-core/references/external-research.md'
+if (-not (Test-Path -LiteralPath (Join-Path $root $researchReference) -PathType Leaf)) {
+  $failures.Add("Missing external research resource: $researchReference")
+}
+foreach ($route in @(
+  @{ path = 'skills/team-core/SKILL.md'; target = 'references/external-research.md' }
+  @{ path = 'skills/team-core/references/role-routing.md'; target = 'external-research.md' }
+)) {
+  $path = Join-Path $root $route.path
+  $content = if (Test-Path -LiteralPath $path -PathType Leaf) {
+    Get-Content -LiteralPath $path -Raw
+  } else { $null }
+  if ([string]::IsNullOrWhiteSpace($content) -or
+      -not $content.Contains("]($($route.target))")) {
+    $failures.Add("$($route.path) must link to $($route.target)")
+  }
+}
+
+# Peer communication needs a portable shared contract at each authoritative entry.
+# Validate discovery links only; grants, delivery and wake behavior need host evidence.
+$peerReference = 'skills/team-core/references/peer-communication.md'
+if (-not (Test-Path -LiteralPath (Join-Path $root $peerReference) -PathType Leaf)) {
+  $failures.Add("Missing peer communication resource: $peerReference")
+}
+foreach ($route in @(
+  @{ path = 'skills/team-core/SKILL.md'; target = 'references/peer-communication.md' }
+  @{ path = 'skills/team-core/references/role-routing.md'; target = 'peer-communication.md' }
+  @{ path = 'skills/team-core/references/agent-handoffs.md'; target = 'peer-communication.md' }
+  @{ path = 'skills/team-core/references/execution-contract.md'; target = 'peer-communication.md' }
+  @{ path = 'skills/team-core/references/external-research.md'; target = 'peer-communication.md' }
+)) {
   $path = Join-Path $root $route.path
   $content = if (Test-Path -LiteralPath $path -PathType Leaf) {
     Get-Content -LiteralPath $path -Raw
@@ -489,6 +573,11 @@ Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-
     if ($entries['model'] -ne $expectedProfile.model -or $entries['model_reasoning_effort'] -ne $expectedProfile.reasoning) {
       $failures.Add("$($_.Name) does not match the required model profile")
     }
+    # A custom researcher inherits parent permissions. Its no-write contract is
+    # behavioral guidance and must not claim a separate sandbox policy override.
+    if ($_.BaseName -eq 'team-researcher' -and $entries.ContainsKey('sandbox_mode')) {
+      $failures.Add('team-researcher must inherit parent sandbox policy without sandbox_mode')
+    }
     # Actors and the AI design specialist observe bounded evidence; they are not
     # production writers. A stronger actor model must not broaden its permissions.
     if ($_.BaseName -in @('team-ai-simulation-actor-basic','team-ai-simulation-actor-advanced','team-ai-architect','team-delivery-checker') -and $entries['sandbox_mode'] -ne 'read-only') {
@@ -515,6 +604,16 @@ Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-
         if (-not ([string]$entries['developer_instructions']).Contains($route)) {
           $failures.Add("team-code-maintainer must reference $route")
         }
+      }
+    }
+    # Research outputs require scoped writes and the specialist's domain guide.
+    if ($_.BaseName -eq 'team-data-scientist') {
+      if ($entries['sandbox_mode'] -ne 'workspace-write') {
+        $failures.Add('team-data-scientist must declare workspace-write sandbox mode')
+      }
+      if ([string]$entries['developer_instructions'] -notmatch
+          '(?<![a-zA-Z0-9_-])data-science(?![a-zA-Z0-9_-])') {
+        $failures.Add('team-data-scientist must reference data-science domain guidance')
       }
     }
   } else {

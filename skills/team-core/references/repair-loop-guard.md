@@ -1,6 +1,27 @@
 # Repair and diagnosis loop guard
 
-Use this contract whenever a Team workflow is investigating or repairing a persistent failure. It bounds ineffective repetition while allowing healthy long-running work. It is an instruction contract: it does not provide a clock, runtime counter, or guaranteed interruption. The Lead owns issue identity, budget checks, continuity across children and handoffs, and the decision to pause.
+Use the repair decision check below before every repair proposal. Use the persistent-failure budgets in this contract when diagnosing or repairing a persistent issue. The contract bounds ineffective repetition while allowing healthy long-running work; it is an instruction contract, not a clock, runtime counter, or guaranteed interruption. The Lead owns issue identity, budget checks, continuity across children and handoffs, and the decision to pause.
+
+## Repair decision check
+
+Before the first repair proposal, including an ordinary small fix, and before proposing a materially changed repair strategy, make a concise decision check. A materially changed strategy changes the causal mechanism, responsible layer, intervention, or supported applicability; an implementation detail within the already assessed strategy does not by itself trigger another check. Apply this check to development returns and AI prompt, context, workflow, tool, host, or evaluator repairs. It applies whether or not the persistent-failure thresholds below have been reached.
+
+State only the decision-relevant summary:
+
+1. The approved expected behavior, the failure class, and the observed deviation.
+2. The responsible causal layer and the evidence for the mechanism or a testable hypothesis. Keep observations, inference, confidence, and unknowns distinct.
+3. The conditions where the proposed fix applies and a meaningful boundary where behavior should differ. Identify a relevant incidental input transformation whose meaning should be preserved; state a genuine counterexample when a requirement or mechanism supplies one. Keep semantic-changing variables separate from incidental variation.
+4. The smallest adequate verification for the risk: check the original failure and add equivalent, negative/boundary, or adjacent-behavior cases when they distinguish the mechanism or protect affected behavior. State important unverified cases and remaining uncertainty.
+
+Choose the change at the layer supported by evidence: requirements or design, instructions or context assembly, protocol or state, tool or host, evaluator, or environment. Observed behavior or one case result alone cannot amend intended requirements; bring disputed intent to the Lead/user. If evidence does not distinguish causes, use the smallest authorized discriminating check and keep the cause unresolved until evidence changes that. Avoid a prompt-only prohibition when the failure belongs to another layer.
+
+Do not add behavior branches keyed only to fixture or test identity, names, answer strings, incidental wording, or other values that do not determine the supported requirement or mechanism. Legitimate requirement- or mechanism-based domain/version conditions and useful examples, including few-shot examples, remain valid; their presence alone is not overfitting. A correct compatibility branch may apply only to the affected version when that is what the supported contract requires.
+
+When evidence shows that a test or evaluator is wrong, its assigned owner may correct it only against confirmed requirements or independent evidence. Record that basis and re-verify the corrected test/evaluator and affected behavior. Do not silently weaken, remove, or tune criteria to fit the current output, hide failed attempts, or retry until a case passes. Keep developer-only evaluation criteria out of a bounded tested actor's context.
+
+Any case-specific bypass, temporary mask, or other workaround that deliberately leaves the same failure class unresolved requires explicit, bounded user approval before implementation, even when the root cause is known. An existing explicit approval for that exact scope is sufficient; do not ask again. State the exact scope, tradeoff, unhandled failures, risk, and replacement/removal condition. General repair authority, urgency, or silence does not approve it. A behavior condition required by an approved contract or mechanism is a general fix within that applicability, not a case-only workaround. Pause only the work that depends on this decision.
+
+Carry the concise decision summary through assignments and handoffs. This check does not require private chain-of-thought, a fixed number of alternatives or examples, proof for every possible input, a broad refactor, a full suite for every small fix, or an additional design-approval gate for an evidence-based general repair. It does not grant repair authority during read-only debug, reset issue history, or change the persistent repair/debug budgets below.
 
 ## Identify and preserve an issue
 

@@ -7,6 +7,8 @@ description: Independently review a change set for correctness, security, mainta
 
 Use this Skill for focused review work. Read the shared [execution contract](../team-core/references/execution-contract.md), [execution templates](../team-core/references/execution-templates.md), and applicable [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md) in full; findings must be evidence-backed and actionable.
 
+Trace approved constraints through actual caller/wiring/fallback and focused tests with [approved constraint continuity](../team-core/references/approved-constraints.md). If a source-linked Agent guide exists, assess relevant evidence using [Agent documentation](../team-core/references/agent-documentation.md) without treating fresh hashes as approval. This Skill is read-only; document gaps are findings for the authorized owner. Preserve outcome identity and pending acceptance in handoff under [outcome-based handoffs](../team-core/references/agent-handoffs.md).
+
 For an affected web client or service boundary, select relevant checks from [risk-proportional web engineering](../team-core/references/web-engineering.md) and inspect the same concrete risks carried by the Work contract and packet. Do not infer a broad audit from the framework or demo label.
 
 Check evidence-backed, clearly unjustified reimplementation of a suitable existing project capability, without treating style preference or library choice as a finding. For introduced or adapted third-party code/assets, check relevant provenance, license/notice handling, unnecessary or duplicate dependencies, and material compatibility/security concerns under [reuse and third-party guidance](../team-core/references/reuse-and-third-party.md). Bound inspection to the consumed surface and risk; do not force external search or infer an upstream-wide audit.
@@ -29,6 +31,8 @@ For visible UI changes, apply the [UI delivery contract](../team-core/references
 When the change materially migrates architecture, contracts, workflow/state, configuration or eligibility, persisted data/jobs, or compatibility, apply the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md). Check the trace from existing behavior to approved target rules, actual consumers, evidence invalidation, and completion claims; the guide is unnecessary for an internal/model-only change with unchanged semantics.
 
 ## Evaluate findings
+
+When the reviewed diff already contains a repair, apply the [repair decision check](../team-core/references/repair-loop-guard.md#repair-decision-check) and inspect the actual branch, mechanism, applicability, relevant variant/boundary evidence, and any required bounded workaround approval. This is focused review, not an added full-suite gate; it covers repairs already implemented, not only a proposed next step.
 
 For an enabled OpenSpec project, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md). Inspect intent/design/task consistency and actual assertion coverage beyond the structural link validator. Report stale snapshots, unmapped scenarios, unsupported exceptions and premature closure; do not run write operations or certify user acceptance.
 

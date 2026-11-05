@@ -22,6 +22,7 @@ $checks = @(
   @{name='validate';path='scripts/validate.ps1';arguments=@()},
   @{name='validate-docs';path='scripts/validate-docs.ps1';arguments=@('-ProjectRoot',$root)},
   @{name='agent-concurrency';path='tests/test-agent-concurrency.ps1';arguments=@()},
+  @{name='agent-documentation';path='tests/test-agent-documentation.ps1';arguments=@()},
   @{name='ai-capability-contracts';path='tests/test-ai-capability-contracts.ps1';arguments=@()},
   @{name='ai-development-guidance';path='tests/test-ai-development-guidance.ps1';arguments=@()},
   @{name='ai-evaluation';path='tests/test-ai-evaluation.ps1';arguments=@()},
@@ -29,6 +30,7 @@ $checks = @(
   @{name='architecture-migration';path='tests/test-architecture-migration.ps1';arguments=@()},
   @{name='bilingual-docs';path='tests/test-bilingual-docs.ps1';arguments=@()},
   @{name='code-readability';path='tests/test-code-readability.ps1';arguments=@()},
+  @{name='data-science';path='tests/test-data-science.ps1';arguments=@()},
   @{name='deployment';path='tests/test-deployment.ps1';arguments=@()},
   @{name='design-exploration';path='tests/test-design-exploration.ps1';arguments=@()},
   @{name='documentation';path='tests/test-documentation.ps1';arguments=@()},
@@ -38,8 +40,11 @@ $checks = @(
   @{name='git-delivery';path='tests/test-git-delivery.ps1';arguments=@()},
   @{name='install-user';path='tests/test-install-user.ps1';arguments=@()},
   @{name='openspec';path='tests/test-openspec.ps1';arguments=@()},
+  @{name='optional-designer';path='tests/test-optional-designer.ps1';arguments=@()},
+  @{name='peer-communication';path='tests/test-peer-communication.ps1';arguments=@()},
   @{name='project-blueprint';path='tests/test-project-blueprint.ps1';arguments=@()},
   @{name='project-rules';path='tests/test-project-rules.ps1';arguments=@()},
+  @{name='researcher';path='tests/test-researcher.ps1';arguments=@()},
   @{name='stage-verification';path='tests/test-stage-verification.ps1';arguments=@()},
   @{name='team-entry';path='tests/test-team-entry.ps1';arguments=@()},
   @{name='test-support';path='tests/test-test-support.ps1';arguments=@()},
@@ -59,7 +64,7 @@ if (-not $shell -or -not (Test-Path -LiteralPath $shell -PathType Leaf)) { throw
 Write-Host ("Platform: {0}; OS architecture: {1}; process architecture: {2}" -f [Runtime.InteropServices.RuntimeInformation]::OSDescription,[Runtime.InteropServices.RuntimeInformation]::OSArchitecture,[Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)
 Write-Host ("Runtime: PowerShell {0}; {1}" -f $PSVersionTable.PSVersion,[Runtime.InteropServices.RuntimeInformation]::FrameworkDescription)
 foreach ($prerequisite in @(
-  @{name='git';suites=@('deployment','ai-development-guidance','ai-simulation','generated-artifacts','git-delivery','formatter-tool','documentation','openspec','portability');argument='--version'},
+  @{name='git';suites=@('deployment','ai-development-guidance','ai-simulation','generated-artifacts','git-delivery','formatter-tool','documentation','openspec','optional-designer','portability');argument='--version'},
   @{name='node';suites=@('openspec','formatter-tool');argument='--version'}
 )) {
   $dependentChecks=@($checks.name | Where-Object { $_ -in $prerequisite.suites })

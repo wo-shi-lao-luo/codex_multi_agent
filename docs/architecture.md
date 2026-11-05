@@ -10,7 +10,7 @@ The main Codex thread is the Lead. It reads project instructions, decides whethe
 
 ## Default execution
 
-`$team-dev` starts with a brief task/risk declaration and scope analysis. The shared [execution contract](../skills/team-core/references/execution-contract.md) selects lightweight Lead-owned execution for understood, bounded, low-risk maintenance and isolated ordinary code fixes; using Team does not itself require children. This path needs no extra Lead-only approval or automatic full inventory, schema packet or feedback record. It retains relevant instructions, domain guidance, practical regression/TDD, comments, real-boundary verification and any existing project/stage/manual obligations. Results are self-checks, not independent evidence. Eligibility is not based on line/file count or unavailable roles, and newly discovered material risk returns dependent work to Contract.
+`$team-dev` starts with a brief task/risk declaration and scope analysis. The shared [execution contract](../skills/team-core/references/execution-contract.md) selects lightweight Lead-owned execution for understood, bounded, low-risk application changes (including small features, simple wiring, or configuration relocation), documentation and isolated ordinary fixes. Using Team alone does not require children. This path needs no extra Lead-only approval or automatic full inventory, schema packet or feedback record. It retains relevant instructions, domain guidance, practical regression/TDD, comments, real-boundary verification and any existing project/stage/manual obligations. Results are self-checks, not independent evidence. Eligibility is based on actual behavior, boundary, impact, dependencies and reversibility, not file/module count or unavailable roles; newly discovered material risk returns dependent work to Contract.
 
 Other implementation work retains one exact named domain writer plus the appropriate Tester (`team-tester` generally, `team-ai-tester` for assigned application AI evaluation), with separate production/test ownership and one canonical packet owner. Material changes retain independent `team-reviewer` review. Explorer, Architect and other specialists are added only for a concrete need. An approved Lead-only exception outside the lightweight path does not waive material independent review or evidence requirements. At close, reconcile intended execution mode, roles and checks with actual evidence and disclose pending acceptance.
 
@@ -21,6 +21,12 @@ Other implementation work retains one exact named domain writer plus the appropr
 | Module | Owner files and responsibility | Dependencies |
 | --- | --- | --- |
 | Unified Team entry (TEAM-ENTRY) | `skills/team/SKILL.md` provides the task-matched or explicit Lead entry; `skills/team/agents/openai.yaml` permits implicit selection without guaranteeing host matching/loading; `skills/team-core/references/workflow-routing.md` selects existing workflows and links their contracts | Existing workflow Skills, role routing, TDD and repair guards, and feedback schema; no router role, runtime, or new lifecycle |
+
+## External research and peer handoffs
+
+`team-researcher` is an optional Luna/medium source collector under `skills/team-core/references/external-research.md`. The Lead sets scope, shared budget, authorized peers, lifecycle and integration. Peers may request bounded evidence directly from the existing researcher when host tools support it. Research does not replace domain judgment, testing, review or acceptance, and no token reduction is promised.
+
+More generally, the Lead may authorize direct same-task factual or clarification messages among named existing peers through the [peer communication contract](../skills/team-core/references/peer-communication.md). The initial grant defines the shared scope, budget and stop condition; peers need no per-message approval within it. The Lead retains decisions and integration authority, higher-priority limits still apply, and actual messaging behavior depends on host capabilities.
 
 ## Risk-proportional design exploration
 
@@ -36,7 +42,7 @@ Every assigned codewriter and tester follows the shared [code-readability contra
 
 ## UI work
 
-For new pages and visible UI changes, the Lead passes a lightweight UI brief and names one owner for the coherent page or user flow. The owner uses frontend-design for hierarchy, styling and rendered refinement alongside frontend-engineering for implementation correctness. Small demos normally stay with one implementer; independent work may still be delegated. File boundaries must include necessary shared styles or be adjusted explicitly.
+For a missing page within an actual UI task, an explicit page-design/adjustment request, or design consultation, the Lead may route a concrete design brief to `team-designer`. Select light or standard mode first: delegated standard-path implementation uses one `team-frontend-engineer` page/flow owner and frontend-design with frontend-engineering; UI files alone do not add a role on a bounded light task. Preserve explicit design requests, necessary shared styles, and rendered visual evidence. Ordinary bug fixes or incidental polish without explicit design intent do not add Designer. Small demos normally have one production implementer; independent design input may still be assigned without shared production-page writes. File boundaries must include necessary shared styles or be adjusted explicitly. Impeccable is an optional design capability only when available in the active agent context.
 
 Functional tests and rendered visual inspection are separate evidence. The Lead checks the final integrated page's evidence, and missing browser access remains an explicit unverified state. Agent inspection never replaces user manual acceptance. See the [UI delivery contract](../skills/team-core/references/ui-quality.md). This workflow does not claim measured visual improvement until a matched-task comparison is actually run.
 
@@ -53,6 +59,8 @@ For actual frontend/backend work, `skills/team-core/references/web-engineering.m
 ## Data work
 
 `team-database-specialist` owns SQL safety, schema design, migrations, indexing, query plans, transaction boundaries, and data-change rollback. It is invoked only when data-layer changes are material.
+
+`team-data-scientist` is an optional, on-demand research role for dataset profiling/preparation, approved analytical SQL/extraction, statistical analysis, feature and split design, and traditional or deep-learning prototypes through evaluation/export/inference. Its distributed `skills/data-science/` Skill uses progressive references for preparation, model development and temporal evaluation. Preserve raw data and provenance, report assumptions and negative results, and bound compute/download/artifact use before experiments. Research results do not replace independent acceptance or authorize trades. Material production schema, transaction, query optimization and data repair remain with `team-database-specialist`; application LLM prompts/context/tools/workflow and product integration remain with `team-ai-engineer`.
 
 ## Git delivery readiness
 
@@ -109,12 +117,14 @@ Task-scoped documentation review runs before planning/implementation and is refr
 | Module | Responsibility and owned files | Dependencies |
 | --- | --- | --- |
 | Documentation runtime (DOC-RUNTIME) | team-core/scripts/documentation.ps1: contained discovery, adoption, review validation, fingerprints and current-record pointers | PowerShell 7 and local repository files only |
+| Agent source inspection (AGENT-DOCS) | team-core/scripts/agent-docs.ps1: read-only Inspect of a portable source map, mapped document/source hashes, bounded Git delta hints and coverage gaps; never writes pages, maps or Git state | PowerShell 7, platform-filesystem.ps1; conditional target-project `docs/agent/` or equivalent |
+| Agent development guidance (AGENT-GUIDANCE) | team-core/references/approved-constraints.md, agent-documentation.md and agent-handoffs.md: constraint propagation, source-map reconciliation and outcome continuity | Existing project authorities and task records; no required target-project tree |
 | Shared contract (DOC-CONTRACT) | team-core/references/documentation-governance.md: PRD authority, ambiguity, optional information requirements and legacy decisions | Existing Blueprint, OpenSpec and stage acceptance contracts |
 | Routing (DOC-ROUTING) | team-doc-check Skill, docs maintainer agent and existing team workflow routes | Shared contract; one Lead, bounded doc ownership |
 | Project instructions (DOC-RULES) | team-project-rules Skill, team-core/references/project-rules.md and team-core/scripts/project-rules.ps1: proactive material-gap proposals at task/module checkpoints and bounded approved maintenance of AGENTS.md, overrides and configured equivalents | Explorer repository facts; existing Work/docs-governance evidence; user approval for every target instruction-file write |
 | Verification (DOC-TEST) | tests/test-documentation.ps1 and canonical stage packet | Disposable project copies and existing package/installer suites |
 
-The documentation runtime keeps its adoption metadata and reviews under docs/governance locally; PRDs live in docs/PRD and confirmed historical docs in docs/legacy. The runtime never resolves semantic conflicts, moves original documents or rewrites source. Policy version is separate from Kit version; a local adoption record is not a readiness decision. Reviews bind task wording, document inventory/classification and declared code dependencies. Hashes do not establish approval authenticity or semantic sufficiency. Existing project layout is preserved; no code refactor is part of this capability.
+The documentation runtime keeps its adoption metadata and reviews under docs/governance locally; PRDs live in docs/PRD and confirmed historical docs in docs/legacy. The runtime never resolves semantic conflicts, moves original documents or rewrites source. Policy version is separate from Kit version; a local adoption record is not a readiness decision. Reviews bind task wording, document inventory/classification and declared code dependencies. Hashes do not establish approval authenticity or semantic sufficiency. Existing project layout is preserved; no code refactor is part of this capability. Agent source inspection is a separate conditional, report-only helper: a fresh fingerprint is not semantic approval, and a changed/unknown aggregate does not automatically block unrelated authorized work.
 
 ## Generated-artifact Git protection boundary
 

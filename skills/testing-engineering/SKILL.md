@@ -7,11 +7,15 @@ description: Plan and implement focused, evidence-backed tests for changed behav
 
 Use this Skill to design and verify meaningful tests. Read the shared [execution contract](../team-core/references/execution-contract.md), [execution templates](../team-core/references/execution-templates.md), [TDD protocol](../team-core/references/tdd-protocol.md), and [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md) in full; tests should demonstrate behavior and risk coverage, not mirror implementation details.
 
+When a migration changes test sources or harnesses across modules, treat that work as implementation with an explicit owner and exact paths under the shared [migration batching guidance](../team-core/references/execution-contract.md#migration-batches-and-progress). Keep it distinct from test execution and the Tester’s assigned acceptance/verification work. Report batch progress through the existing packet or record; Lead inquiries follow [role routing](../team-core/references/role-routing.md#lead-progress-inquiries).
+
 For a real web client or service boundary, use the relevant portions of [risk-proportional web engineering](../team-core/references/web-engineering.md) to select focused state, interaction, API, or reliability evidence. Keep the existing packet and Tester selection authoritative; do not turn the guide into an extra test layer or blanket audit.
 
 When a tested application includes a replaceable Agent/Workflow capability, read the [AI record/replay testing contract](../team-core/references/ai-record-replay-testing.md) for evidence boundaries, fixture safety and invalidation. Keep stage coverage and results in the packet; a replay is not live E2E evidence.
 
 When test scope includes application AI behavior, read the [AI evaluation contract](../team-core/references/ai-evaluation.md) and route AI-specific evaluation to `team-ai-tester`; retain deterministic business behavior and harness/package coverage according to shared role routing.
+
+Carry applicable confirmed constraints into scenario setup, the actual wiring boundary and expected result using [approved constraint continuity](../team-core/references/approved-constraints.md); a green test proves only its observed path and does not amend intent. When source-linked Agent guidance is in use, read relevant mapped sources rather than treating Inspect hashes as semantic approval. Keep test results and pending manual acceptance in the existing packet and reconcile them at outcome handoff.
 
 
 ## When to activate
@@ -25,6 +29,7 @@ Do not use to impose a generic coverage target, create tests solely to increase 
 1. Find the repository's test commands, test layers, fixtures, and nearby behavioral examples.
 2. Read the Task record and Work contract. Identify changed behavior, failure paths, boundaries, integration points, and the regression that should be prevented.
    If a failing check is part of an existing diagnosis/repair loop, preserve its issue identity and result evidence under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md); a failed test run is not automatically a failed repair attempt.
+   Before a repair proposal, including after a first or small failure, use its [repair decision check](../team-core/references/repair-loop-guard.md#repair-decision-check); recheck a materially changed strategy and preserve the approved oracle and failure evidence.
 3. Choose the adequate test boundary and observation method under the contract's [efficient execution and tier rules](../team-core/references/test-acceptance-contract.md#efficient-test-execution). For a standalone small change/bug, follow the [small-task rule](../team-core/references/test-acceptance-contract.md#tier-selection-reuse-and-resource-limits); include real UI/integration evidence when the symptom requires it. Do not force unrelated layers or a full suite for each fix, but honor risk expansion and repository gates. The Tester retains selection, execution and sufficiency decisions.
 4. Plan checks at the contract's iteration, first-usable-chain and named acceptance checkpoints. For deferred checks, record owner, scope/IDs, status, next trigger and flush condition; planned work is never a pass, and known failures block dependent work. If the scoped test surface is unclear and not cheap to map, request a bounded Explorer lookup.
 

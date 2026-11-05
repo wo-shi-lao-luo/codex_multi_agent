@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Science"
+  short_description: "Reproducible data analysis and model prototyping"
+  default_prompt: "Use $data-science to plan or carry out a reproducible data analysis or model prototype."

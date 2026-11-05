@@ -13,6 +13,8 @@ Judge depth from **material risk and uncertainty**, not task size, file count, l
 
 If it is unclear whether uncertainty is material, state the concrete consequence that could change and perform the smallest useful fact check. Do not equate “more discussion” with better design. Use no numeric score or forced alternatives quota.
 
+Repair proposals have a separate concise decision check in the [repair and diagnosis loop guard](repair-loop-guard.md#repair-decision-check), including first and small fixes. Apply it before proposing or materially changing a repair strategy; it does not turn every repair into full design exploration or add a design-approval gate for an evidence-based general fix.
+
 ## Lead-owned context and reference handoff
 
 Before requesting a design proposal or scoped child check, the Lead supplies the task-relevant context:
@@ -27,11 +29,11 @@ Before requesting a design proposal or scoped child check, the Lead supplies the
 
 Include only relevant context; distinguish confirmed facts, user decisions, observations, assumptions and unknowns. Do not send a PRD as authority when it is draft, historical, or outside the task's applicability. Do not assume a child inherits the Lead's conversation or has access to an installed Skill/reference: explicitly supply the applicable reference or its resolved installed location when the assignment depends on it. Agent TOMLs and Skills may install into separate roots, so do not rely on a repository-relative path from an agent profile.
 
-The Lead retains coordination and decision authority. Children report back to the Lead; they do not independently ask the user, authorize implementation, resolve conflicting requirements, or spawn their own design team.
+The Lead retains coordination and decision authority. Factual evidence and reproduction details may pass directly between peers only under the Lead's explicit same-task grant and the [peer communication contract](peer-communication.md). Children do not independently ask the user, authorize implementation, resolve conflicting requirements, or spawn their own design team.
 
 ## Bounded role responsibilities
 
-- **Explorer** supplies focused repository facts, existing conventions, interfaces, tests and evidence through the Lead. Do not ask Explorer to decide architecture or repeat a reliable inventory.
+- **Explorer** supplies focused repository facts, existing conventions, interfaces, tests and evidence. Under an explicit peer grant, it may give those facts directly to the named recipient; architectural judgments still return to the Lead. Do not ask Explorer to decide architecture or repeat a reliable inventory.
 - **`team-architect`** provides a read-only software-architecture proposal when module boundaries, composition, interfaces or structural evolution are materially uncertain. The Lead supplies sufficient repository evidence; request only bounded additional exploration when needed.
 - **`team-ai-architect`** provides a read-only AI-domain proposal when prompt/context/model/tool/routing/state or AI-specific evaluation choices are material. Overall software architecture remains with `team-architect`.
 - **Implementation owners and Tester** may make scoped light checks against the accepted design and assigned boundaries. If evidence reveals a new material design gap, stop the affected work and return it to the Lead for Contract; do not silently redesign or turn a light check into broad independent architecture work.

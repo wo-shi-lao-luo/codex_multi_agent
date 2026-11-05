@@ -40,6 +40,14 @@ Run the Git commands from the selected repository. If the selected source is not
 
 ## Preview and install
 
+For a combined commit, push and install request, finish the authorized commit and
+publication first and confirm the final remote commit. Then preview and install
+that exact source once. Reuse matching review and test evidence under the
+[delivery contract](../skills/team-core/references/git-delivery.md#bounded-combined-delivery);
+refresh only affected evidence and the operation's current source/target checks.
+An installation-only request may still use its explicitly selected local source;
+it does not require publication or authorize Git actions.
+
 Validate the selected source first:
 
 ```powershell
@@ -69,6 +77,8 @@ Run the matching command without `-WhatIf` only when the user has explicitly req
 # or, for an existing installation:
 .\scripts\update-user.ps1
 ```
+
+After a successful actual installation or update, the Kit displays a brief optional Impeccable reminder linking to its [getting-started guide](https://impeccable.style/tutorials/getting-started/). Impeccable is not an installation prerequisite and the Kit does not detect, download, or install it; the reminder is not shown for a preview or failed deployment. If you install it separately, use its accessible guidance for relevant design/UI work unless the user opts out. See the Kit's [usage guide](../skills/team-core/references/impeccable-usage.md), [adapter](../skills/team-core/references/impeccable-integration.md), and [official repository](https://github.com/pbakaus/impeccable).
 
 Do not add `-Force` to get past a conflict. Stop, inspect the named destination and ownership, and choose a documented recovery path. `-Force` backs up and replaces the selected managed unit; it is a separate, consequential choice. Do not run recovery or pruning automatically. See [safe deployment](safe-deployment.md) for conflict resolution, backup retention, interruption recovery, and rollback.
 

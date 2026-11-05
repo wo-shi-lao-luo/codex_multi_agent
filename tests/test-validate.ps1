@@ -38,9 +38,9 @@ try {
   foreach ($item in 'agents', 'skills', 'scripts', 'VERSION', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md') {
     Copy-Item -LiteralPath (Join-Path $root $item) -Destination $testRoot -Recurse -Force -ErrorAction Stop
   }
-  # Fixture completeness: current release links a real repository guide and its packet.
+  # Fixture completeness: current release links the versionable formatter guide.
   # Expected: copied source paths resolve without fabricated files or relaxed validation.
-  foreach ($relative in @('docs/formatter-tool.md', 'docs/verification/active/formatter-tool.md')) {
+  foreach ($relative in @('docs/formatter-tool.md')) {
     $destination = Join-Path $testRoot $relative
     [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination)) | Out-Null
     Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $destination
