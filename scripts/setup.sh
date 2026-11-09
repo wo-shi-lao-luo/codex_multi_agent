@@ -12,7 +12,7 @@ Examples:
   sh scripts/setup.sh
   sh scripts/setup.sh --pwsh /path/to/pwsh -Action Install -WhatIf
   sh scripts/setup.sh -Action Install
-This command does not download dependencies, sign in, or run a model.
+Doctor and Verify do not download dependencies. Install prepares the Task Board runtime unless -Offline is selected; it reuses a compatible Node.js on PATH or provisions the pinned runtime. No action signs in or runs a model.
 '
   exit 0
 fi

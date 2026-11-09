@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param()
+param(
+  [string]$RuntimeArchivePath,
+  [string]$NodePath
+)
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'helpers/platform.ps1')
@@ -11,6 +14,17 @@ $testRootName = "codex-multi-agent-install-test-" + [Guid]::NewGuid().ToString('
 $testRoot = Join-Path $temporaryParent $testRootName
 $codexHome = Join-Path $testRoot 'codex'
 $agentsHome = Join-Path $testRoot 'agents-home'
+# Isolated installation tests never acquire network dependencies implicitly.
+$runtimeArguments = @{ Offline = $true }
+if ($RuntimeArchivePath) { $runtimeArguments.RuntimeArchivePath = $RuntimeArchivePath }
+if ($NodePath) {
+  # Test-only process scope: inherited by installer children, never persisted globally.
+  if (-not (Test-Path -LiteralPath $NodePath -PathType Leaf)) {
+    throw 'Explicit test NodePath does not exist; supply a compatible Node or offline archive.'
+  }
+  $originalPath = $env:PATH
+  $env:PATH = "$(Split-Path -Parent ([IO.Path]::GetFullPath($NodePath)))$([IO.Path]::PathSeparator)$env:PATH"
+}
 
 function Assert-Condition {
   param([Parameter(Mandatory = $true)][bool]$Condition, [Parameter(Mandatory = $true)][string]$Message)
@@ -47,7 +61,7 @@ function Get-InstalledPath {
 
 try {
   New-Item -ItemType Directory -Path $testRoot -ErrorAction Stop | Out-Null
-  & $installer -CodexHome $codexHome -AgentsHome $agentsHome
+  & $installer -CodexHome $codexHome -AgentsHome $agentsHome @runtimeArguments
 
   $receiptPath = Join-Path $agentsHome 'codex-multi-agent\\install-receipt.json'
   Assert-Condition (Test-Path -LiteralPath $receiptPath) 'Initial installation did not create a receipt.'
@@ -95,22 +109,22 @@ try {
   }
 
   $treeBeforeWhatIf = Get-TreeFingerprint -Path $testRoot
-  & $updater -CodexHome $codexHome -AgentsHome $agentsHome -WhatIf | Out-Null
+  & $updater -CodexHome $codexHome -AgentsHome $agentsHome @runtimeArguments -WhatIf | Out-Null
   $treeAfterWhatIf = Get-TreeFingerprint -Path $testRoot
   Assert-Condition ($treeBeforeWhatIf -eq $treeAfterWhatIf) 'Update -WhatIf changed files in the isolated installation.'
 
-  & $updater -CodexHome $codexHome -AgentsHome $agentsHome
+  & $updater -CodexHome $codexHome -AgentsHome $agentsHome @runtimeArguments
   $receiptAfterManagedUpdate = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json -ErrorAction Stop
   Assert-Condition (@($receiptAfterManagedUpdate.files).Count -eq $packageFiles.Count) 'Managed update did not preserve a complete installation receipt.'
 
   $agentPath = Join-Path $codexHome 'agents\\team-architect.toml'
   Set-Content -LiteralPath $agentPath -Value '# user customization' -Encoding utf8
   $conflictDetected = $false
-  try { & $updater -CodexHome $codexHome -AgentsHome $agentsHome -ErrorAction Stop } catch { $conflictDetected = $true }
+  try { & $updater -CodexHome $codexHome -AgentsHome $agentsHome @runtimeArguments -ErrorAction Stop } catch { $conflictDetected = $true }
   Assert-Condition $conflictDetected 'Modified installed file was not detected as a conflict.'
   Assert-Condition ((Get-Content -LiteralPath $agentPath -Raw) -match 'user customization') 'Conflict handling changed the user-modified file.'
 
-  & $updater -CodexHome $codexHome -AgentsHome $agentsHome -Force
+  & $updater -CodexHome $codexHome -AgentsHome $agentsHome @runtimeArguments -Force
   $expectedAgent = Get-Content -LiteralPath (Join-Path $root 'agents\\team-architect.toml') -Raw
   Assert-Condition ((Get-Content -LiteralPath $agentPath -Raw) -eq $expectedAgent) '-Force did not replace the conflicting agent.'
   $customizedBackups = @(Get-ChildItem -LiteralPath (Join-Path $agentsHome 'codex-multi-agent\\backups') -Filter 'team-architect.toml' -File -Recurse | Where-Object {
@@ -120,6 +134,7 @@ try {
 
   Write-Host 'Install-user tests passed.'
 } finally {
+  if ($NodePath) { $env:PATH = $originalPath }
   $resolvedTestRoot = [System.IO.Path]::GetFullPath($testRoot)
   $resolvedParent = [System.IO.Path]::GetFullPath((Split-Path -Parent $resolvedTestRoot)).TrimEnd([char]'\', [char]'/' )
   $normalizedTemporaryParent = $temporaryParent.TrimEnd([char]'\', [char]'/' )

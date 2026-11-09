@@ -12,7 +12,7 @@ If a runtime is missing, follow its official installation instructions using the
 - [PowerShell on Ubuntu](https://learn.microsoft.com/en-us/powershell/scripting/install/install-ubuntu); other Linux distributions need their corresponding Microsoft installation instructions
 - [Codex CLI](https://learn.chatgpt.com/docs/codex/cli)
 
-Choose a runtime for the detected operating system and architecture. Dependency acquisition is a separate manual step: setup does not run a package manager, download software, log in, or send inference requests. Network and device-identifier approvals for earlier acceptance runs do not authorize new downloads or account activity.
+For `Doctor` and `Verify`, setup does not download or provision runtimes. Full `Install` prepares the Task Board launcher runtime unless `-Offline` is selected: it reuses compatible Node from inherited `PATH` or provisions pinned Node.js `26.13.0` into the private AgentsHome cache. This applies to implemented Windows/macOS/Linux paths; only Windows x64 has been verified. Runtime acquisition uses the pinned official archive with digest verification; setup does not run a package manager, log in, or send inference requests. Network and device-identifier approvals from earlier runs do not authorize new downloads or account activity.
 
 Client checks must run with external networking denied. macOS uses the operating system's Seatbelt sandbox. Linux needs a working `bwrap` executable and the namespace permissions needed by Bubblewrap. If the sandbox is absent or blocked by the host policy, setup stops with guidance. It does not retry the client without isolation, use `sudo`, or modify global AppArmor or sysctl policy.
 
@@ -30,15 +30,15 @@ The first command defaults to `Doctor`. It checks prerequisite readiness without
 
 ## Optional Task Board diagnostics and tests
 
-The Task Board is an optional capability. Its `runtime-doctor` checks the Board's Node.js `>=26.13 <27` and built-in `node:sqlite` SQLite `>=3.54` requirements without opening a Board, downloading software, or changing global configuration. To run the standalone setup diagnostic on Windows, macOS, or Linux, use PowerShell 7 directly:
+The Task Board is optional for ordinary Team workflows, but full installation provisions its launcher runtime unless `-Offline` is selected (then a compatible PATH runtime or verified `-RuntimeArchivePath` is required). `BoardDoctor` is informational: it selects the managed runtime when available, checks Node.js `>=26.13.0 <27` and actual built-in `node:sqlite` SQLite `>=3.54.0`, and never downloads or changes global configuration. `Doctor` and `Verify` are also download-free. `-WhatIf` is read-only and does not provision. Windows x64 is the only verified installation platform; macOS/Linux behavior remains unverified.
 
 ```powershell
 pwsh -NoProfile -File ./scripts/setup-user.ps1 -Action BoardDoctor
 ```
 
-Use `-BoardNodePath <path>` to select the Node executable to check. Missing or unsupported Board dependencies are informational and do not turn optional Board readiness into a Kit setup failure. This action does not install Node.js or change the existing `scripts/setup.sh` macOS/Linux setup flow; ordinary Kit setup does not require the Task Board runtime.
+Use `-BoardNodePath <path>` to select a one-shot diagnostic override. A missing/unsupported runtime is reported as Board unavailable; the Board remains optional for ordinary workflows. The macOS/Linux `scripts/setup.sh` Install action delegates to the full installer and therefore provisions the runtime by default (or requires a compatible PATH runtime/local archive with `-Offline`). This path is implemented but remains unverified on macOS/Linux.
 
-Task Board source and package tests are separately opt-in. The normal `scripts/test.ps1` run does not include them. Select `-Suite task-board` for source behavior or `-Suite task-board-package` for packaged runtime checks:
+Task Board source and package tests are separately opt-in. The opt-in runtime-install suite requires an explicit `-RuntimeArchivePath`. The existing `install-user` suite accepts `-TaskBoardNodePath` (launcher), `-NodePath` (direct), or `-RuntimeArchivePath`; it always runs offline. The normal full test run requires an actually compatible Board Node runtime or an explicit archive and never downloads one. Select `-Suite task-board` for source behavior or `-Suite task-board-package` for packaged runtime checks:
 
 ```powershell
 pwsh -NoProfile -File ./scripts/test.ps1 -Suite task-board
@@ -80,7 +80,7 @@ Use `-CodexHome` and `-AgentsHome` for explicit alternative installation roots. 
 
 ## What verification establishes
 
-Client probes use a fresh temporary `HOME` and `CODEX_HOME`, with no imported personal authentication or client configuration. They retain the caller's executable search `PATH` so an existing npm launcher can locate Node.js; other child environment values remain explicitly allowlisted. Compatibility is checked by the reported version and actual local initialization/Skill-list operations. `-TimeoutSeconds` controls individual client and installer waits, including installer output collection; the default is `120`, with a permitted range of `1` to `300` seconds. It is not a single deadline for the complete setup. The check does not substitute another client or model when a capability is missing.
+Client probes use a fresh temporary `HOME` and `CODEX_HOME`, with no imported personal authentication or client configuration. They retain the caller's executable search `PATH` so an existing npm launcher can locate Node.js; other child environment values remain explicitly allowlisted. Compatibility is checked by the reported version and actual local initialization/Skill-list operations. `-TimeoutSeconds` bounds individual client probes, previews and Verify calls; the default is `120`, with a permitted range of `1` to `300` seconds. An authorized full Install waits for its finite trusted file transaction to finish rather than killing an active deployment at a universal wall-clock deadline; dependency downloads, runtime probes and extraction retain their separate bounds, and installer pipe collection remains bounded after process exit. Interrupted transactions retain the documented journal recovery path. The check does not substitute another client or model when a capability is missing.
 
 After installation, setup requires successful receipt verification and client discovery of every expected kit Skill at its installed path. The expected names and count come from the selected source inventory, currently 19 Skills, rather than a fixed discovery count. The probe creates an owned temporary `.agents/skills` alias to the selected installed Skill root and checks each returned path against the actual installed file. Unrelated personal Skills do not replace or satisfy any required kit entry. This checks that the tested client can parse and discover those installed resources; it does not prove that the user's existing configuration or currently open session has enabled them, and it does not establish account/model availability, loaded agent role or model identity, or a completed development workflow. Those require separate acceptance evidence.
 

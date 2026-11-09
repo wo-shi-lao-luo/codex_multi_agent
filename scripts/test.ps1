@@ -7,6 +7,7 @@ param(
   [string[]]$Suite = @(),
   [string]$ResultPath,
   [string]$TaskBoardNodePath,
+  [string]$RuntimeArchivePath,
   [string]$TaskBoardManifestSha256,
   [string]$TaskBoardAppSha256
 )
@@ -59,6 +60,7 @@ $checks = @(
   @{name='validation-links';path='tests/test-validation-links.ps1';arguments=@()},
   @{name='web-engineering';path='tests/test-web-engineering.ps1';arguments=@()},
   @{name='portability';path='tests/test-portability.ps1';arguments=@()},
+  @{name='runtime-install';path='tests/test-runtime-install.ps1';arguments=@();optIn=$true},
   @{name='task-board';path='tests/test-task-board.ps1';arguments=@();optIn=$true},
   @{name='task-board-package';path='tests/test-task-board-package.ps1';arguments=@('-CurrentPayload');optIn=$true}
 )
@@ -70,13 +72,23 @@ if ($Suite.Count -gt 0) {
   }
   $checks = @($checks | Where-Object { $_.name -cin $Suite })
 } else {
-  # Board runtime checks are explicitly selected; their optional dependency cannot gate Kit tests.
+  # Full Board suites are opt-in. The default offline installer suite still requires
+  # compatible PATH Node, an explicit test NodePath, or an official runtime archive.
   $checks = @($checks | Where-Object { -not $_.optIn })
 }
 if ($TaskBoardNodePath) {
-  foreach ($check in $checks | Where-Object { $_.name -in @('task-board', 'task-board-package') }) {
+  foreach ($check in $checks | Where-Object { $_.name -in @('task-board', 'task-board-package', 'install-user') }) {
     $check.arguments += @('-NodePath', $TaskBoardNodePath)
   }
+}
+if ($RuntimeArchivePath) {
+  foreach ($check in $checks | Where-Object { $_.name -in @('runtime-install', 'install-user') }) {
+    $check.arguments += @('-RuntimeArchivePath', $RuntimeArchivePath)
+  }
+}
+if (@($checks | Where-Object { $_.name -eq 'runtime-install' }).Count -gt 0 -and
+    -not $RuntimeArchivePath) {
+  throw 'TEST_SETUP: runtime-install requires an explicit official -RuntimeArchivePath; no download is performed.'
 }
 foreach ($check in $checks | Where-Object { $_.name -eq 'task-board-package' }) {
   # Selecting this suite is not permission to bless whatever bytes happen to be on disk.

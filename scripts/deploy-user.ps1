@@ -6,6 +6,7 @@ param(
   [ValidateSet('Deploy','Verify','Status','MarkStable','Restore','Recover','Prune','ValidateTaskBoard')][string]$Action = 'Status',
   [string]$SourceRoot,
   [string]$GitRef,
+  [string]$ExpectedPackageDigest,
   [string]$SnapshotId,
   [string]$CodexHome = (Join-Path $HOME '.codex'),
   [string]$AgentsHome = (Join-Path $HOME '.agents'),
@@ -332,7 +333,13 @@ function Read-Package([string]$Root, $Provenance) {
     if ($contract.runtimeDataSchema -isnot [long] -and $contract.runtimeDataSchema -isnot [int]) { throw 'DATA_SCHEMA: Integer runtimeDataSchema required.' }
     $dataSchema = $contract.runtimeDataSchema
   }
-  return @{ schemaVersion=1; kitVersion=$version; runtimeDataSchema=$dataSchema; files=$files; directories=$directories; units=$units; source=$Provenance; packageDigest=(Get-Digest $files) }
+  $boardRequired = Test-Path -LiteralPath (Join-Path $Root 'skills/team-core/runtime/task-board')
+  $runtimeSelection = $null
+  $runtimeLock = Join-Path $Root 'skills/team-core/runtime/node-runtime.json'
+  if ($boardRequired -and (Test-Path -LiteralPath $runtimeLock)) {
+    $runtimeSelection = Get-Content -LiteralPath $runtimeLock -Raw | ConvertFrom-Json -AsHashtable
+  }
+  return @{ schemaVersion=1; kitVersion=$version; runtimeDataSchema=$dataSchema; files=$files; directories=$directories; units=$units; source=$Provenance; packageDigest=(Get-Digest $files); boardRequired=$boardRequired; runtimeSelection=$runtimeSelection }
 }
 
 # Inspect entire selected units. Unknown files inside an owned Skill are conflicts, not disposable data.
@@ -584,6 +591,9 @@ try {
       }
     }
     $target=Read-Package $payload $provenance
+    if ($ExpectedPackageDigest -and $target.packageDigest -cne $ExpectedPackageDigest) {
+      throw 'PACKAGE_CHANGED: Selected package differs from the dependency preparation preview.'
+    }
   } elseif ($Action -eq 'Restore') {
     if (-not $SnapshotId) {
       if (-not (Test-Path "$managerRoot/stable.json")) { throw 'STABLE: No stable snapshot selected; specify SnapshotId or mark a verified install stable.' }
@@ -607,7 +617,12 @@ try {
     }
   }
   if ($Action -eq 'Prune') { $plan=@(Get-PruneCandidates | ForEach-Object { @{snapshotId=$_.Name;operation='remove-snapshot'} }) }
-  if (-not $PSCmdlet.ShouldProcess($managerRoot,"$Action Kit installation")) { @{ action='preview'; operations=$plan } | ConvertTo-Json -Depth 10; exit 0 }
+  if (-not $PSCmdlet.ShouldProcess($managerRoot,"$Action Kit installation")) {
+    @{ action='preview'; operations=$plan; source=$target.source; packageDigest=$target.packageDigest;
+      boardRequired=$target.boardRequired; runtimeSelection=$target.runtimeSelection } |
+      ConvertTo-Json -Depth 15
+    exit 0
+  }
   New-Item -ItemType Directory -Force $managerRoot | Out-Null
   $lockPath=Join-Path $managerRoot 'deployment.lock'
   Assert-PlainPath $lockPath

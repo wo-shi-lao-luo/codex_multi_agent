@@ -2,6 +2,10 @@
 param(
   [string]$CodexHome = (Join-Path $HOME '.codex'),
   [string]$AgentsHome = (Join-Path $HOME '.agents'),
+  [string]$SourceRoot = (Split-Path -Parent $PSScriptRoot),
+  [string]$GitRef,
+  [string]$RuntimeArchivePath,
+  [switch]$Offline,
   [switch]$Force
 )
 
@@ -14,7 +18,11 @@ if (-not (Test-Path -LiteralPath $installer)) {
 $arguments = @{
   CodexHome = $CodexHome
   AgentsHome = $AgentsHome
+  SourceRoot = $SourceRoot
 }
+if ($GitRef) { $arguments.GitRef = $GitRef }
+if ($RuntimeArchivePath) { $arguments.RuntimeArchivePath = $RuntimeArchivePath }
+if ($Offline) { $arguments.Offline = $true }
 if ($Force) { $arguments.Force = $true }
 if ($WhatIfPreference) { $arguments.WhatIf = $true }
 

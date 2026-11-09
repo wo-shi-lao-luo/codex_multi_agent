@@ -1,11 +1,21 @@
 # Coordinate isolated Codex prerequisite/discovery checks and explicitly requested
 # installation into selected homes. Report results without exposing client output;
 # this entrypoint never installs optional enhancements or changes host policy.
+<#
+.SYNOPSIS
+Check Kit readiness, install the Kit, or diagnose the optional Board runtime.
+.PARAMETER TimeoutSeconds
+Deadline for ordinary client and diagnostic probes. An explicitly requested full Install
+waits for its finite trusted file transaction without a universal deadline. Runtime download,
+extraction and dependency probes retain their separate bounded deadlines.
+#>
 #requires -Version 7.0
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
   [ValidateSet('Doctor','Install','Verify','BoardDoctor')][string]$Action = 'Doctor',
   [string]$BoardNodePath,
+  [string]$RuntimeArchivePath,
+  [switch]$Offline,
   [string]$CodexPath,
   [string]$CodexHome = (Join-Path $HOME '.codex'),
   [string]$AgentsHome = (Join-Path $HOME '.agents'),
@@ -22,8 +32,9 @@ if ($Action -eq 'BoardDoctor') {
   $diagnostic = @{ nodeVersion=$null;sqliteVersion=$null;available=$false;reasonCode='NODE_MISSING';
     requirements=@{node='>=26.13.0 <27';sqlite='>=3.54.0'} }
   if (-not $BoardNodePath) {
-    $nodeCommand = Get-Command node -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($nodeCommand) { $BoardNodePath = $nodeCommand.Source }
+    . (Join-Path $script:SetupRoot 'skills/team-core/scripts/board-runtime.ps1')
+    $runtime = Resolve-BoardNode $AgentsHome
+    if ($runtime) { $BoardNodePath = $runtime.nodePath }
   }
   if ($BoardNodePath -and [IO.File]::Exists($BoardNodePath)) {
     $info = [Diagnostics.ProcessStartInfo]::new()
@@ -31,7 +42,11 @@ if ($Action -eq 'BoardDoctor') {
     $info.UseShellExecute = $false
     $info.RedirectStandardOutput = $true
     $info.RedirectStandardError = $true
-    $info.ArgumentList.Add((Join-Path $script:SetupRoot 'packages/task-board/src/cli/cli.mjs'))
+    $installedCli = Join-Path $AgentsHome 'skills/team-core/runtime/task-board/src/cli/cli.mjs'
+    $boardCli = if ([IO.File]::Exists($installedCli)) { $installedCli } else {
+      Join-Path $script:SetupRoot 'packages/task-board/src/cli/cli.mjs'
+    }
+    $info.ArgumentList.Add($boardCli)
     $info.ArgumentList.Add('runtime-doctor')
     $process = [Diagnostics.Process]::new()
     $process.StartInfo = $info
@@ -48,7 +63,11 @@ if ($Action -eq 'BoardDoctor') {
       $null = $stderr.GetAwaiter().GetResult()
       if ($process.ExitCode -ne 0) { throw 'BOARD_DOCTOR: Runtime probe failed.' }
       $reply = $output | ConvertFrom-Json -AsHashtable
-      if (-not $reply.ok -or $reply.operation -ne 'runtime-doctor') { throw 'BOARD_DOCTOR: Invalid runtime response.' }
+      if (($reply.schemaVersion -isnot [long] -and $reply.schemaVersion -isnot [int]) -or
+          $reply.schemaVersion -ne 1 -or $reply.ok -isnot [bool] -or
+          $reply.ok -cne $true -or $reply.operation -cne 'runtime-doctor') {
+        throw 'BOARD_DOCTOR: Invalid runtime response.'
+      }
       $diagnostic = $reply.result
     } finally { $process.Dispose() }
   }
@@ -56,7 +75,7 @@ if ($Action -eq 'BoardDoctor') {
   foreach ($key in @('nodeVersion','sqliteVersion','available','reasonCode','requirements')) {
     $result[$key] = $diagnostic[$key]
   }
-  $result.guidance = @('Board is optional. Provision Node >=26.13.0 <27 with SQLite >=3.54.0 separately; no dependency is installed by this check.')
+  $result.guidance = @('Board is optional. The full Kit installer prepares its private Node runtime when needed; this check never installs dependencies.')
   if ($Json) { $result | ConvertTo-Json -Depth 5 }
   else { Write-Output "Board runtime: $($result.reasonCode). Board availability: $($result.available)."; $result.guidance | Write-Output }
   exit 0
@@ -293,6 +312,8 @@ function Test-SetupDiscovery($Context, $Skills, [string[]]$Names) {
   return @{checked=$true;passed=($matched -eq $Names.Count);expectedCount=$Names.Count;matchedCount=$matched;mode='isolated-project-root'}
 }
 
+# Timeout zero is reserved for the explicitly requested full installer, whose finite
+# filesystem transaction must not be interrupted. Other child operations remain bounded.
 function Invoke-SetupManager([string]$ScriptPath, [string[]]$Arguments, [int]$Timeout) {
   $info=[Diagnostics.ProcessStartInfo]::new()
   $info.FileName=(Get-Process -Id $PID).Path
@@ -305,11 +326,13 @@ function Invoke-SetupManager([string]$ScriptPath, [string[]]$Arguments, [int]$Ti
     if (-not $process.Start()) { throw 'installer_start_failed' }
     $stdout=$process.StandardOutput.ReadToEndAsync()
     $stderr=$process.StandardError.BaseStream.CopyToAsync([IO.Stream]::Null)
-    if (-not $process.WaitForExit($Timeout*1000)) { throw 'installer_timeout' }
+    if ($Timeout -eq 0) { $process.WaitForExit() }
+    elseif (-not $process.WaitForExit($Timeout*1000)) { throw 'installer_timeout' }
     if ($process.ExitCode -ne 0) { throw 'installer_failed' }
     # A child retaining the pipe must not turn a finished manager into an
     # unbounded wait. Its output is still never exposed as raw diagnostics.
-    if (-not $stdout.Wait($Timeout*1000)) { throw 'installer_timeout' }
+    $pipeTimeout = if ($Timeout -eq 0) { 120 } else { $Timeout }
+    if (-not $stdout.Wait($pipeTimeout*1000)) { throw 'installer_timeout' }
     return $stdout.GetAwaiter().GetResult()
   } finally {
     try { if ($process.Id) { Stop-SetupProcess $process } } finally { $process.Dispose() }
@@ -379,9 +402,13 @@ function Invoke-SetupMain {
     } else {
       if ($Action -eq 'Install') {
         $arguments=@('-CodexHome',$CodexHome,'-AgentsHome',$AgentsHome)
+        if ($RuntimeArchivePath) { $arguments += @('-RuntimeArchivePath',$RuntimeArchivePath) }
+        if ($Offline) { $arguments += '-Offline' }
         if ($Force) { $arguments+='-Force' }
         if ($Preview) { $arguments+='-WhatIf' } else { $report.installation.attempted=$true }
-        $installOutput=Invoke-SetupManager (Join-Path $script:SetupRoot 'scripts/install-user.ps1') $arguments $TimeoutSeconds
+        # Only actual full installation opts out of a universal filesystem deadline.
+        $installTimeout = if ($Preview) { $TimeoutSeconds } else { 0 }
+        $installOutput=Invoke-SetupManager (Join-Path $script:SetupRoot 'scripts/install-user.ps1') $arguments $installTimeout
         if ($Preview) { $report.installation.plan=Get-SetupPreview $installOutput $CodexHome $AgentsHome }
       }
       if ($Preview) { $report.status='what_if'; $report.success=$true }

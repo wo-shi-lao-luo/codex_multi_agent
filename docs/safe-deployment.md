@@ -2,7 +2,7 @@
 
 ## Scope and safety contract
 
-PowerShell 7 is required. `scripts/install-user.ps1` validates current source and calls `scripts/deploy-user.ps1`; `scripts/update-user.ps1` retains its existing entrypoint. The same manager handles installation, upgrade, downgrade and snapshot restoration. It never runs an old version's installer or validator, downloads packages, rewrites Git history, changes the worktree, or changes global Codex configuration.
+PowerShell 7 is required. `scripts/install-user.ps1` and `scripts/update-user.ps1` are the full entrypoints; they validate and deploy the selected Kit payload, then verify the private Task Board runtime required by the installed launcher. The lower-level `scripts/deploy-user.ps1` remains an offline payload-only manager and does not acquire this runtime. Neither path runs an old version's installer or validator, rewrites Git history, changes the worktree, or changes global Codex configuration. Full install/update may acquire only the pinned Node.js runtime through its explicit online/offline inputs; it does not install global npm packages or change `PATH`.
 
 Windows, macOS and Linux use the same manager. From a regular shell, prefix the commands below with `pwsh -NoProfile -File`; inside PowerShell they may be invoked directly. Directory deployment can run without Git, while `-GitRef` needs a locally available Git executable. See [platform support](platform-support.md) for prerequisites, filesystem rules and the distinction between implemented support and recorded verification. Verified macOS `/tmp` and `/var` aliases are normalized at selected roots; other linked roots and linked descendants remain rejected.
 
@@ -67,7 +67,9 @@ Packages default to runtime data schema 1. Future packages changing that contrac
 
 The manager performs source/ownership checks, obtains an exclusive file lock, stages the target, saves a complete before-image, writes `pending.json`, applies all selected units, verifies the exact result, then atomically replaces the receipt and clears pending state. Metadata replacement is atomic within its directory; multi-directory payload replacement is recoverable, not globally atomic.
 
-Failures during application trigger restoration of all selected units and the exact original receipt. If restoration fails or the process terminates, pending state blocks subsequent writes. Status can inspect the situation. Recover resumes restoration from the before-image:
+Failures during application trigger restoration of all selected units and the exact original receipt. If restoration fails or the process terminates, pending state blocks subsequent writes. Status can inspect the situation. Only when a transaction is interrupted and pending state exists, Recover resumes restoration from the before-image:
+
+After payload commit, a full install/update performs a separate runtime health check. If that check fails, the command exits nonzero with `filesCommitted: true` and `installationComplete: false`; inspect `Status`, then restore a verified snapshot or repair manually. Do not use `Recover` for a post-commit health failure: `Recover` is only for an interrupted transaction with pending journal state. In particular, do not assume a failed first install automatically restores the pre-install absence. Runtime caches verified by the installer are immutable and retained for rollback; do not manually replace, prune, or follow linked/unknown cache paths. `-Force` does not override cache-integrity failures.
 
 ```powershell
 ./scripts/deploy-user.ps1 -Action Status

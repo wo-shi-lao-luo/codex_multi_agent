@@ -4,7 +4,7 @@ The kit uses one PowerShell implementation for Windows, macOS, and Linux. Agent 
 
 ## Runtime and installation
 
-Install PowerShell 7 separately and make `pwsh` available to the shell that runs the kit. The installer and default test suite do not install runtimes or download packages. Runtime acquisition, Git traffic, and any later live provider test must follow the user's approved network route. The default test suite itself uses local fixtures.
+Install PowerShell 7 separately and make `pwsh` available to the shell that runs the kit. Full installation on implemented Windows/macOS/Linux paths may provision its pinned, private Task Board Node runtime when no compatible local Node/SQLite pair is available; it verifies the official archive digest and leaves global `PATH` and npm unchanged. Only Windows x64 has been verified. `-WhatIf`, `Doctor`, and `Verify` never download or provision. The lower-level payload deployer remains offline. Test suites use local fixtures; the default suite requires a compatible Board runtime or an explicitly supplied archive, with no network fallback. Runtime acquisition, Git traffic and any later live provider test must follow the user's approved network route.
 
 The same commands work from PowerShell, macOS zsh, or Linux shells once `pwsh` is available:
 
@@ -17,7 +17,7 @@ pwsh -NoProfile -File ./scripts/update-user.ps1
 
 Installation defaults to the user's `.codex/agents` and `.agents/skills` directories. `-CodexHome` and `-AgentsHome` select alternative non-overlapping roots. Global Codex configuration is configured separately. Directory installation can operate without Git; deploying a local `-GitRef` requires Git. Verification and snapshot recovery remain independent of Git and of the source checkout. See [safe deployment](safe-deployment.md) for receipts, backups, restore, recovery, and pruning.
 
-The full developer suite additionally requires Git for local deployment and repository-policy fixtures, and Node.js for the OpenSpec and formatter CLI fixtures. A real OpenSpec installation is not needed for the default suite. The optional real adapter retains its pinned version and Node.js requirement in the [integration contract](../skills/team-core/references/openspec-integration.md).
+The full developer suite additionally requires Git for deployment/policy fixtures, Node.js for local CLI fixtures, and a compatible Board runtime or explicit archive for the Board launcher/install checks. Those checks run offline; a real OpenSpec installation is not needed. The optional real adapter retains its pinned version and Node.js requirement in the [integration contract](../skills/team-core/references/openspec-integration.md).
 
 ## Filesystem contract
 
@@ -41,7 +41,7 @@ pwsh -NoProfile -File ./scripts/test.ps1 -ResultPath ../platform-results.json
 
 Each selected check runs in its own PowerShell process. The runner reports the operating system, process architecture, runtime versions, check outcomes, and a failing exit status when a required check cannot pass. Individual suites own unique temporary fixtures and must clean up those fixtures. Checks never install into real user homes or acquire dependencies. Missing prerequisites are failures, not successful skips.
 
-The default run selects 27 checks: two validators and 25 suites, including the upstream AI, generated-artifact, design-exploration, formatter, workflow routing, Git delivery, shared test support, and web engineering checks. `-Suite` also accepts a comma-separated string when invoked from zsh or Bash. `-ResultPath` optionally saves a JSON result summary to a chosen file whose parent already exists; keep that generated result outside a clean CI checkout. Platform-specific cases that cannot apply to the current fixture report `NOT APPLICABLE`; an overall suite pass does not establish those cases were exercised. Record case-sensitive-volume and filesystem-permission coverage separately.
+The default run executes the registered validators and suites, including the upstream AI, generated-artifact, design-exploration, formatter, workflow routing, Git delivery, shared test support, and web engineering checks. It requires the prerequisites described above and does not acquire dependencies. `-Suite` also accepts a comma-separated string when invoked from zsh or Bash. `-ResultPath` optionally saves a JSON result summary to a chosen file whose parent already exists; keep that generated result outside a clean CI checkout. Platform-specific cases that cannot apply to the current fixture report `NOT APPLICABLE`; an overall suite pass does not establish those cases were exercised. Record case-sensitive-volume and filesystem-permission coverage separately.
 
 Required coverage includes installation/update, unchanged preview, conflicts and backups, exact downgrade, offline restore, interrupted recovery, separate-process locking, unrelated-file preservation, path containment, symlink/dangling-link refusal, case-sensitive inventory, Unicode paths, metadata validation, and bilingual documentation. Optional real OpenSpec lifecycle results are recorded separately from local CLI-double results.
 

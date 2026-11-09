@@ -4,6 +4,12 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
 
+## [2.0.1] - 2026-11-10
+
+### Fixed
+
+- Make full user install/update provision or reuse a verified private Task Board Node.js runtime and require installed launcher health after deployment. Keep `-WhatIf` read-only, payload-only deployment offline, runtime caches immutable, and post-commit health failures explicit with recovery snapshots retained. Route installed Board commands through `task-board.ps1`; update test prerequisites and preserve Windows-only verification scope.
+
 ## [2.0.0] - 2026-11-10
 
 ### Changed
