@@ -2,6 +2,8 @@
 
 For direct factual exchange between existing child peers, use the [bounded peer communication contract](peer-communication.md); this outcome-based handoff remains authoritative for ownership, continuity and final integration.
 
+When a parallel production writer used a separate checkout, use the [isolated worktree handoff fields and freeze/integration rules](isolated-worktrees.md). Record the exact checkout, branch, pinned base and submitted commit, changed and unresolved paths, and observed checks in the existing Work/Verification record; this does not create a second task list or alter local-only authorization.
+
 Use this contract when Team work continues across messages, people/agents, threads, worktrees or task records. A handoff represents a coherent outcome and the context needed to act on it; it is not a transcript, child-thread count, or new task list. Keep the existing Work item, issue, stage packet or opted-in specification as the authority for its scope, decisions and acceptance.
 
 ## The portable continuation snapshot

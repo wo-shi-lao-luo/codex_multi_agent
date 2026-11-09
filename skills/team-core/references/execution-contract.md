@@ -4,6 +4,8 @@ For bounded same-task factual/evidence communication between existing child peer
 
 This contract gives team workflows a shared execution shape. It is a harness for producing evidence-backed engineering work, not a replacement for repository instructions or domain expertise.
 
+Ordinary child agents share the task filesystem. When the Lead chooses separate checkouts for parallel production writers, apply the conditional [isolated worktree guidance](isolated-worktrees.md); it does not alter this lifecycle or authorize Git delivery.
+
 ## Apply the minimum complete path
 
 Every task moves through these stages:

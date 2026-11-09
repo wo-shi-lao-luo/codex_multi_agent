@@ -2,6 +2,12 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [Unreleased]
+
+### Added
+
+- Add optional managed-worktree guidance for parallel production writers: bind exact checkouts to a pinned common base, preserve single ownership of shared contracts, freeze local handoffs, and keep integration with the Lead. Read-only work and ordinary shared-checkout execution remain unchanged; no scheduler, automatic merge, remote PR, or isolation runtime is added.
+
 ## [1.1.0] - 2026-11-09
 
 ### Changed

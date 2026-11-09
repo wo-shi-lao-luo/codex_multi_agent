@@ -29,6 +29,7 @@ Outcome continuity (same outcome/reopen/independent child/successor, existing re
 Design outcome/readiness and affected blocked versus independent work (when full exploration applies):
 Planned roles and active tool catalog availability evidence:
 Named implementation owner; Tester packet/test ownership; Reviewer when material:
+Checkout plan when parallel writers need isolation (optional): exact worktree path/branch per writer, pinned common base, shared-contract owners, separated resources, integration target/owner. See [isolated worktree guidance](isolated-worktrees.md); omit for shared-checkout or read-only work.
 Lead-only authority/approved exception evidence, if applicable:
 Source versus active tool profile expectations and unavailable-role user decisions:
 Blueprint applicability and evidence:
