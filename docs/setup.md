@@ -28,6 +28,25 @@ sh scripts/setup.sh -Action Verify
 
 The first command defaults to `Doctor`. It checks prerequisite readiness without installing or changing the kit; a `ready` result can still mean the kit is missing or its discovery check did not pass. Use `Verify` for the complete installed-state check. `Install` first checks the client interface, then uses the existing installer and validates the installed result. After a successful actual `Install`, the setup output includes a short optional Impeccable reminder linking to its [getting-started guide](https://impeccable.style/tutorials/getting-started/). It is not shown by `Doctor`, `Verify`, or `-WhatIf` preview and does not check whether Impeccable is installed. `Verify` checks an existing installation's receipt and client discovery; a missing receipt is a failure, and it does not install missing files or repair a failed check.
 
+## Optional Task Board diagnostics and tests
+
+The Task Board is an optional capability. Its `runtime-doctor` checks the Board's Node.js `>=26.13 <27` and built-in `node:sqlite` SQLite `>=3.54` requirements without opening a Board, downloading software, or changing global configuration. To run the standalone setup diagnostic on Windows, macOS, or Linux, use PowerShell 7 directly:
+
+```powershell
+pwsh -NoProfile -File ./scripts/setup-user.ps1 -Action BoardDoctor
+```
+
+Use `-BoardNodePath <path>` to select the Node executable to check. Missing or unsupported Board dependencies are informational and do not turn optional Board readiness into a Kit setup failure. This action does not install Node.js or change the existing `scripts/setup.sh` macOS/Linux setup flow; ordinary Kit setup does not require the Task Board runtime.
+
+Task Board source and package tests are separately opt-in. The normal `scripts/test.ps1` run does not include them. Select `-Suite task-board` for source behavior or `-Suite task-board-package` for packaged runtime checks:
+
+```powershell
+pwsh -NoProfile -File ./scripts/test.ps1 -Suite task-board
+pwsh -NoProfile -File ./scripts/test.ps1 -Suite task-board-package -TaskBoardManifestSha256 '<reviewed-manifest-sha256>' -TaskBoardAppSha256 '<reviewed-app-sha256>'
+```
+
+Use `-TaskBoardNodePath <path>` to select the Node executable for either suite. The package suite's `CurrentPayload` check requires explicit manifest and application hashes that have already been reviewed for the candidate payload. Do not derive the expected hashes automatically from unreviewed source. See the [Task Board contract](../skills/team-core/references/task-coordination.md) for the optional capability boundary and current operation help for exact CLI fields.
+
 ## Optional integrations
 
 These integrations are not prerequisites for the Kit. Installing or updating the Kit does not install or enable them.

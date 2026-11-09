@@ -1,0 +1,9 @@
+{
+  "name": "@codex-team/task-board",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=26.13.0 <27" },
+  "bin": { "task-board": "src/cli/cli.mjs" },
+  "scripts": { "start": "node src/cli/cli.mjs" }
+}

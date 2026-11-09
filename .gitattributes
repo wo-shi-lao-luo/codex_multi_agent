@@ -1,0 +1,14 @@
+/.gitattributes text=auto eol=lf
+/VERSION text=auto eol=lf
+/LICENSE text=auto eol=lf
+/LICENSE.txt text=auto eol=lf
+/LICENSE.md text=auto eol=lf
+/LICENCE text=auto eol=lf
+/LICENCE.txt text=auto eol=lf
+/LICENCE.md text=auto eol=lf
+/COPYING text=auto eol=lf
+/COPYING.txt text=auto eol=lf
+/COPYING.md text=auto eol=lf
+/packages/task-board/** text=auto eol=lf
+/skills/team-core/runtime/task-board/** text=auto eol=lf
+/scripts/build-task-board.mjs text=auto eol=lf

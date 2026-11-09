@@ -1,8 +1,15 @@
 # Run repository checks in separate PowerShell processes, without downloads or real-home writes.
 # Each fixture suite owns and verifies cleanup; a cleanup failure is a failing process exit.
+# Optional current-payload checks require independently approved hashes, never inferred file hashes.
 #requires -Version 7.0
 [CmdletBinding()]
-param([string[]]$Suite = @(), [string]$ResultPath)
+param(
+  [string[]]$Suite = @(),
+  [string]$ResultPath,
+  [string]$TaskBoardNodePath,
+  [string]$TaskBoardManifestSha256,
+  [string]$TaskBoardAppSha256
+)
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 $root = Split-Path -Parent $PSScriptRoot
@@ -49,8 +56,11 @@ $checks = @(
   @{name='team-entry';path='tests/test-team-entry.ps1';arguments=@()},
   @{name='test-support';path='tests/test-test-support.ps1';arguments=@()},
   @{name='validate-package';path='tests/test-validate.ps1';arguments=@()},
+  @{name='validation-links';path='tests/test-validation-links.ps1';arguments=@()},
   @{name='web-engineering';path='tests/test-web-engineering.ps1';arguments=@()},
-  @{name='portability';path='tests/test-portability.ps1';arguments=@()}
+  @{name='portability';path='tests/test-portability.ps1';arguments=@()},
+  @{name='task-board';path='tests/test-task-board.ps1';arguments=@();optIn=$true},
+  @{name='task-board-package';path='tests/test-task-board-package.ps1';arguments=@('-CurrentPayload');optIn=$true}
 )
 if ($Suite.Count -gt 0) {
   # A comma-delimited single argument also works through pwsh -File from Bash or Zsh.
@@ -59,6 +69,23 @@ if ($Suite.Count -gt 0) {
     if ($name -cnotin $checks.name) { throw "TEST_SETUP: Unknown suite '$name'. Choices: $($checks.name -join ', ')." }
   }
   $checks = @($checks | Where-Object { $_.name -cin $Suite })
+} else {
+  # Board runtime checks are explicitly selected; their optional dependency cannot gate Kit tests.
+  $checks = @($checks | Where-Object { -not $_.optIn })
+}
+if ($TaskBoardNodePath) {
+  foreach ($check in $checks | Where-Object { $_.name -in @('task-board', 'task-board-package') }) {
+    $check.arguments += @('-NodePath', $TaskBoardNodePath)
+  }
+}
+foreach ($check in $checks | Where-Object { $_.name -eq 'task-board-package' }) {
+  # Selecting this suite is not permission to bless whatever bytes happen to be on disk.
+  if ($TaskBoardManifestSha256 -cnotmatch '^[a-fA-F0-9]{64}$' -or
+      $TaskBoardAppSha256 -cnotmatch '^[a-fA-F0-9]{64}$') {
+    throw 'TEST_SETUP: task-board-package requires explicit -TaskBoardManifestSha256 and -TaskBoardAppSha256 approved hashes.'
+  }
+  $check.arguments += @('-ExpectedManifestSha256', $TaskBoardManifestSha256,
+    '-ExpectedAppSha256', $TaskBoardAppSha256)
 }
 if (-not $shell -or -not (Test-Path -LiteralPath $shell -PathType Leaf)) { throw 'TEST_SETUP: Cannot locate the running PowerShell executable.' }
 Write-Host ("Platform: {0}; OS architecture: {1}; process architecture: {2}" -f [Runtime.InteropServices.RuntimeInformation]::OSDescription,[Runtime.InteropServices.RuntimeInformation]::OSArchitecture,[Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)

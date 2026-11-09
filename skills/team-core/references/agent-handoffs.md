@@ -2,6 +2,10 @@
 
 For direct factual exchange between existing child peers, use the [bounded peer communication contract](peer-communication.md); this outcome-based handoff remains authoritative for ownership, continuity and final integration.
 
+When a parallel production writer used a separate checkout, use the [isolated worktree handoff fields and freeze/integration rules](isolated-worktrees.md). Record the exact checkout, branch, pinned base and submitted commit, changed and unresolved paths, and observed checks in the existing Work/Verification record; this does not create a second task list or alter local-only authorization.
+
+When an optional execution queue is active, use the [task coordination contract](task-coordination.md) for board identity, package/assignment reconciliation, safe transfer and unavailable-board handling. The existing Work, issue, stage packet or opted-in specification remains authoritative for scope and acceptance.
+
 Use this contract when Team work continues across messages, people/agents, threads, worktrees or task records. A handoff represents a coherent outcome and the context needed to act on it; it is not a transcript, child-thread count, or new task list. Keep the existing Work item, issue, stage packet or opted-in specification as the authority for its scope, decisions and acceptance.
 
 ## The portable continuation snapshot
@@ -51,7 +55,7 @@ Retire continuity records deliberately. Promote confirmed reusable facts to the 
 
 ## Ownership, snapshots and concurrent writers
 
-The Lead coordinates one current owner for each shared work item. Assign disjoint paths and dependencies before parallel work. Do not allow two writers to independently replace a shared source map, contract, packet or document. Keep each agent/thread/worktree's actual ownership and integration point explicit.
+The Lead coordinates one current owner for each shared work item. Responsibility labels do not prove process identity: record the actual Lead, child, or worker identity only from observed evidence, and keep unknown host role/model/effort unknown. A Lead-owned serial result is Lead self-check; it cannot satisfy an independent gate. For Board execution, use the mode, principal and workspace fields in the [Task Coordination contract](task-coordination.md#executor-identity-lead-inline-work-and-registered-workspaces). Assign disjoint paths and dependencies before parallel work. Do not allow two writers to independently replace a shared source map, contract, packet or document. Keep each agent/thread/worktree's actual ownership and integration point explicit.
 
 Before a transferred or delayed writer applies a change, compare its expected state to the current one: task/branch or worktree identity, relevant base/head, expected manifest/document hash and affected source/target paths. If they differ, stop and inspect the new work; preserve both sides and ask the current owner to reconcile overlaps. Do not use last-writer-wins, force-reset, silently rebase away unseen changes, or treat an idle/completed child handle as proof that writes have stopped. Transfer ownership only when edits/processes are ended or safely isolated and the receiving owner acknowledges the current evidence.
 

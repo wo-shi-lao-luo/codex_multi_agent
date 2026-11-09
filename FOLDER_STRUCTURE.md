@@ -45,6 +45,8 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `skills/team-doc-check/` — documentation readiness/adoption entrypoint; distributed Skill source, not repository discovery configuration.
 - `skills/team-project-rules/` — entrypoint for reviewing, drafting and maintaining target-project `AGENTS.md` files.
 - `skills/team-core/references/documentation-governance.md` — task-scoped sufficiency, topic-scoped document authority, semantic consolidation and conflict handling, ambiguity and legacy contract with runtime schema.
+- `skills/team-core/references/isolated-worktrees.md` — conditional managed-worktree binding, frozen local handoff, Lead-owned integration, recovery and cleanup for parallel production writers.
+- skills/team-core/references/task-coordination.md — optional Board executor identity, Lead-inline/self-check, independent evidence, workspace registry and assignment protocol.
 - `skills/team-core/references/external-research.md` — bounded source quality, citation and same-task peer research handoff contract.
 - skills/team-core/references/peer-communication.md — initial Lead-granted peer messaging scope, shared budgets, escalation and role-specific boundaries.
 - `skills/team-core/references/approved-constraints.md`, `agent-documentation.md`, and `agent-handoffs.md` — constraint continuity, conditional source-linked Agent guidance with read-only Inspect, and outcome-based work handoffs.
@@ -72,6 +74,12 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `skills/team-core/scripts/openspec-*.ps1` and `spec-traceability.ps1` — optional CLI boundary, safe paths, input snapshots and evidence-link checks.
 - `skills/team-core/templates/openspec/` — independently authored native-schema configuration, copied only on explicit project enablement.
 - `config/` — an optional, manually merged Codex configuration fragment.
+- `packages/task-board/` — the editable Task Board implementation source; its Node.js `>=26.13 <27` and standard-library `node:sqlite`/SQLite `>=3.54` requirements apply only to this optional capability. Its project-scoped SQLite data is local and ignored by Git.
+- `packages/task-board/src/` and `packages/task-board/web/` — Task Board CLI, storage, coordination, local service and read-only real-time board source; control operations remain caller-held and separately authenticated.
+- `skills/team-core/runtime/task-board/` — generated Task Board install runtime; present and passing offline package validation, but not published or installed into a user's home.
+- `scripts/build-task-board.mjs` — Task Board runtime build entrypoint; the selected prebuilt runtime is verified offline by the existing PowerShell deployer without building source or downloading Node.js.
+- `tests/task-board/` and `tests/test-task-board-package.ps1` — isolated Task Board source and package-distribution coverage.
+- `docs/task-coordination-design.md` and `docs/task-coordination-plan.md` — Task Board approved design and staged implementation plan; the current execution identity/workspace protocol is defined in `skills/team-core/references/task-coordination.md`.
 - `scripts/` — user-level validation, installation, and safe update helpers.
 - `scripts/setup.sh` and `scripts/setup-user.ps1` — macOS/Linux setup entrypoints; default readiness checks, explicit installation, and offline client Skill verification using existing runtimes.
 - `docs/setup.md` — setup commands, manual dependency guidance, sandbox prerequisites, optional Impeccable reminder and usage links, and failure recovery.

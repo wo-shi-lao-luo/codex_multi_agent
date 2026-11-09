@@ -4,7 +4,8 @@
 #requires -Version 7.0
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
-  [ValidateSet('Doctor','Install','Verify')][string]$Action = 'Doctor',
+  [ValidateSet('Doctor','Install','Verify','BoardDoctor')][string]$Action = 'Doctor',
+  [string]$BoardNodePath,
   [string]$CodexPath,
   [string]$CodexHome = (Join-Path $HOME '.codex'),
   [string]$AgentsHome = (Join-Path $HOME '.agents'),
@@ -14,6 +15,52 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $script:SetupRoot = Split-Path -Parent $PSScriptRoot
+
+# Optional Board diagnosis runs independently of Codex, homes and the Kit's platform discovery.
+# It reports dependency availability, never installs Node or changes overall Kit readiness.
+if ($Action -eq 'BoardDoctor') {
+  $diagnostic = @{ nodeVersion=$null;sqliteVersion=$null;available=$false;reasonCode='NODE_MISSING';
+    requirements=@{node='>=26.13.0 <27';sqlite='>=3.54.0'} }
+  if (-not $BoardNodePath) {
+    $nodeCommand = Get-Command node -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($nodeCommand) { $BoardNodePath = $nodeCommand.Source }
+  }
+  if ($BoardNodePath -and [IO.File]::Exists($BoardNodePath)) {
+    $info = [Diagnostics.ProcessStartInfo]::new()
+    $info.FileName = [IO.Path]::GetFullPath($BoardNodePath)
+    $info.UseShellExecute = $false
+    $info.RedirectStandardOutput = $true
+    $info.RedirectStandardError = $true
+    $info.ArgumentList.Add((Join-Path $script:SetupRoot 'packages/task-board/src/cli/cli.mjs'))
+    $info.ArgumentList.Add('runtime-doctor')
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $info
+    try {
+      $null = $process.Start()
+      $stdout = $process.StandardOutput.ReadToEndAsync()
+      $stderr = $process.StandardError.ReadToEndAsync()
+      if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+        $process.Kill()
+        $process.WaitForExit()
+        throw 'BOARD_DOCTOR: Runtime probe timed out.'
+      }
+      $output = $stdout.GetAwaiter().GetResult()
+      $null = $stderr.GetAwaiter().GetResult()
+      if ($process.ExitCode -ne 0) { throw 'BOARD_DOCTOR: Runtime probe failed.' }
+      $reply = $output | ConvertFrom-Json -AsHashtable
+      if (-not $reply.ok -or $reply.operation -ne 'runtime-doctor') { throw 'BOARD_DOCTOR: Invalid runtime response.' }
+      $diagnostic = $reply.result
+    } finally { $process.Dispose() }
+  }
+  $result = [ordered]@{schemaVersion=1;action='BoardDoctor'}
+  foreach ($key in @('nodeVersion','sqliteVersion','available','reasonCode','requirements')) {
+    $result[$key] = $diagnostic[$key]
+  }
+  $result.guidance = @('Board is optional. Provision Node >=26.13.0 <27 with SQLite >=3.54.0 separately; no dependency is installed by this check.')
+  if ($Json) { $result | ConvertTo-Json -Depth 5 }
+  else { Write-Output "Board runtime: $($result.reasonCode). Board availability: $($result.available)."; $result.guidance | Write-Output }
+  exit 0
+}
 
 function Resolve-SetupPath([string]$Path) {
   $full = [IO.Path]::GetFullPath($Path)

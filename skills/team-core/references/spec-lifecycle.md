@@ -20,6 +20,8 @@ The Lead remains the only execution coordinator. Do not run OpenSpec's apply Ski
 | Test design, observations and human acceptance | Existing stage packets |
 | Requirement/scenario/task/packet associations | Change `verification.json`; no copied test results |
 
+An optional local execution queue may retain assignment, claim, reservation, progress, blocker, question, handoff and related coordination facts that cannot be reconstructed from those sources. It is not a second implementation task list: `tasks.md` remains the sole implementation task/progress authority, and queue records neither copy task wording nor change native task checkboxes. See the [task coordination contract](task-coordination.md).
+
 Specs describe agreed behavior, not proof that code meets it. Source/tests remain observed implementation evidence. Resolve disagreements explicitly rather than automatically treating either a defect or an outdated document as the intended requirement.
 
 ## Plan and develop

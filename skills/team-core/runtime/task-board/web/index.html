@@ -1,0 +1,56 @@
+<!doctype html>
+<!-- Read-only handoff board; all server text is rendered by app.js as text nodes. -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>任务看板</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="header">
+    <div class="header-main">
+      <h1><span id="board-name">任务看板</span> <span class="badge">只读</span></h1>
+      <p id="identity">正在读取看板身份</p>
+    </div>
+    <div class="connection">
+      <strong id="connection" role="status" aria-live="polite">正在完整同步</strong>
+      <p id="sync">尚未同步</p>
+      <button id="retry" hidden>重新连接</button>
+    </div>
+  </header>
+  <main>
+    <section class="summary" aria-label="全板任务概览">
+      <p>就绪 <strong id="summary-ready">—</strong></p>
+      <p>进行中 <strong id="summary-running">—</strong></p>
+      <p>需关注 <strong id="summary-attention">—</strong></p>
+      <span class="summary-note">全板任务 · 随快照同步</span>
+    </section>
+    <p id="attention" class="notice" hidden></p>
+    <form class="filters" aria-label="筛选任务" onsubmit="return false">
+      <label class="search">搜索<input id="search" type="search" placeholder="任务 ID、标题、进展" autocomplete="off"></label>
+      <label>负责角色<select id="role"><option value="">全部角色</option></select></label>
+      <label>负责实例<select id="instance"><option value="">全部实例</option></select></label>
+      <label class="check"><input id="attention-only" type="checkbox">仅需关注</label>
+      <button id="clear" type="button">清除筛选</button>
+    </form>
+    <p id="empty" class="empty">正在读取任务快照…</p>
+    <div class="board-toolbar">
+      <h2>任务阶段</h2>
+      <p id="filtered-count" class="meta">等待任务快照</p>
+    </div>
+    <div class="workspace">
+      <div id="board" class="board" aria-label="任务阶段"></div>
+      <aside id="detail" class="detail" aria-label="任务详情" hidden>
+        <button id="close-detail" type="button">关闭详情</button>
+        <div id="detail-content"></div>
+      </aside>
+    </div>
+    <footer class="footnote">
+      <p>此页只展示状态。派工、答复、转交与清理由 Lead 经现有流程完成。</p>
+      <p id="session-scope-note">不同会话仍可能修改相同文件；此板不提供跨会话文件互斥</p>
+    </footer>
+  </main>
+</body>
+</html>

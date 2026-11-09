@@ -3,7 +3,7 @@
 #requires -Version 7.0
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
-  [ValidateSet('Deploy','Verify','Status','MarkStable','Restore','Recover','Prune')][string]$Action = 'Status',
+  [ValidateSet('Deploy','Verify','Status','MarkStable','Restore','Recover','Prune','ValidateTaskBoard')][string]$Action = 'Status',
   [string]$SourceRoot,
   [string]$GitRef,
   [string]$SnapshotId,
@@ -13,6 +13,135 @@ param(
   [ValidateRange(1,100)][int]$KeepSnapshots = 3,
   [switch]$ConfirmPrune
 )
+# Trusted, self-contained consumer: never execute scripts from the selected source version.
+function Test-TaskBoardPackage([string]$Root) {
+  if (-not $Root) { throw 'TASK_BOARD: SourceRoot required.' }
+  $Root = [IO.Path]::GetFullPath($Root)
+  function Assert-BoardPlain([string]$Path) {
+    for ($cursor = [IO.Path]::GetFullPath($Path); $cursor; $cursor = Split-Path -Parent $cursor) {
+      $item = Get-Item -LiteralPath $cursor -Force -ErrorAction SilentlyContinue
+      if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw 'TASK_BOARD: Linked path unsupported.'
+      }
+    }
+  }
+  # Inventory hidden files and reject links/case collisions before manifest interpretation.
+  function Get-BoardFiles([string]$Directory) {
+    Assert-BoardPlain $Directory
+    $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $files = [Collections.Generic.List[string]]::new()
+    function Visit-BoardTree([string]$Current) {
+      foreach ($item in Get-ChildItem -LiteralPath $Current -Force -ErrorAction Stop) {
+        $relative = [IO.Path]::GetRelativePath($Directory, $item.FullName).Replace('\','/')
+        if ($relative -cnotmatch '^[A-Za-z0-9_./-]+$' -or
+            @($relative.Split('/') | Where-Object { $_ -in '.', '..' -or $_.EndsWith('.') }).Count -or
+            -not $seen.Add($relative) -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+          throw 'TASK_BOARD: Unsafe or case-colliding path.'
+        }
+        if ($item.PSIsContainer) { Visit-BoardTree $item.FullName }
+        else { $files.Add($relative) }
+      }
+    }
+    Visit-BoardTree $Directory
+    $files.Sort([StringComparer]::Ordinal)
+    return $files.ToArray()
+  }
+  # The trusted expected set, not selected manifest paths, decides which bytes may be read.
+  function Assert-BoardInventory($Entries, [string[]]$Expected, [string]$Base) {
+    $ordered = [string[]]$Expected.Clone()
+    [Array]::Sort($ordered, [StringComparer]::Ordinal)
+    if (@($Entries).Count -ne $ordered.Count) { throw 'TASK_BOARD: Inventory count mismatch.' }
+    for ($i = 0; $i -lt $ordered.Count; $i++) {
+      $entry = @($Entries)[$i]
+      if ($entry.path -cne $ordered[$i] -or $entry.sha256 -cnotmatch '^[a-f0-9]{64}$') {
+        throw 'TASK_BOARD: Invalid inventory.'
+      }
+      $file = Join-Path $Base $ordered[$i]
+      Assert-BoardPlain $file
+      if ((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant() -cne $entry.sha256) {
+        throw 'TASK_BOARD: Manifest byte mismatch.'
+      }
+    }
+  }
+  Assert-BoardPlain $Root
+  $source = Join-Path $Root 'packages/task-board'
+  $payload = Join-Path $Root 'skills/team-core/runtime/task-board'
+  Assert-BoardPlain $source
+  Assert-BoardPlain $payload
+  if (-not (Test-Path -LiteralPath $source) -and -not (Test-Path -LiteralPath $payload)) { return }
+  try {
+    if (-not (Test-Path -LiteralPath $source -PathType Container) -or
+        -not (Test-Path -LiteralPath $payload -PathType Container)) {
+      throw 'TASK_BOARD: Source and payload must both exist.'
+    }
+    $sourceFiles = @(Get-BoardFiles $source)
+    if ('package.json' -cnotin $sourceFiles -or 'src/cli/cli.mjs' -cnotin $sourceFiles -or
+        -not @($sourceFiles | Where-Object { $_.StartsWith('web/') }).Count -or
+        @($sourceFiles | Where-Object { $_ -cne 'package.json' -and $_ -cnotmatch '^(src|web)/' }).Count) {
+      throw 'TASK_BOARD: Invalid source inventory.'
+    }
+    $package = Get-Content -LiteralPath (Join-Path $source 'package.json') -Raw | ConvertFrom-Json -AsHashtable
+    foreach ($key in @('dependencies','devDependencies','optionalDependencies','peerDependencies')) {
+      if ($package[$key] -and $package[$key].Count) { throw 'TASK_BOARD: Third-party dependency unsupported.' }
+    }
+    $licenses = @()
+    foreach ($name in @('LICENSE','LICENCE','COPYING')) {
+      foreach ($candidate in @($name, "$name.txt", "$name.md")) {
+        if (Test-Path -LiteralPath (Join-Path $Root $candidate)) { $licenses += $candidate }
+      }
+    }
+    $manifest = Get-Content -LiteralPath (Join-Path $payload 'manifest.json') -Raw | ConvertFrom-Json -AsHashtable
+    $licenseStatus = if ($licenses.Count) { 'present-unreviewed' } else { 'not-declared' }
+    if ($manifest.schemaVersion -ne 1 -or $manifest.buildTool.name -cne 'build-task-board' -or
+        $manifest.buildTool.version -ne 1 -or $manifest.requiredNode -cne '>=26.13.0 <27' -or
+        $manifest.minimumSQLite -cne '3.54.0' -or $manifest.dependencyLock -cne 'none;standard-library-only' -or
+        $manifest.licenseStatus -cne $licenseStatus -or @($manifest.platformValidation.observed).Count -ne 1 -or
+        $manifest.platformValidation.observed[0] -cne 'win32-x64' -or
+        $manifest.platformValidation.otherPlatforms -cne 'unverified') { throw 'TASK_BOARD: Unsupported manifest.' }
+    $inputs = @('.gitattributes','VERSION','scripts/build-task-board.mjs') +
+      @($sourceFiles | ForEach-Object { "packages/task-board/$_" }) + $licenses
+    Assert-BoardInventory $manifest.inputs $inputs $Root
+    $outputs = @('cli.mjs') + $sourceFiles + $licenses
+    Assert-BoardInventory $manifest.outputs $outputs $payload
+    $actual = @(Get-BoardFiles $payload)
+    if ($actual.Count -ne ($outputs.Count + 1) -or
+        @($actual | Where-Object { $_ -cne 'manifest.json' -and $_ -cnotin $outputs }).Count) {
+      throw 'TASK_BOARD: Unexpected output inventory.'
+    }
+    foreach ($relative in $sourceFiles) {
+      if ((Get-FileHash -LiteralPath (Join-Path $source $relative)).Hash -cne
+          (Get-FileHash -LiteralPath (Join-Path $payload $relative)).Hash) {
+        throw 'TASK_BOARD: Source/payload mismatch.'
+      }
+    }
+    # Hashes alone cannot establish the generated entry contract when a manifest is rehashed.
+    $wrapper = "// Generated by build-task-board; do not edit.`nimport './src/cli/cli.mjs';`n"
+    $expectedWrapper = [Text.Encoding]::UTF8.GetBytes($wrapper)
+    $actualWrapper = [IO.File]::ReadAllBytes((Join-Path $payload 'cli.mjs'))
+    if ([Convert]::ToBase64String($actualWrapper) -cne
+        [Convert]::ToBase64String($expectedWrapper)) {
+      throw 'TASK_BOARD: Generated entry differs from the fixed wrapper.'
+    }
+    # A present license is copied verbatim; self-consistent output hashes cannot replace this check.
+    foreach ($relative in $licenses) {
+      if ((Get-FileHash -LiteralPath (Join-Path $Root $relative)).Hash -cne
+          (Get-FileHash -LiteralPath (Join-Path $payload $relative)).Hash) {
+        throw 'TASK_BOARD: Source/license payload mismatch.'
+      }
+    }
+  } catch {
+    if ($_.Exception.Message.StartsWith('TASK_BOARD:')) { throw }
+    throw "TASK_BOARD: Validation failed: $($_.Exception.Message)"
+  }
+}
+
+# No homes, receipts or Node are consulted by this read-only action.
+if ($Action -eq 'ValidateTaskBoard') {
+  $ErrorActionPreference = 'Stop'
+  Test-TaskBoardPackage $SourceRoot
+  Write-Output 'Task-board package validation passed.'
+  exit 0
+}
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 # Normalize only macOS's verified system aliases. Arbitrary linked installation
@@ -177,6 +306,7 @@ function Get-ExpectedDirectories($Files) {
 # Build a deterministic source package manifest; never run scripts from the requested Git version.
 function Read-Package([string]$Root, $Provenance) {
   Assert-PlainPath $Root
+  Test-TaskBoardPackage $Root
   $version = (Get-Content -LiteralPath (Join-Path $Root 'VERSION') -Raw).Trim()
   if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'PACKAGE: Invalid VERSION.' }
   $files = @(); $directories = @()

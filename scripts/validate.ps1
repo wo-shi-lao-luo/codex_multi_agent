@@ -5,6 +5,9 @@ param()
 
 $root = Split-Path -Parent $PSScriptRoot
 $failures = New-Object System.Collections.Generic.List[string]
+# Reuse only this checkout's trusted consumer; runtime installation never requires Node.
+& (Join-Path $PSScriptRoot 'deploy-user.ps1') -Action ValidateTaskBoard -SourceRoot $root
+if ($LASTEXITCODE -ne 0) { throw 'Task-board package validation failed.' }
 
 foreach ($resource in @('scripts/deploy-user.ps1')) {
   if (-not (Test-Path -LiteralPath (Join-Path $root $resource) -PathType Leaf)) { $failures.Add("Missing deployment resource: $resource") }
@@ -621,7 +624,37 @@ Get-ChildItem -Path (Join-Path $root 'agents') -Filter '*.toml' -File | ForEach-
   }
 }
 
-Get-ChildItem -Path $root -Filter '*.md' -File -Recurse | ForEach-Object {
+# These exact root-relative trees contain checkout-local records, not package documentation.
+# Do not exclude all governance, a lexical near match such as docs/verification-guide, or a
+# nested lookalike such as docs/example/_work: their Markdown links still need validation.
+$markdownExcludedDirectories = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+foreach ($relative in @('_work', 'backlog', 'docs/superpowers', 'docs/verification',
+  'docs/governance/reviews', 'openspec/.team-recovery', '.git', '.hg', '.svn')) {
+  $null = $markdownExcludedDirectories.Add($relative)
+}
+
+# Enumerate one level at a time so excluded histories are never traversed. Preserve the previous
+# default hidden-item and directory-link behavior; this does not change payload safety checks.
+function Get-ValidationMarkdownFiles([string]$Directory) {
+  $items = [Collections.Generic.List[IO.FileSystemInfo]]::new()
+  foreach ($item in Get-ChildItem -LiteralPath $Directory) { $items.Add($item) }
+  $items.Sort([Comparison[IO.FileSystemInfo]] {
+    param($left, $right)
+    return [StringComparer]::Ordinal.Compare($left.Name, $right.Name)
+  })
+  foreach ($item in $items) {
+    if ($item.PSIsContainer) {
+      $relative = [IO.Path]::GetRelativePath($root, $item.FullName).Replace('\', '/')
+      if ($markdownExcludedDirectories.Contains($relative)) { continue }
+      if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+      Get-ValidationMarkdownFiles $item.FullName
+    } elseif ($item.Extension -ieq '.md') {
+      $item
+    }
+  }
+}
+
+Get-ValidationMarkdownFiles $root | ForEach-Object {
   $markdownFile = $_
   $content = Get-Content -LiteralPath $markdownFile.FullName -Raw
   foreach ($match in [regex]::Matches($content, '\[[^\]]*\]\(([^)]+)\)')) {

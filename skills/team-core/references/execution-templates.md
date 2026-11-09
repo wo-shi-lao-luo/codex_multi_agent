@@ -28,8 +28,9 @@ Constraint continuity (when applicable: authority/revision, conditions/exception
 Outcome continuity (same outcome/reopen/independent child/successor, existing record/history, pending acceptance and next owner; see [outcome-based handoffs](agent-handoffs.md) when due):
 Design outcome/readiness and affected blocked versus independent work (when full exploration applies):
 Planned roles and active tool catalog availability evidence:
-Named implementation owner; Tester packet/test ownership; Reviewer when material:
-Lead-only authority/approved exception evidence, if applicable:
+Lead serial responsibility or named parallel owner; independent Tester only when a distinct gate requires it; Reviewer when material:
+Checkout plan when parallel writers need isolation (optional): exact worktree path/branch per writer, pinned common base, shared-contract owners, separated resources, integration target/owner. See [isolated worktree guidance](isolated-worktrees.md); omit for shared-checkout or read-only work.
+Lead-inline execution (when used) and self-check evidence; preserve separately required independent gates:
 Source versus active tool profile expectations and unavailable-role user decisions:
 Blueprint applicability and evidence:
 Blueprint path/revision and module IDs (when applicable):
