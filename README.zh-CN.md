@@ -20,9 +20,11 @@
 
 工具包目前处于 2.x 预览产品线。可用模型和权限取决于你的 Codex 账号及客户端。指引和校验器不能保证实际运行行为、成本降低或结果改善；请检查真实修改和验证证据。
 
-当前版本: `2.0.1`
+当前版本: `2.0.2`
 
-`2.0.1` 保留可选 Task Board。完整 Windows x64 用户安装器会复用符合要求的 Node.js `>=26.13.0 <27`／SQLite `>=3.54.0`，否则将固定版本 Node.js `26.13.0` 配置到私有缓存，并校验官方归档摘要；不会修改 `PATH` 或安装全局 npm 包。`-WhatIf` 不下载也不配置运行时。底层仅部署 payload 的命令仍保持离线。普通 Team 工作流不需要 Node.js；Board 命令通过已安装的 `task-board.ps1` 启动器运行。现在默认测试运行需要兼容的 Board 运行时或显式提供运行时归档，不会联网回退。macOS 和 Linux 的运行时安装尚未验证。详见[安装说明](docs/codex-install.md)、[设置与诊断](docs/setup.md)、[Task Board 契约](skills/team-core/references/task-coordination.md)、[设计](docs/task-coordination-design.md)和[实施计划](docs/task-coordination-plan.md)。安装回执验证和启动器 doctor 都必须通过；Codex 会话实际加载情况仍需单独核验。
+`2.0.2` 保留可选 Task Board。完整 Windows x64 用户安装器会复用符合要求的 Node.js `>=26.13.0 <27`／SQLite `>=3.54.0`，否则将固定版本 Node.js `26.13.0` 配置到私有缓存，并校验官方归档摘要；不会修改 `PATH` 或安装全局 npm 包。`-WhatIf` 不下载也不配置运行时。底层仅部署 payload 的命令仍保持离线。普通 Team 工作流不需要 Node.js；Board 命令通过已安装的 `task-board.ps1` 启动器运行。现在默认测试运行需要兼容的 Board 运行时或显式提供运行时归档，不会联网回退。macOS 和 Linux 的运行时安装尚未验证。详见[安装说明](docs/codex-install.md)、[设置与诊断](docs/setup.md)、[Task Board 契约](skills/team-core/references/task-coordination.md)、[设计](docs/task-coordination-design.md)和[实施计划](docs/task-coordination-plan.md)。安装回执验证和启动器 doctor 都必须通过；Codex 会话实际加载情况仍需单独核验。
+
+持续多 Agent 工程协作默认启用会话 Board，轻量任务和用户退出保留明确例外，缺少前置条件时必须说明原因。首次启用会尝试展示当前聊天面板；排队、仅链接及未知结果与实际可见看板分别记录。这属于工作流指引，不是原生任务启动钩子。
 
 ## 工作流入口
 

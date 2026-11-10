@@ -664,7 +664,7 @@ $errors = @($rows | Where-Object status -eq 'error').Count
 $changed = @($rows | Where-Object changed).Count
 $applied = @($rows | Where-Object status -eq 'applied').Count
 @{
-  schemaVersion = 1; kitVersion = '2.0.1'; action = $Action; results = $rows.ToArray()
+  schemaVersion = 1; kitVersion = '2.0.2'; action = $Action; results = $rows.ToArray()
   summary = @{ total = $rows.Count; changed = $changed; applied = $applied; blocked = $blocked; errors = $errors }
   limitations = @(
     'metadata-selection-not-semantic-authority', 'trusted-process-not-os-sandbox',

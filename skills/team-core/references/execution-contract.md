@@ -98,7 +98,7 @@ For a material architecture, contract, workflow/state, configuration/eligibility
 
 **Exit:** each writer has bounded ownership and no two writers are assigned the same shared contract.
 
-When the Lead elects to use the optional execution queue, genuinely independent ready packages may be assigned to multiple instances under the [task coordination contract](task-coordination.md). This does not relax the single-owner rule for shared contracts or concrete paths, nor the exact-path freeze and transfer requirements.
+Apply the [default Board activation checkpoint](task-coordination.md#default-activation-checkpoint) at task start and before dependent dispatch when work expands into sustained multi-Agent collaboration. Independent ready packages may be assigned to multiple instances under the [task coordination contract](task-coordination.md); direct work without a Board follows its explicit exemptions or safe degradation path. This does not relax the single-owner rule for shared contracts or concrete paths, nor the exact-path freeze and transfer requirements.
 
 Apply [role routing](role-routing.md) before delegation: verify needed named roles in the active tool catalog, select them explicitly, and record expected versus available profiles. Missing roles require a user decision before an alternative; task labels are not role selection.
 

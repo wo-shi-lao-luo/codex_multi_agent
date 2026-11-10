@@ -125,7 +125,18 @@ function Fixture([string]$Relative, [string]$Body) {
 # Actual source bytes are copied unchanged; formatter guide/packet are validator links.
 function Copy-Package {
   Copy-TestPackage -SourceRoot $repo -DestinationRoot $package `
-    -Profile Narrow -IncludeConfig $true
+    -Profile PublicDocs -IncludeConfig $true
+  # The shipped generated Board requires its exact source inputs, even in a routing fixture.
+  # Preserve actual bytes; never remove the runtime or weaken its validator to get a pass.
+  foreach ($relative in @('.gitattributes','packages/task-board','LICENSE','LICENCE','COPYING',
+      'LICENSE.txt','LICENSE.md','LICENCE.txt','LICENCE.md','COPYING.txt','COPYING.md')) {
+    $source = Join-Path $repo $relative
+    if (Test-Path -LiteralPath $source) {
+      $target = Join-Path $package $relative
+      [IO.Directory]::CreateDirectory((Split-Path -Parent $target)) | Out-Null
+      Copy-Item -LiteralPath $source -Destination $target -Recurse
+    }
+  }
 }
 
 # Invoke the actual copied consumer and retain failure diagnostics. Validator

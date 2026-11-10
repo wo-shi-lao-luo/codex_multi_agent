@@ -4,6 +4,12 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
 
+## [2.0.2] - 2026-11-10
+
+### Fixed
+
+- Enable the session Board by default for sustained multi-Agent engineering, with a shared entry/dispatch checkpoint, explicit light-work and user opt-out exemptions, safe disclosed degradation, and separate first-panel outcomes. Preserve no-reopen, identity, permissions and existing-Board recovery boundaries; instruction checks do not prove autonomous client behavior.
+
 ## [2.0.1] - 2026-11-10
 
 ### Fixed

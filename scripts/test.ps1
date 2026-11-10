@@ -30,6 +30,7 @@ $checks = @(
   @{name='validate';path='scripts/validate.ps1';arguments=@()},
   @{name='validate-docs';path='scripts/validate-docs.ps1';arguments=@('-ProjectRoot',$root)},
   @{name='agent-concurrency';path='tests/test-agent-concurrency.ps1';arguments=@()},
+  @{name='board-activation';path='tests/test-board-activation.ps1';arguments=@()},
   @{name='agent-documentation';path='tests/test-agent-documentation.ps1';arguments=@()},
   @{name='ai-capability-contracts';path='tests/test-ai-capability-contracts.ps1';arguments=@()},
   @{name='ai-development-guidance';path='tests/test-ai-development-guidance.ps1';arguments=@()},

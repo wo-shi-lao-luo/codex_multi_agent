@@ -19,6 +19,8 @@ Keep special adapters conditional: use simulation only for unmistakable, explici
 
 Do not spawn a router child. The Lead selects only the roles required by the chosen path from the active catalog, uses their exact selectors, and reports actual invocations and unknown identity data. Source profiles and installed files do not prove runtime availability.
 
+Apply the [default Board activation checkpoint](../team-core/references/task-coordination.md#default-activation-checkpoint) at task start and when work expands into sustained multi-Agent collaboration; preserve its light-work exemptions and explicit degraded-state reporting.
+
 ## Output contract
 
 Report the selected path and its basis, actual role invocations, completed checks and evidence, reused decisions/history, and remaining risks. Preserve the selected workflows' required handoffs. When workflows are composed, defer standalone final-feedback calls at intermediate plan/debug/review handoffs until the single router close; this changes only feedback timing, not any stage's gates or evidence. An eligible light path does not require persisted feedback or a runtime call. Other supported `$team-dev`, `$team-plan`, `$team-debug`, or `$team-review` primary paths may create at most one feedback record under that existing workflow name. Do not add a `team` workflow value. Integrated debug or review stages do not create separate close records; consultation and standalone special adapters do not record feedback.

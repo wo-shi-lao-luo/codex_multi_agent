@@ -22,7 +22,7 @@ $ErrorActionPreference = 'Stop'
 # Semantic checking requirements invalidate prior reviews without changing schema.
 $policyVersion = 3
 # Kit provenance is independent of review policy and runtime schema.
-$kitVersion = '2.0.1'
+$kitVersion = '2.0.2'
 $categories = @('requirements','architecture','interfaces-data','ui-ux','runtime','testing-acceptance','security-migration')
 $root = Get-TeamCanonicalRoot $ProjectRoot
 $pathComparison = Get-TeamPathComparison
