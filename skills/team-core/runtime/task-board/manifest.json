@@ -7,11 +7,27 @@
     },
     {
       "path": "VERSION",
-      "sha256": "b4b16faea52dc04ccfe32f7b342094855923ebf599a3cac1940470a2d6d7c261"
+      "sha256": "137f467241023dadfa605db00e630b25a9394d0fc7232718812983ba24b93945"
     },
     {
       "path": "packages/task-board/package.json",
       "sha256": "8ce1d0277a1a981cc4cb5f6f43e5e3e85373d6201aa1742a28b5b8996d633f0f"
+    },
+    {
+      "path": "packages/task-board/src/activation/orchestrator.mjs",
+      "sha256": "5dcfcbbf61b8706800e3ec3cfe934c9b6238f727f4042f73bbe6a6d86e6b8e86"
+    },
+    {
+      "path": "packages/task-board/src/activation/service-runner.mjs",
+      "sha256": "3075efe5a8f016d008821e5c515cdcc00278c7bc4e0f4b48a28c2e51b39a14e1"
+    },
+    {
+      "path": "packages/task-board/src/activation/transport.mjs",
+      "sha256": "71acb258b005352da92517b88655f3a7b8fefd5fd75593ca2fd99be4aa872cce"
+    },
+    {
+      "path": "packages/task-board/src/cli/activation.mjs",
+      "sha256": "e276cbf4de91a53a616c97adaea23946667f63b960834c72b40bfaddd5878be2"
     },
     {
       "path": "packages/task-board/src/cli/cli.mjs",
@@ -67,7 +83,7 @@
     },
     {
       "path": "packages/task-board/src/domain/graph.mjs",
-      "sha256": "fb9b2f51be3c4c3893a7a364d37212fa05a02cbab66311233906389676ce803f"
+      "sha256": "e376ab04410822ff63f5cc8f76c63b50adcad3430c280cfa6008acdd0c212227"
     },
     {
       "path": "packages/task-board/src/domain/identity.mjs",
@@ -163,7 +179,7 @@
     },
     {
       "path": "packages/task-board/src/storage/repositories.mjs",
-      "sha256": "979a869cf9912d828301f9f8ac7a22f698f31b819920c526d15a78d235ad8b42"
+      "sha256": "b20fde3fdfd002f50fef84736520e5ff3c2a13b862aac1915c199e998d79b74f"
     },
     {
       "path": "packages/task-board/src/storage/retention.mjs",
@@ -214,6 +230,22 @@
     {
       "path": "package.json",
       "sha256": "8ce1d0277a1a981cc4cb5f6f43e5e3e85373d6201aa1742a28b5b8996d633f0f"
+    },
+    {
+      "path": "src/activation/orchestrator.mjs",
+      "sha256": "5dcfcbbf61b8706800e3ec3cfe934c9b6238f727f4042f73bbe6a6d86e6b8e86"
+    },
+    {
+      "path": "src/activation/service-runner.mjs",
+      "sha256": "3075efe5a8f016d008821e5c515cdcc00278c7bc4e0f4b48a28c2e51b39a14e1"
+    },
+    {
+      "path": "src/activation/transport.mjs",
+      "sha256": "71acb258b005352da92517b88655f3a7b8fefd5fd75593ca2fd99be4aa872cce"
+    },
+    {
+      "path": "src/cli/activation.mjs",
+      "sha256": "e276cbf4de91a53a616c97adaea23946667f63b960834c72b40bfaddd5878be2"
     },
     {
       "path": "src/cli/cli.mjs",
@@ -269,7 +301,7 @@
     },
     {
       "path": "src/domain/graph.mjs",
-      "sha256": "fb9b2f51be3c4c3893a7a364d37212fa05a02cbab66311233906389676ce803f"
+      "sha256": "e376ab04410822ff63f5cc8f76c63b50adcad3430c280cfa6008acdd0c212227"
     },
     {
       "path": "src/domain/identity.mjs",
@@ -365,7 +397,7 @@
     },
     {
       "path": "src/storage/repositories.mjs",
-      "sha256": "979a869cf9912d828301f9f8ac7a22f698f31b819920c526d15a78d235ad8b42"
+      "sha256": "b20fde3fdfd002f50fef84736520e5ff3c2a13b862aac1915c199e998d79b74f"
     },
     {
       "path": "src/storage/retention.mjs",

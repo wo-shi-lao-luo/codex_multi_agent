@@ -1,16 +1,52 @@
-# Optional task coordination
+# Task visibility and coordination
 
-Apply the default activation checkpoint when authorized engineering work enters sustained multi-Agent collaboration. Small direct work remains light; this does not require extra agents, planning documents, installations or a background scheduler.
+Board is a human-readable execution view as well as a coordination queue. Apply the checkpoint to authorized execution tasks, including single-Agent execution. Visibility does not require extra agents, planning documents, installations or a background scheduler.
 
 ## Default activation checkpoint
 
-At task start and before dependent dispatch when scope expands, assess whether multiple engineering agents are planned or active across deliverable packages, parallel implementation owners, or sustained cross-stage assignments/handoffs. For such collaboration, enable the session-bound Board by default; do not wait for the user to name Board or silently treat it as discretionary. Read-only planning/research/review alone does not initialize a Board; carry the checkpoint into any later authorized implementation handoff. A single one-off consultation or independent review does not alone trigger activation. Respect an explicit user opt-out and project restrictions; never spawn extra agents to justify a Board.
+At the start of an authorized execution task, enable the session-bound Board by default for human visibility, whether the Lead works alone or uses children. Development, debugging, test execution, maintenance and delivery can qualify; multiple agents, task size and parallelism are not prerequisites. Ordinary questions, brief explanations and standalone read-only consultation/review need no Board unless explicitly requested. Planning-only work does not grant implementation authority, but an explicit request to display its progress may use a Board for that authorized scope. Respect an explicit user opt-out and project restrictions; never spawn extra agents to justify a Board. A consultation/review subtask inside an enabled execution task does not disable its parent Board or create another one.
 
-State the decision and reason in the normal opening/progress update and existing Work/handoff: enabled, exempt (small direct work, one-off consultation/review, or user opt-out), or activation-pending with the missing prerequisite/blocker and next step. Record enabled only after verified initialization or reuse; until then retain activation-pending. Keep this separate from the panel opening result. Reassess an exemption if work grows into sustained collaboration. This is a Lead instruction checkpoint, not a native task-start hook or proof that a client loaded the Skill.
+For a small task, one task card is sufficient. Reuse the existing lead-inline execution mode for the actual Lead when no child is needed, with its normal approvals and authorization; do not fabricate a worker or independent check. Opening Board does not raise the workflow risk tier: do not add task decomposition, agents, reviews, tests or full documentation packets solely for visibility. Existing risk-based gates still apply. Show the current phase, completed result, next step and blockers/user decisions in plain language. Update at real milestones (start, meaningful phase/result, blocker, verification and completion), not for every command or through model polling. Do not invent progress percentages, completion facts or liveness from silence. Reuse one Board per main session and preserve first-open/no-reopen rules.
+
+State the decision and reason in the normal opening/progress update and existing Work/handoff: enabled, exempt (ordinary question, brief explanation, standalone consultation/review, or user opt-out), or activation-pending with the missing prerequisite/blocker and next step. Record enabled only after verified initialization or reuse; until then retain activation-pending. Keep this separate from the panel opening result. Reassess an exemption when a conversation becomes an authorized execution task. Use a concise task/status note on the light path; do not create a full Work contract solely for Board. This is a Lead instruction checkpoint, not a native task-start hook or proof that a client loaded the Skill.
 
 Use the verified installed launcher/runtime, obtain reliable current host/project/main-session identity under the session rules below, protect the canonical artifact scope, and initialize or safely reuse only that session's Board. Complete applicable approval/assignment steps before dependent dispatch. Start/reuse the confirmed owned read-only service and follow Browser presentation for its first opening attempt; report its actual outcome separately from Board activation. A usable Board with an unavailable browser panel still supports coordination.
 
 Do not fabricate stable identities, use mutable titles as IDs, automatically install dependencies, alter permissions, or bypass user decisions. With no existing Board and missing runtime, identity, artifact protection or other prerequisites, record activation-pending, explain the impact, and continue only independently safe, already-authorized direct work with normal ownership and evidence. Do not claim Board coordination or retry in the background. If an existing Board is unsafe, unavailable or incompatible, preserve it and in-flight facts, stop affected claims/mutations and arrange explicit reconciliation; never replace it with an empty Board. Browser opening failure alone does not invalidate a healthy Board or authorize resetting tasks.
+
+## Unified activation entry
+
+At an authorized execution start or resume, use [activate-board.ps1](../scripts/activate-board.ps1) instead of assembling ad-hoc initialization and service commands. Reassess when discussion or planning becomes execution, including in an old chat. Reading this reference, successful help, or runtime-doctor is not activation. Require the actual `enabled`, `exempt`, or `activation-pending` decision, reason and next step; do not silently continue after a probe-only success. The Lead determines exemptions before invoking the execution entry; a pending/exempt result grants no additional authority.
+
+Invoke the installed script with `-ProjectRoot <target-project>` and send bounded JSON through stdin; use `-Help` for its request fields. The request uses `action: activate` or `resume`, `executionApproved: true`, reliable current `sessionProfile` metadata, the actual `actorId`, an explicit approved `task` contract, and caller-held `leadToken`, `claimToken`, `serviceControlToken`. Source/acceptance references and exact scopes come from the approved work, not invented defaults. Preserve the same task ID and credentials across retries. Use a new task ID for a new outcome. A progress-only card with empty write scope does not replace production assignment/resource ownership. Keep credentials in the existing private handoff, never chat, arguments, task text, operation journals or normal logs. Titles, session age and hook events do not establish user approval. The helper records an initial real milestone; later milestones, submission, resource release and acceptance still use the existing authenticated Board operations rather than automatic closure.
+
+The entry derives the canonical session path, checks the runtime, authenticates an existing Board before changing it, and initializes only a genuinely absent Board. It reuses existing add/approve/grant/Lead-inline and service protocols with the actual Lead as executor. Its ignored activation journal retains orchestration receipts and service/presentation intent only; SQLite remains the task, assignment and reservation authority. Preserve the database and journal on unknown schema, mismatched identity, lost credentials, unsafe artifact policy, interrupted operations or uncertain service launch. Never remove locks by TTL, replace/migrate a Board, install dependencies or take over ownership automatically. Retry after restored prerequisites reconciles retained facts rather than creating a second Board.
+
+Activation and panel presentation are separate. The entry prepares at most the first browser action and durably marks the attempt uncertain before returning a URL. Use the host panel capability, then invoke `action: record-open-result` with the actual `presentationOutcome` of `queued`, `opened`, `link-only` or `unknown`. Resume never reissues a ticket or opens a panel after an attempted/uncertain first action. Preserve the Browser presentation rules and explicit reopen authorization below. Service timeout is not evidence of process death; never stop by guessed PID or replace an uncertain service.
+
+Existing Boards without the helper's matching private handoff require explicit reconciliation; authentication alone does not authorize adopting unrelated task history. A lost first response leaves presentation unknown even if no URL was observed. An unreachable retained service remains pending until its ownership and actual outcome can be reconciled. Do not rotate caller credentials, remove the activation journal, clear locks or create replacement services to bypass these conditions.
+
+### Optional start/resume hook
+
+Current Codex supports `SessionStart` (`startup`, `resume`, `clear`, `compact`, `fork`) and `UserPromptSubmit`. The optional [board-session-hook.ps1](../scripts/board-session-hook.ps1) supplies bounded checkpoint context only. It does not classify user intent, initialize a Board, read transcripts, copy prompts, spawn Agents or change configuration. Children inherit the main Board; the main Lead decides whether execution is authorized.
+
+On a supporting host, configure the installed adapter through the host's existing hook settings, then review and trust the exact definition. Replace the generic script path with a quoted absolute installed path for that host:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "startup|resume|clear|compact|fork",
+      "hooks": [{"type": "command", "command": "pwsh -NoProfile -File /path/to/team-core/scripts/board-session-hook.ps1", "timeout": 10, "additionalContextLimit": 1000}]
+    }],
+    "UserPromptSubmit": [{
+      "hooks": [{"type": "command", "command": "pwsh -NoProfile -File /path/to/team-core/scripts/board-session-hook.ps1", "timeout": 10, "additionalContextLimit": 1000}]
+    }]
+  }
+}
+```
+
+Kit installation does not install, enable or trust hooks. Never merge these settings into user/project configuration automatically or bypass trust review. Unsupported/disabled/untrusted hooks leave the explicit Lead checkpoint in force. See the [official hook contract](https://learn.chatgpt.com/docs/hooks). Helper and hook-output tests do not prove native routing, current-session loading, visible panel rendering or automatic activation in an old chat; retain separate live acceptance outcomes.
 
 ## Authority and activation
 

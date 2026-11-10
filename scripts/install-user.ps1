@@ -83,13 +83,15 @@ try {
     $dependency = Ensure-BoardRuntime -AgentsHome $AgentsHome `
       -RuntimeArchivePath $RuntimeArchivePath -Offline:$Offline
   }
-  # A moving Git ref is resolved once; directory bytes are bound by the exact package digest.
+  # A moving Git ref is resolved once; mutable directories also pin the complete source contract.
   if ($GitRef) {
     $arguments = @('-Action','Deploy','-SourceRoot',$SourceRoot,'-GitRef',$preview.source.commit,
       '-CodexHome',$CodexHome,'-AgentsHome',$AgentsHome)
     if ($Force) { $arguments += '-Force' }
   }
-  $deployment = Invoke-TrustedDeployment ($arguments + @('-ExpectedPackageDigest',$preview.packageDigest))
+  $deployment = Invoke-TrustedDeployment ($arguments + @(
+    '-ExpectedPackageDigest',$preview.packageDigest,
+    '-ExpectedSourceContractDigest',$preview.sourceContractDigest))
   if ($deployment.action -cne 'deployed') { throw 'DEPLOYMENT: Payload was not committed.' }
   $committed = $true
   $verified = Invoke-TrustedDeployment @('-Action','Verify','-CodexHome',$CodexHome,'-AgentsHome',$AgentsHome)

@@ -60,6 +60,6 @@ For material architecture, contract, workflow/state, configuration/eligibility, 
 
 For `$team-dev` implementation work, read [test and acceptance contract](references/test-acceptance-contract.md) and [TDD protocol](references/tdd-protocol.md). Its `scripts/stage-verification.ps1` intentionally creates and validates Git-tracked verification packets inside the target project; archival occurs only after a validated, authoritative final manual status.
 
-When the Lead elects to use an optional local execution queue, follow the [task coordination contract](references/task-coordination.md); it supplements existing task, acceptance, role and handoff authorities and leaves the direct light path available.
+When a task uses the local execution Board, follow the [task coordination contract](references/task-coordination.md). Ordinary questions, brief explanations, standalone read-only consultation/review and explicit user opt-out are exempt; unresolved prerequisites leave activation pending while independently safe authorized work may continue. The Board does not add agents, reviews, tests or documentation requirements, and the existing direct workflow remains available where the contract permits.
 
 For test planning, execution, or review in Codex workflows, apply the contract's [efficient test execution](references/test-acceptance-contract.md#efficient-test-execution) rule by default; it remains the single source for test tiers, evidence reuse, cost limits, and observation choices.

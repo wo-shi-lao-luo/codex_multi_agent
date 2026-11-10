@@ -67,6 +67,31 @@ Packages default to runtime data schema 1. Future packages changing that contrac
 
 The manager performs source/ownership checks, obtains an exclusive file lock, stages the target, saves a complete before-image, writes `pending.json`, applies all selected units, verifies the exact result, then atomically replaces the receipt and clears pending state. Metadata replacement is atomic within its directory; multi-directory payload replacement is recoverable, not globally atomic.
 
+Full installation pins a separate source contract digest between dependency preparation
+and payload deployment. It includes the Kit version, file hashes, exact directories
+(including empty directories), runtime data schema and Board/runtime selection.
+Changed mutable sources are rejected before the payload transaction writes homes.
+Dependency preparation may already have populated a verified runtime cache. Historical
+receipt and snapshot `packageDigest` values retain their file-only meaning.
+
+Each payload file is copied first into a private `codex-kit-publish-<snapshot-id>`
+directory under its destination home, then renamed into its active path. A process
+exit during copying leaves partial bytes outside agent/Skill discovery; an active
+path contains complete target bytes or is absent during replacement. Recovery
+cleans the transaction scratch after restoring and verifying the before-image.
+The pending snapshot ID determines the only scratch directories eligible for cleanup.
+Publication uses native rename (`MoveFileExW` with `REPLACE_EXISTING` and without
+`COPY_ALLOWED` on Windows; `rename` on Linux/macOS), rather than a .NET move
+that can fall back to copying between devices. Cross-device mount layouts fail
+the transaction and trigger recovery rather than direct copying.
+Recovery can also fail at that mount boundary; pending state and the before-image
+remain available for inspection and manual repair rather than publishing partial bytes.
+Native bindings
+on platforms other than the tested host and cross-device interruption behavior
+require platform verification. It does not promise
+power-loss durability, atomic replacement of a whole Skill, or protection against
+concurrent external writers. Stop external writers before deployment and recovery.
+
 Failures during application trigger restoration of all selected units and the exact original receipt. If restoration fails or the process terminates, pending state blocks subsequent writes. Status can inspect the situation. Only when a transaction is interrupted and pending state exists, Recover resumes restoration from the before-image:
 
 After payload commit, a full install/update performs a separate runtime health check. If that check fails, the command exits nonzero with `filesCommitted: true` and `installationComplete: false`; inspect `Status`, then restore a verified snapshot or repair manually. Do not use `Recover` for a post-commit health failure: `Recover` is only for an interrupted transaction with pending journal state. In particular, do not assume a failed first install automatically restores the pre-install absence. Runtime caches verified by the installer are immutable and retained for rollback; do not manually replace, prune, or follow linked/unknown cache paths. `-Force` does not override cache-integrity failures.

@@ -43,4 +43,12 @@ Candidates are observations, not automatic rules. They remain `candidate` until 
 
 ## Retention and cleanup
 
+All store mutations, including Record, Maintain and SetCandidateState, hold the
+same exclusive OS file handle on `.feedback.lock`. A concurrent caller waits
+briefly and reports a nonblocking recording limitation if the store remains busy;
+it must not delete the lock file or overwrite another caller's candidate state.
+The inactive lock file may remain after completion or a crash. Individual JSON
+files are replaced atomically; this does not promise crash-atomic publication of
+an entire run plus every candidate or a power-loss recovery journal.
+
 The runtime keeps active runs for 90 days, archives older runs during a later workflow close, and only previews archived runs older than 180 days. Permanent deletion requires a direct user request and both `-DeleteArchived` and `-ConfirmDeletion`; no workflow close may pass those switches.

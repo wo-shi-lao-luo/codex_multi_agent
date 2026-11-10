@@ -12,6 +12,7 @@ export function repositories(db, assertWritable = () => {
     const { table, fields } = definition;
     const keys = Object.keys(fields);
     const get = db.prepare(`SELECT payload FROM ${table} WHERE id = ?`);
+    const count = db.prepare(`SELECT COUNT(*) AS total FROM ${table}`);
     const list = db.prepare(`SELECT payload FROM ${table} ORDER BY id LIMIT ${MAX_ROWS + 1}`);
     const columns = ['id', 'payload', ...keys];
     const put = db.prepare(`INSERT INTO ${table} (${columns.join(', ')})
@@ -33,11 +34,17 @@ export function repositories(db, assertWritable = () => {
           Object.entries(filter).every(([key, value]) => record[key] === value)
         ));
       },
-      /** Insert/update a complete record; relational keys and active-assignment constraints apply. */
+      /** Insert/update a complete record; new identities must fit the per-table small-board cap. */
       put(record) {
         assertWritable();
         if (!record || typeof record.id !== 'string' || !record.id) {
           throw new StorageError('INVALID_INPUT', 'Repository records require a nonempty id.');
+        }
+        // The caller's serialized write transaction protects count plus insert. Count the entire
+        // table, including history, so a filtered read cannot conceal snapshot-breaking overflow.
+        // Existing identities stay writable at capacity for lifecycle updates and invalidation.
+        if (!get.get(record.id) && count.get().total >= MAX_ROWS) {
+          throw new StorageError('LIMIT_EXCEEDED', 'Board exceeds the supported P0 record limit.');
         }
         const values = keys.map((key) => {
           const value = record[key];

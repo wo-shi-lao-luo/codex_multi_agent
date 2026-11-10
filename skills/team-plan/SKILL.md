@@ -5,6 +5,8 @@ description: Produce a decision-ready, evidence-backed implementation plan witho
 
 # Team plan
 
+Planning remains exempt from automatic Board initialization. When handing authorized implementation to the same or another Lead, carry the [unified activation entry](../team-core/references/task-coordination.md#unified-activation-entry) and require its actual result at execution start or resume; a prior runtime probe is not activation.
+
 Act as the Lead. This workflow owns **Context → Discover → Contract → Handoff** from the shared [execution contract](../team-core/references/execution-contract.md). Do not edit production code, tests, configuration, or external systems.
 
 
@@ -32,7 +34,7 @@ Read the [project-rules contract](../team-core/references/project-rules.md) in f
 
 Check for `openspec/team-integration.json`. If present, read the [spec lifecycle](../team-core/references/spec-lifecycle.md) in full: use its sole task list and link scenarios/tasks to packets. Planning may propose artifacts but does not enable the integration, change its configuration, or authorize implementation; missing/stale spec evidence remains explicit. Without the marker, keep the native planning workflow.
 
-Planning-only work does not initialize a Board or grant implementation authority. If a plan leads to sustained multi-Agent implementation, include the [default Board activation checkpoint](../team-core/references/task-coordination.md#default-activation-checkpoint) in the handoff so the implementation Lead activates it before dependent dispatch. Keep the existing Work or opted-in OpenSpec task list authoritative.
+Planning-only work does not automatically initialize a Board or grant implementation authority; an explicit user request may display progress within the planning scope. If a plan leads to implementation by one or more agents, include the [default Board activation checkpoint](../team-core/references/task-coordination.md#default-activation-checkpoint) in the handoff so the implementation Lead activates it at task start, before any dependent dispatch. Keep the existing Work or opted-in OpenSpec task list authoritative.
 
 For UI work, read and apply the [UI delivery contract](../team-core/references/ui-quality.md) in full. Route design consultation, a missing page within an actual UI task, and explicit page design/adjustment requests to `team-designer`; keep a lightweight brief, coherent page/flow ownership, baseline resources, shared-style scope, and separate functional/rendered verification. A design-only request does not imply implementation. Do not reduce the product goal to component tickets or add a design-document approval gate.
 

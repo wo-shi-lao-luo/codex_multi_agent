@@ -1,3 +1,5 @@
+# Serialize the shared feedback store across sessions; file replacement alone
+# cannot protect read-modify-write counts or user-confirmed candidate states.
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
   [Parameter(Mandatory = $true)]
@@ -24,6 +26,29 @@ function Get-DefaultFeedbackHome {
 
 function Get-UtcTimestamp { return (Get-Date).ToUniversalTime().ToString('o') }
 
+# Hold an OS-owned handle for the complete action, including retention. A leftover
+# lock filename is harmless after a crash; never delete it to steal a live lock.
+function Enter-FeedbackStoreLock {
+  param([Parameter(Mandatory = $true)][string]$Store)
+  Assert-TeamPlainPath $Store
+  New-Item -ItemType Directory -Force -Path $Store | Out-Null
+  $path = Resolve-TeamContainedPath $Store '.feedback.lock'
+  $waiting = [Diagnostics.Stopwatch]::StartNew()
+  while ($true) {
+    Assert-TeamPlainPath $path
+    if (Test-Path -LiteralPath $path -PathType Container) { throw 'FEEDBACK_LOCK: Lock path must be a plain file.' }
+    try {
+      return [IO.File]::Open($path, [IO.FileMode]::OpenOrCreate,
+        [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    } catch [IO.IOException] {
+      if ($waiting.Elapsed.TotalSeconds -ge 30) {
+        throw 'FEEDBACK_LOCK: Store is busy or unavailable; no feedback action was applied.'
+      }
+      Start-Sleep -Milliseconds 25
+    }
+  }
+}
+
 function Write-AtomicJson {
   param([Parameter(Mandatory = $true)][string]$Path, [Parameter(Mandatory = $true)]$Value)
   $directory = Split-Path -Parent $Path
@@ -33,7 +58,7 @@ function Write-AtomicJson {
   try {
     $Value | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $temporaryPath -Encoding utf8 -NoNewline
     Assert-TeamPlainPath $Path
-    Move-Item -LiteralPath $temporaryPath -Destination $Path -Force
+    [IO.File]::Move($temporaryPath, $Path, $true)
   } finally {
     if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath -Force -ErrorAction SilentlyContinue }
   }
@@ -121,11 +146,16 @@ function Invoke-Maintenance {
 if ([string]::IsNullOrWhiteSpace($FeedbackHome)) { $FeedbackHome = Get-DefaultFeedbackHome }
 $FeedbackHome = Get-TeamCanonicalRoot $FeedbackHome -AllowMissing
 
+$storeLock = $null
+try {
 switch ($Action) {
   'Record' {
     if ([string]::IsNullOrWhiteSpace($InputPath) -or -not (Test-Path -LiteralPath $InputPath)) { throw 'Record requires an existing -InputPath.' }
     $payload = Get-Content -LiteralPath $InputPath -Raw | ConvertFrom-Json -ErrorAction Stop
     Assert-RunPayload -Payload $payload
+    # Validate every optional signal before changing the store or a candidate.
+    $signals = @(Get-DerivedSignals -Payload $payload)
+    $storeLock = Enter-FeedbackStoreLock -Store $FeedbackHome
     $runId = [Guid]::NewGuid().ToString('N')
     $record = [ordered]@{
       schemaVersion = 1; id = $runId; recordedAt = Get-UtcTimestamp; workflow = [string]$payload.workflow
@@ -134,7 +164,7 @@ switch ($Action) {
       status = [string]$payload.status; rework = $payload.rework; remainingRisks = @($payload.remainingRisks)
       feedbackCandidateIds = @()
     }
-    foreach ($signal in Get-DerivedSignals -Payload $payload) {
+    foreach ($signal in $signals) {
       $candidateId = Get-HashId -Value ([string]$signal.key)
       $candidatePath = Resolve-TeamContainedPath $FeedbackHome ('feedback/candidates/' + $candidateId + '.json')
       if (Test-Path -LiteralPath $candidatePath) {
@@ -155,6 +185,8 @@ switch ($Action) {
   }
   'Maintain' {
     if ($DeleteArchived -and -not $ConfirmDeletion) { throw 'Permanent deletion requires both -DeleteArchived and -ConfirmDeletion after direct user approval.' }
+    # An absent store has nothing to maintain; keep that operation write-free.
+    if (Test-Path -LiteralPath $FeedbackHome) { $storeLock = Enter-FeedbackStoreLock -Store $FeedbackHome }
     $maintenance = Invoke-Maintenance -FeedbackStore $FeedbackHome -AllowDeletion:$DeleteArchived
     [PSCustomObject]@{ action = 'maintained'; maintenance = $maintenance } | ConvertTo-Json -Depth 4
   }
@@ -164,10 +196,15 @@ switch ($Action) {
     if ($candidateName.Contains('/')) { throw 'SetCandidateState requires a single candidate filename.' }
     $candidatePath = Resolve-TeamContainedPath $FeedbackHome ('feedback/candidates/' + $candidateName)
     if (-not (Test-Path -LiteralPath $candidatePath)) { throw "Candidate not found: $CandidateId" }
+    $storeLock = Enter-FeedbackStoreLock -Store $FeedbackHome
+    Assert-TeamPlainPath $candidatePath
     $candidate = Get-Content -LiteralPath $candidatePath -Raw | ConvertFrom-Json -ErrorAction Stop
     $candidate.state = $CandidateState
     $candidate | Add-Member -NotePropertyName lastUpdatedAt -NotePropertyValue (Get-UtcTimestamp) -Force
     Write-AtomicJson -Path $candidatePath -Value $candidate
     [PSCustomObject]@{ action = 'candidate_state_updated'; candidateId = $CandidateId; state = $CandidateState } | ConvertTo-Json
   }
+}
+} finally {
+  if ($null -ne $storeLock) { $storeLock.Dispose() }
 }

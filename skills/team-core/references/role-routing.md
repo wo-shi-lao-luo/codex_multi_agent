@@ -1,6 +1,6 @@
 # Role routing
 
-Before dispatching sustained multi-Agent work, apply the [default Board activation checkpoint](task-coordination.md#default-activation-checkpoint). When using the queue, apply the [task coordination contract](task-coordination.md) for Lead-owned assignment, host-capacity/dispatch reconciliation, actual role and model evidence, and readonly-role proxy reporting. The queue does not create or resume host agents.
+At the start of authorized execution, including work performed by the Lead alone, apply the [default Board activation checkpoint](task-coordination.md#default-activation-checkpoint). When using the queue, apply the [task coordination contract](task-coordination.md) for Lead-owned assignment, host-capacity/dispatch reconciliation, actual role and model evidence, and readonly-role proxy reporting. The queue does not create or resume host agents.
 
 The Lead classifies a request before delegating.
 

@@ -73,6 +73,24 @@ try {
   # Scenario: preview on empty homes. Expected: no installation or manager files are written.
   & $manager -Action Deploy -SourceRoot $old @arguments -WhatIf | Out-Null
   Assert-True (-not (Test-Path $fakeCodex) -and -not (Test-Path $fakeAgents)) 'Preview changed homes.'
+  # Source pin covers contracts and empty directories with unchanged payload hashes.
+  # Expected: mutations after preview fail before either fake home is created.
+  $previewText = & $manager -Action Deploy -SourceRoot $old @arguments -WhatIf | Out-String
+  $preview = $previewText.Substring($previewText.IndexOf('{')) | ConvertFrom-Json
+  Assert-True ([bool]$preview.sourceContractDigest) 'Preview omitted complete source contract pin.'
+  foreach ($mutation in @('schema','directory','version')) {
+    if ($mutation -eq 'schema') { Set-Content "$old/deployment.json" '{"runtimeDataSchema":2}' }
+    if ($mutation -eq 'directory') { New-Item -ItemType Directory "$old/skills/team-fixture/empty" | Out-Null }
+    if ($mutation -eq 'version') { Set-Content "$old/VERSION" '0.11.1' }
+    Assert-Fails {
+      & $manager -Action Deploy -SourceRoot $old @arguments `
+        -ExpectedSourceContractDigest $preview.sourceContractDigest
+    } 'PACKAGE_CHANGED'
+    Assert-True (-not (Test-Path $fakeCodex) -and -not (Test-Path $fakeAgents)) 'Pin rejection wrote homes.'
+    if ($mutation -eq 'schema') { Remove-Item "$old/deployment.json" }
+    if ($mutation -eq 'directory') { Remove-Item "$old/skills/team-fixture/empty" }
+    if ($mutation -eq 'version') { Set-Content "$old/VERSION" '0.11.0' }
+  }
   # Scenario: initial install. Expected: v2 receipt covers exact payload and independent manager exists.
   & $manager -Action Deploy -SourceRoot $old @arguments | Out-Null
   & $manager -Action Verify @arguments | Out-Null
@@ -203,6 +221,36 @@ try {
     Assert-True ($contender.ExitCode -ne 0 -and ($contender.Output + $contender.Errors) -match 'LOCK:') 'Separate deployment process did not refuse the held lock.'
   } finally { $heldLock.Dispose() }
   Assert-True ((Get-Content $receiptPath -Raw) -eq $beforeReceipt) 'Lock conflict changed receipt.'
+  # Kill inside real per-file activation, including a deliberately incomplete private copy.
+  # Expected: no partial active file, exact recovery, and removal of private transaction scratch.
+  foreach ($hook in @('partial-copy',"Write-Verbose 'Before payload publish.'","Write-Verbose 'Payload published.'")) {
+    if ($hook -eq 'partial-copy') {
+      $faultSource = $source.Replace(
+        'Copy-Item -LiteralPath $item.FullName -Destination $temporary',
+        "[IO.File]::WriteAllText(`$temporary, 'incomplete'); [Environment]::Exit(91)")
+    } else {
+      $faultSource = $source.Replace($hook, '[Environment]::Exit(91)')
+    }
+    Assert-True ($faultSource -cne $source) 'Missing per-file activation fault boundary.'
+    Set-Content $fault $faultSource
+    $interrupted = Invoke-TestPowerShell -Arguments @('-File',$fault,'-Action','Deploy',
+      '-SourceRoot',$old,'-CodexHome',$fakeCodex,'-AgentsHome',$fakeAgents)
+    Assert-True ($interrupted.ExitCode -eq 91) 'Per-file interruption did not reach activation.'
+    Assert-True (Test-Path "$management/pending.json") 'Per-file interruption lost journal.'
+    # An external edit to an otherwise owned file remains a conflict even with Force.
+    $activeFile = "$fakeAgents/skills/team-fixture/SKILL.md"
+    $savedBytes = [IO.File]::ReadAllBytes($activeFile)
+    [IO.File]::WriteAllText($activeFile, 'unknown external bytes')
+    Assert-Fails { & $manager -Action Recover @arguments -Force } 'RECOVERY_CONFLICT'
+    Assert-True ((Get-Content $activeFile -Raw) -ceq 'unknown external bytes') 'Recovery overwrote unknown bytes.'
+    [IO.File]::WriteAllBytes($activeFile,$savedBytes)
+    & $manager -Action Recover @arguments | Out-Null
+    Assert-True ((Fingerprint "$fakeAgents/skills") -eq $beforeFiles -and
+      (Fingerprint "$fakeCodex/agents") -eq $beforeAgents) 'Per-file recovery changed payload.'
+    Assert-True ((Get-Content $receiptPath -Raw) -eq $beforeReceipt) 'Per-file recovery changed receipt.'
+    Assert-True (-not @(Get-ChildItem $fakeCodex,$fakeAgents -Filter 'codex-kit-publish-*').Count) `
+      'Per-file recovery left publish scratch.'
+  }
   # Scenario: hard process exit after activation. Expected: pending journal blocks new work; Recover restores all.
   Set-Content $fault ($source.Replace("Write-Verbose 'Unit activated.'", '[Environment]::Exit(91)'))
   & (Get-TestPowerShell) -NoProfile -File $fault -Action Deploy -SourceRoot $old -CodexHome $fakeCodex -AgentsHome $fakeAgents | Out-Null

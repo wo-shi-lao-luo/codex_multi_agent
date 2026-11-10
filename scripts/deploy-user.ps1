@@ -7,6 +7,7 @@ param(
   [string]$SourceRoot,
   [string]$GitRef,
   [string]$ExpectedPackageDigest,
+  [string]$ExpectedSourceContractDigest,
   [string]$SnapshotId,
   [string]$CodexHome = (Join-Path $HOME '.codex'),
   [string]$AgentsHome = (Join-Path $HOME '.agents'),
@@ -241,6 +242,29 @@ function Get-Digest($Files) {
   try { return [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text))).Replace('-','').ToLowerInvariant() } finally { $sha.Dispose() }
 }
 
+# Separate from the historical receipt digest: bind every selected deployment contract.
+function Get-SourceContractDigest($Package) {
+  # The lock's authoritative bytes are already in the payload inventory. Do not serialize
+  # nested Hashtables: their enumeration order differs across supported PowerShell hosts.
+  $runtimeLock = @($Package.files | Where-Object {
+    $_.key -ceq 'skills/team-core/runtime/node-runtime.json'
+  })
+  $contract = [ordered]@{
+    version = $Package.kitVersion
+    runtimeDataSchema = $Package.runtimeDataSchema
+    packageDigest = $Package.packageDigest
+    directories = @($Package.directories | Sort-Object -CaseSensitive)
+    boardRequired = $Package.boardRequired
+    runtimeSelectionSha256 = if ($runtimeLock.Count) { $runtimeLock[0].sha256 } else { $null }
+  }
+  $text = $contract | ConvertTo-Json -Depth 30 -Compress
+  $bytes = [Text.Encoding]::UTF8.GetBytes($text)
+  $sha = [Security.Cryptography.SHA256]::Create()
+  try {
+    return [BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-','').ToLowerInvariant()
+  } finally { $sha.Dispose() }
+}
+
 # Replace metadata only after a complete write in the same directory. Interrupted payload work is
 # tracked separately in pending.json; this is not a claim of multi-directory atomicity.
 function Write-Json([string]$Path, $Value) {
@@ -441,13 +465,82 @@ function Remove-Unit([string]$Unit) {
   $null=@(Get-Tree $path)
   if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force }
 }
+# Native rename never falls back to copying across devices. File.Move may do so on Unix,
+# exposing partial active bytes when a managed subtree is a separate mounted filesystem.
+function Publish-PayloadFile([string]$Source, [string]$Destination) {
+  if (-not ('CodexKit.AtomicPublisher' -as [type])) {
+    Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+namespace CodexKit {
+    public static class AtomicPublisher {
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool MoveFileExW(string source, string destination, uint flags);
+        [DllImport("libc", EntryPoint = "rename", SetLastError = true)]
+        private static extern int LinuxRename(string source, string destination);
+        [DllImport("/usr/lib/libSystem.B.dylib", EntryPoint = "rename", SetLastError = true)]
+        private static extern int MacRename(string source, string destination);
+        public static void Publish(string source, string destination) {
+            bool success;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                success = MoveFileExW(source, destination, 1); // REPLACE_EXISTING; no COPY_ALLOWED.
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                success = LinuxRename(source, destination) == 0;
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                success = MacRename(source, destination) == 0;
+            } else {
+                throw new PlatformNotSupportedException("Native payload rename is unsupported.");
+            }
+            if (!success) {
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Atomic payload rename failed.");
+            }
+        }
+    }
+}
+'@
+  }
+  [CodexKit.AtomicPublisher]::Publish($Source, $Destination)
+}
+
 function Copy-Unit([string]$Root,[string]$Unit) {
   Assert-Key $Unit -Unit
   $source=Join-Path $Root $Unit
   $null=@(Get-Tree $source)
   $destination=Get-Destination $Unit
   New-Item -ItemType Directory -Force (Split-Path -Parent $destination) | Out-Null
-  Copy-Item -LiteralPath $source -Destination $destination -Recurse
+  foreach ($item in @(Get-Tree $source)) {
+    $key = if ($item.FullName -eq $source) { $Unit } else {
+      $Unit + '/' + [IO.Path]::GetRelativePath($source,$item.FullName).Replace('\','/')
+    }
+    $path = Get-Destination $key
+    if ($item.PSIsContainer) {
+      New-Item -ItemType Directory -Force $path | Out-Null
+      continue
+    }
+    New-Item -ItemType Directory -Force (Split-Path -Parent $path) | Out-Null
+    $homeRoot = if ($key.StartsWith('agents/')) { $CodexHome } else { $AgentsHome }
+    $publishRoot = Join-Path $homeRoot "codex-kit-publish-$script:publishId"
+    Assert-PlainPath $publishRoot
+    New-Item -ItemType Directory -Force $publishRoot | Out-Null
+    $temporary = Join-Path $publishRoot ([guid]::NewGuid().ToString('N'))
+    # Private incomplete bytes stay outside discovery; rename publishes only complete bytes.
+    Copy-Item -LiteralPath $item.FullName -Destination $temporary
+    Write-Verbose 'Before payload publish.'
+    Publish-PayloadFile $temporary $path
+    Write-Verbose 'Payload published.'
+  }
+}
+
+# Only snapshot-derived, validated transaction roots are eligible for scratch cleanup.
+function Remove-PublishScratch([string]$Id) {
+  if ($Id -notmatch '^\d{8}T\d{6}-[a-f0-9]{32}$') { throw 'PENDING: Invalid publish ID.' }
+  foreach ($homeRoot in @($CodexHome,$AgentsHome)) {
+    $path = Join-Path $homeRoot "codex-kit-publish-$Id"
+    $null = @(Get-Tree $path)
+    if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force }
+  }
 }
 
 # Preview and execution share retention rules; recompute under the lock before any pruning.
@@ -464,13 +557,14 @@ function Restore-Pending {
   $journal=Get-Content -LiteralPath $pendingPath -Raw | ConvertFrom-Json -AsHashtable
   if ($journal.schemaVersion -ne 1) { throw 'PENDING: Unsupported journal.' }
   $before=Read-Snapshot $journal.snapshotId
+  $script:publishId = $journal.snapshotId
   foreach ($unit in $journal.units) { Assert-Key $unit -Unit }
   if ($journal.units.Count -eq 0) { throw 'PENDING: Empty transaction.' }
   foreach ($unit in $before.units) { if ($unit -notin $journal.units) { throw 'PENDING: Incomplete restore scope.' } }
   # The journal scope must match the independently recorded before/target union, not arbitrary paths.
   if ((@($journal.units | Sort-Object -Unique) -join '|') -cne (@($before.restoreScope | Sort-Object -Unique) -join '|')) { throw 'PENDING: Scope mismatch.' }
   # A crashed operation does not authorize erasing subsequent user edits. Accept only files from
-  # its before-image or intended target (including partial copies); unknown bytes require inspection.
+  # its before-image or intended target; unknown active bytes require inspection.
   $allowed=New-KeyMap
   foreach ($file in @($before.files)+@($journal.targetFiles)) {
     Assert-Key $file.key
@@ -492,6 +586,7 @@ function Restore-Pending {
     if ($unit -in $before.units) { Copy-Unit (Join-Path $managerRoot "backups/$($journal.snapshotId)/payload") $unit }
   }
   if (-not (Test-Installed $before $journal.units)) { throw 'RECOVERY: Restored files do not match snapshot.' }
+  Remove-PublishScratch $journal.snapshotId
   if ($null -ne $before.receiptText) {
     $tempReceipt=$receiptPath+'.restore'
     [IO.File]::WriteAllText($tempReceipt,$before.receiptText)
@@ -591,6 +686,11 @@ try {
       }
     }
     $target=Read-Package $payload $provenance
+    $target.sourceContractDigest = Get-SourceContractDigest $target
+    if ($ExpectedSourceContractDigest -and
+        $target.sourceContractDigest -cne $ExpectedSourceContractDigest) {
+      throw 'PACKAGE_CHANGED: Selected source contract differs from the preparation preview.'
+    }
     if ($ExpectedPackageDigest -and $target.packageDigest -cne $ExpectedPackageDigest) {
       throw 'PACKAGE_CHANGED: Selected package differs from the dependency preparation preview.'
     }
@@ -619,6 +719,7 @@ try {
   if ($Action -eq 'Prune') { $plan=@(Get-PruneCandidates | ForEach-Object { @{snapshotId=$_.Name;operation='remove-snapshot'} }) }
   if (-not $PSCmdlet.ShouldProcess($managerRoot,"$Action Kit installation")) {
     @{ action='preview'; operations=$plan; source=$target.source; packageDigest=$target.packageDigest;
+      sourceContractDigest=$target.sourceContractDigest;
       boardRequired=$target.boardRequired; runtimeSelection=$target.runtimeSelection } |
       ConvertTo-Json -Depth 15
     exit 0
@@ -668,6 +769,7 @@ try {
     $null=Read-Snapshot $id
     $journal=@{schemaVersion=1;snapshotId=$id;units=$units;targetFiles=$target.files;targetDirectories=$target.directories;phase='applying';completed=@()}
     Write-Json $pendingPath $journal
+    $script:publishId = $id
     try {
       foreach ($unit in $units) {
         Remove-Unit $unit
@@ -684,6 +786,7 @@ try {
       Write-Json $receiptPath $receipt
       Write-Verbose 'Receipt committed.'
       $null=Read-Receipt
+      Remove-PublishScratch $id
       Remove-Item -LiteralPath $pendingPath -Force
     } catch {
       $failure=$_

@@ -52,7 +52,9 @@ export function dependenciesReady(tx, task) {
     if (edge.gate === 'accepted-result') {
       return upstream.state === 'closed' && upstream.resultValid === true && consumableResult(tx, upstream);
     }
-    return ['submitted', 'closed'].includes(upstream.state) &&
+    // A locally current freeze may still contain stale ancestor evidence. Reuse the lineage
+    // traversal's checker/subject backreference handling rather than recursing scheduling gates.
+    return ['submitted', 'closed'].includes(upstream.state) && consumableResult(tx, upstream) &&
       tx.submissions.list({ taskId: upstream.id }).some(submission => submission.freezeValid &&
         submission.freezeRevision === upstream.freezeRevision &&
         submission.executionRevision === upstream.executionRevision &&
@@ -62,7 +64,7 @@ export function dependenciesReady(tx, task) {
 }
 
 /** Accepted execution results cannot launder unresolved obligations through historical intermediates.
- * Frozen source remains available for read-only verification; acceptance checks its full lineage.
+ * Frozen evidence must retain current lineage before dependent execution or acceptance.
  */
 export function consumableResult(tx, task, visited = new Set()) {
   if (!task || task.questionHold || !task.inputValid || task.needsReconcile ||

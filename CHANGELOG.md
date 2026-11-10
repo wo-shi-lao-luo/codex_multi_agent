@@ -4,6 +4,22 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
 
+## [2.0.4] - 2026-11-11
+
+### Fixed
+
+- Reject frozen dependency execution on stale ancestor evidence and reject repository overflow inside the write transaction, preserving valid checker flows and existing-row updates.
+- Serialize feedback recording, candidate decisions and retention across sessions; preserve exact observation links and replace individual JSON files atomically.
+- Pin complete installation source contracts separately from legacy file digests, and publish payload files by same-filesystem rename so interrupted private copies remain recoverable without overwriting unknown active changes.
+- Align Board default/exemption guidance, use resolved installed references in Agent profiles, and load review code/test guidance only for the applicable scope without weakening material verification gates.
+- Add a unified Board activation/resume entry and a separately registered optional lifecycle reminder hook; preserve session identity, retained ownership, first-opening outcomes and explicit degraded states. Prevent Windows background-service handle inheritance from holding the finite activation wrapper open.
+
+## [2.0.3] - 2026-11-10
+
+### Fixed
+
+- Default Board visibility to authorized execution by one or more agents. Keep a single card for small work, reuse Lead-inline execution, report real milestones and blockers, and preserve risk-based workflow obligations without extra roles, tests, reviews, documentation or model polling. Keep question/standalone-consultation/opt-out exemptions and first-open safety.
+
 ## [2.0.2] - 2026-11-10
 
 ### Fixed

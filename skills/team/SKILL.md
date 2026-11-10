@@ -19,7 +19,9 @@ Keep special adapters conditional: use simulation only for unmistakable, explici
 
 Do not spawn a router child. The Lead selects only the roles required by the chosen path from the active catalog, uses their exact selectors, and reports actual invocations and unknown identity data. Source profiles and installed files do not prove runtime availability.
 
-Apply the [default Board activation checkpoint](../team-core/references/task-coordination.md#default-activation-checkpoint) at task start and when work expands into sustained multi-Agent collaboration; preserve its light-work exemptions and explicit degraded-state reporting.
+Apply the [default Board activation checkpoint](../team-core/references/task-coordination.md#default-activation-checkpoint) at the start of authorized execution tasks, including a single Lead; preserve concise cards, question/opt-out exemptions and explicit degraded-state reporting without raising workflow risk or adding agents.
+
+At execution start, resume, or a transition from discussion to execution, call the [unified activation entry](../team-core/references/task-coordination.md#unified-activation-entry) and use its actual result. Help/runtime probe success does not complete activation. Native hook configuration remains optional and separately trusted.
 
 ## Output contract
 
