@@ -134,6 +134,8 @@ Reconcile the invocation ledger against actual role-selector arguments, returned
 
 **Output:** the shared [handoff format](handoff-format.md): Result, Evidence, Risks, and Next step. Writers add changed files and verification; reviewers rank material findings by impact. Reconcile the current outcome, retained history and next owner under [outcome-based handoffs](agent-handoffs.md), including pending manual acceptance and invalidated evidence.
 
+For an enabled Board, complete [related-task closeout](task-coordination.md#related-task-closeout): reconcile earlier cards affected by the actual result, keep unobserved acceptance pending with its owner/trigger, and verify stopped allocations are safely released. A final answer or closed delivery card is not a substitute for current facts and cleanup on related tasks.
+
 **Exit:** the Lead can integrate the result, request a focused follow-up, or close the task without reconstructing the child agent's reasoning.
 
 The Lead's final response must include the actual child-agent roster from the handoff format, including created failed/interrupted agents and retries, or explicitly state that no children were used. Separate failed creation attempts from created agents.

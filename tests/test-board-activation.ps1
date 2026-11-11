@@ -52,4 +52,25 @@ foreach ($term in @('## Delegation necessity checkpoint', 'one serial workstream
     'spawn or follow-up', 'safe freeze and handoff', 'independent gate')) {
   Require ($routing.Contains($term)) "BA10: serial delegation decision missing: $term"
 }
+# BA11: a sole independent checker is allowed, but its work cannot disappear into a Lead card.
+# Expected: one canonical delegation section binds a check card to the actual executor and dispatch.
+$delegation = [regex]::Match($contract,
+  '(?s)### Delegated work visibility\r?\n(?<body>.*?)(?=\r?\n## |\r?\n### |\z)').Groups['body'].Value
+foreach ($term in @('separate check task', 'before spawn or follow-up', 'actual host handle',
+    'verified read-back', 'only active child', 'do not backdate')) {
+  Require ($delegation.Contains($term)) "BA11: delegated execution visibility missing: $term"
+}
+# BA12: later delivery facts update related work without silently accepting unobserved behavior.
+# Expected: closeout includes old cards, pending acceptance, safe ownership release and read-back.
+$closeout = [regex]::Match($contract,
+  '(?s)### Related-task closeout\r?\n(?<body>.*?)(?=\r?\n## |\r?\n### |\z)').Groups['body'].Value
+foreach ($term in @('related task IDs', 'manual acceptance', 'owner and next trigger',
+    'active assignments', 'reservations', 'cleanupPending', 'writes and processes', 'read-back')) {
+  Require ($closeout.Contains($term)) "BA12: related-task closeout missing: $term"
+}
+# BA13: both routing and final handoff reach the canonical requirements, avoiding rival rules.
+# Expected: independent-gate exceptions and task handoff cannot omit Board visibility/cleanup.
+Require ($routing.Contains('task-coordination.md#delegated-work-visibility')) 'BA13: dispatch visibility route missing.'
+$execution = Get-Content (Join-Path $root 'skills/team-core/references/execution-contract.md') -Raw
+Require ($execution.Contains('task-coordination.md#related-task-closeout')) 'BA13: handoff closeout route missing.'
 Write-Output 'Board activation instruction-contract checks passed; native automatic routing remains a separate acceptance.'

@@ -310,6 +310,10 @@ main {
   display: block;
   margin-bottom: 4px;
 }
+.card .responsibility {
+  color: #344054;
+  font-weight: 600;
+}
 .progress {
   display: -webkit-box;
   -webkit-box-orient: vertical;

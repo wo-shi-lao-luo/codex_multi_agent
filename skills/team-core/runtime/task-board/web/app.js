@@ -2,7 +2,7 @@
 'use strict';
 
 const ui = Object.fromEntries([
-  'connection', 'identity', 'sync', 'attention', 'search', 'role', 'instance',
+  'connection', 'sync', 'attention', 'search', 'role', 'instance',
   'attention-only', 'clear', 'retry', 'empty', 'board', 'detail', 'detail-content',
   'close-detail', 'board-name', 'summary-ready', 'summary-running', 'summary-attention',
   'filtered-count', 'session-scope-note',
@@ -14,6 +14,7 @@ const lanes = [
 /** Translate stable phase codes only; worker-supplied phase descriptions remain verbatim. */
 const phaseLabels = new Map([
   ...lanes, ['running', '进行中'], ['closed', '已关闭'], ['canceled', '已取消'],
+  ['open', '待分配'],
 ]);
 const state = { snapshot: null, selected: null, stream: null, attempt: 0,
   timer: null, refreshTimer: null, request: 0, stopped: false, controller: null };
@@ -30,11 +31,106 @@ function text(value, fallback = '未提供') {
 }
 function list(name) { return state.snapshot?.[name] ?? []; }
 function related(name, task) { return list(name).filter(item => item.taskId === task.id); }
-function owner(task) {
-  const assignment = related('assignments', task).find(item => item.active === true);
-  return list('workers').find(worker => worker.id === assignment?.workerId);
+const roleLabels = new Map([
+  ['lead', '主 Agent'], ['team-backend-engineer', '后端工程师'],
+  ['team-frontend-engineer', '前端工程师'], ['team-reviewer', '代码审查'],
+  ['team-tester', '测试工程师'], ['team-ai-tester', 'AI 测试'],
+  ['team-architect', '架构师'], ['team-ai-architect', 'AI 架构师'],
+  ['team-ai-engineer', 'AI 工程师'], ['team-database-specialist', '数据库专家'],
+  ['team-data-scientist', '数据科学家'], ['team-designer', '界面设计'],
+  ['team-explorer', '代码探索'], ['team-researcher', '信息收集'],
+  ['team-docs-maintainer', '文档维护'], ['team-code-maintainer', '代码整理'],
+  ['team-delivery-checker', '交付检查'],
+  ['team-ai-simulation-actor-basic', '基础模拟 Actor'],
+  ['team-ai-simulation-actor-advanced', '高级模拟 Actor'],
+]);
+function roleLabel(role) { return roleLabels.get(role) ?? text(role, '角色未记录'); }
+
+/** Read immutable executor attribution; a recorder or shared host is never an Agent identity. */
+function executorOf(record) {
+  if (!record) return null;
+  const executor = record.actualExecutor ?? record;
+  if (!executor.workerId) return null;
+  return { id: executor.workerId, role: executor.role,
+    mode: executor.executionMode, principal: executor.principal };
 }
-function workerHandle(worker) { return text(worker?.hostId ?? worker?.id); }
+function executorLabel(executor) {
+  return executor ? `${roleLabel(executor.role)} · ${executor.id}` : '未记录';
+}
+
+/** Role alternatives are conditions, not grants; explicit inline opt-in also permits the Lead. */
+function eligibleRoles(task) {
+  return [...new Set([...(task.eligibleRoles ?? []), ...(task.allowLeadInline ? ['lead'] : [])])];
+}
+function candidatesLabel(task) {
+  const roles = eligibleRoles(task);
+  return `可承接：${roles.length ? roles.map(roleLabel).join(' / ') : '角色未指定'}` +
+    (roles.length > 1 ? '（任选其一）' : '');
+}
+
+/** Select the exact accepted result or current freeze, never the newest array entry/active owner. */
+function attributedSubmission(task) {
+  const submissions = related('submissions', task);
+  if (task.state === 'closed') {
+    return submissions.find(item => item.id === task.acceptedResult?.submissionId) ?? null;
+  }
+  if (task.state !== 'submitted' || !Number.isSafeInteger(task.freezeRevision)) return null;
+  const matches = submissions.filter(item => item.freezeValid === true &&
+    item.freezeRevision === task.freezeRevision &&
+    ['executionRevision', 'approvalRevision'].every(key =>
+      task[key] === undefined || item[key] === task[key]) &&
+    (task.inputRevision === undefined || item.boundTaskInputRevision === task.inputRevision));
+  return matches.length === 1 ? matches[0] : null;
+}
+function submissionExecutor(task, submission) {
+  if (!submission) return null;
+  return executorOf(submission) ?? executorOf(related('assignments', task)
+    .find(item => item.id === submission.assignmentId));
+}
+
+/** Match visible attribution to task state; released and canceled work has no current owner. */
+function responsibility(task) {
+  if (task.state === 'canceled') return { label: '已取消 · 无完成者', executor: null };
+  if (['closed', 'submitted'].includes(task.state)) {
+    const executor = submissionExecutor(task, attributedSubmission(task));
+    const label = task.state === 'submitted' ? '提交者' :
+      invalidClosedResult(task) ? '历史完成人' : '完成者';
+    return { label: `${label}：${executorLabel(executor)}`, executor };
+  }
+  const active = related('assignments', task).find(item => item.active === true);
+  const executor = executorOf(active);
+  return { label: executor ? `执行者：${executorLabel(executor)}` : '未分配实例', executor };
+}
+
+/** Role filters cover alternatives and attributed executors; cancellations retain former assignees. */
+function taskPeople(task) {
+  const executor = responsibility(task).executor;
+  const people = executor ? [executor] : task.state === 'canceled' ?
+    related('assignments', task).map(executorOf).filter(Boolean) : [];
+  return { people, roles: [...new Set([...eligibleRoles(task),
+    ...people.map(person => person.role).filter(Boolean)])] };
+}
+
+/** Human-readable assignment history survives release without presenting it as completed output. */
+function executionHistory(task) {
+  return related('assignments', task).map(assignment =>
+    `曾分配：${executorLabel(executorOf(assignment))}` +
+    (assignment.active ? '（当前分配）' : '（分配已结束）'));
+}
+
+/** Distinguish accepted evidence from other submissions without dumping internal execution bindings. */
+function submissionHistory(task) {
+  const current = attributedSubmission(task);
+  return related('submissions', task).map(submission => {
+    let status = '历史提交（非当前验收结果）';
+    if (submission === current) {
+      status = task.state === 'submitted' ? '当前待核验提交' :
+        invalidClosedResult(task) ? '历史验收提交（结果已失效）' : '已验收提交';
+    }
+    return [status, `提交者：${executorLabel(submissionExecutor(task, submission))}`,
+      ...(submission.evidenceRefs ?? []).map(reference => `证据：${text(reference)}`)].join('\n');
+  });
+}
 /** Retain stale origin independently of any unresolved approval authority. */
 function staleQuestion(question) {
   return question.stale === true || question.state === 'stale' || question.status === 'stale';
@@ -76,14 +172,14 @@ function date(value) {
   return new Date(value).toLocaleString('zh-CN');
 }
 /** Refresh options in place so focus and user-selected filters survive data changes. */
-function options(select, values, label) {
+function options(select, values, label, format = value => value) {
   const selected = select.value;
   const next = ['', ...new Set(values.filter(Boolean))];
   if (selected && !next.includes(selected)) next.push(selected);
-  const signature = JSON.stringify(next);
+  const signature = JSON.stringify(next.map(value => [value, value ? format(value) : label]));
   if (select.dataset.options === signature) return;
   select.replaceChildren(...next.map(value => {
-    const option = node('option', value || label);
+    const option = node('option', value ? format(value) : label);
     option.value = value;
     return option;
   }));
@@ -96,10 +192,13 @@ function card(task) {
   button.type = 'button';
   button.dataset.task = task.id;
   button.setAttribute('aria-expanded', String(state.selected === task.id));
-  button.append(node('span', task.id, 'meta'), node('span', task.title, 'card-title'));
-  const worker = owner(task);
-  button.append(node('span', worker ? `${text(worker.role)} · ${workerHandle(worker)}` :
-    '尚无负责实例', 'meta'));
+  button.append(node('span', task.title, 'card-title'));
+  button.append(node('span', candidatesLabel(task), 'meta'),
+    node('span', responsibility(task).label, 'meta responsibility'));
+  if (task.state === 'canceled') {
+    button.append(node('span', `取消说明：${text(task.cancellation?.reason, '历史记录未提供')}`,
+      'meta'));
+  }
   let phase = phaseLabels.get(task.phase) ?? text(task.phase, '阶段未提供');
   if (task.state === 'closed') {
     phase = invalidClosedResult(task) ? '历史已关闭 · 结果已失效' : '已验收关闭';
@@ -153,18 +252,26 @@ function renderDetail() {
     ui['detail-content'].replaceChildren(node('p', '该任务已不在当前快照中。'));
     return;
   }
-  const content = [node('h2', task.title), node('p', task.id, 'meta'),
+  const content = [node('h2', task.title),
     section('结果有效性', [resultStatus(task)]),
+    section('角色与执行者', [candidatesLabel(task), responsibility(task).label,
+      ...(task.responsibilities?.length ? [`承担职责：${task.responsibilities.join(' / ')}`] : []),
+      '可承接角色仅表示角色条件，实际执行仍需 Lead 授权。']),
+    section('执行与交接记录', executionHistory(task)),
     section('实际进展', [task.progress]), section('下一检查点', [task.nextCheckpoint]),
     section('目标与阻塞', [task.outcome, task.blocker]),
     section('来源引用', task.sourceRefs ?? []),
     section('验收引用', task.acceptanceRefs ?? []),
-    section('结果与提交', related('submissions', task)),
+    section('结果与提交', submissionHistory(task)),
     section('依赖', related('dependencies', task)),
     section('资源与收尾', [task.cleanupPending ? '待安全收尾' : '无待收尾标记',
       ...list('reservations').filter(item => related('assignments', task)
         .some(assignment => assignment.id === item.assignmentId) && item.active)]),
   ];
+  if (task.state === 'canceled') {
+    content.push(section('取消记录', [text(task.cancellation?.reason, '历史记录未提供取消说明'),
+      `取消记录人：${text(task.cancellation?.actorId, '未记录')}`]));
+  }
   const questions = related('questions', task).map(question => {
     const answers = list('answers').filter(answer => answer.questionId === question.id);
     let status = '待答复';
@@ -218,15 +325,18 @@ function render() {
   // Keep only local DOM scroll positions while rebuilding lanes, without adding application state.
   const laneScroll = new Map([...ui.board.querySelectorAll('.lane')]
     .map(lane => [lane.dataset.phase, lane.scrollTop]));
-  options(ui.role, tasks.map(task => owner(task)?.role), '全部角色');
-  options(ui.instance, tasks.map(task => owner(task) && workerHandle(owner(task))), '全部实例');
+  const peopleByTask = new Map(tasks.map(task => [task.id, taskPeople(task)]));
+  options(ui.role, [...peopleByTask.values()].flatMap(item => item.roles), '全部角色', roleLabel);
+  options(ui.instance, [...peopleByTask.values()].flatMap(item => item.people.map(person => person.id)),
+    '全部实例');
   const query = ui.search.value.toLocaleLowerCase();
   const filtered = tasks.filter(task => {
-    const worker = owner(task);
-    return (!query || [task.id, task.title, task.progress, task.nextCheckpoint]
+    const { people, roles } = peopleByTask.get(task.id);
+    return (!query || [task.id, task.title, task.progress, task.nextCheckpoint,
+      ...roles, ...roles.map(roleLabel), ...people.map(person => person.id)]
       .some(value => text(value, '').toLocaleLowerCase().includes(query))) &&
-      (!ui.role.value || worker?.role === ui.role.value) &&
-      (!ui.instance.value || (worker && workerHandle(worker) === ui.instance.value)) &&
+      (!ui.role.value || roles.includes(ui.role.value)) &&
+      (!ui.instance.value || people.some(person => person.id === ui.instance.value)) &&
       (!ui['attention-only'].checked || needsAttention(task));
   });
   // Summary counts describe the complete snapshot, independently of the current filters.
@@ -357,8 +467,8 @@ async function refresh(full = true) {
     const boardName = profile ? `${profile.projectName} + ${profile.sessionName}` : '任务看板';
     ui['board-name'].textContent = boardName;
     document.title = boardName;
-    ui.identity.textContent = `看板 ${text(snapshot.boardId)} · 代次 ${snapshot.generation}`;
-    ui.sync.textContent = `同步于 ${date(Date.now())} · 修订 ${snapshot.revision}`;
+    // Protocol IDs remain in the snapshot and DOM bindings, outside reader-facing status text.
+    ui.sync.textContent = `同步于 ${date(Date.now())}`;
     render();
     subscribe();
   } catch (error) {

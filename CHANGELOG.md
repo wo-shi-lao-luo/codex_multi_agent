@@ -4,6 +4,14 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
 
+## [2.0.6] - 2026-11-12
+
+### Fixed
+
+- Record delegated independent checks on separate same-session tasks with their actual executors. Reconcile related cards after delivery, preserve pending manual acceptance, and verify safe release of stopped assignments and resources.
+- Show eligible roles before assignment and actual executors, submitters and accepted completers afterward, including after allocation release. Preserve distinct same-host instance filters, Lead-inline and proxy attribution, cancellation reasons, and explicit unknown or invalid historical evidence.
+- Remove Board/generation identifiers, internal task codes and revision counters from visible headers, cards and details while preserving internal identity, synchronization and action bindings.
+
 ## [2.0.5] - 2026-11-12
 
 ### Fixed

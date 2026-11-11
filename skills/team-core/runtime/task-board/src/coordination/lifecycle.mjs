@@ -177,6 +177,8 @@ export function lifecycle(tx, operation, input, helpers) {
     revokeAssignments(tx, task);
     task.state = operation === 'reopen' ?
       (task.approvalRevision > 0 ? 'open' : 'planned') : 'canceled';
+    // Keep the approved cancellation fact in read-only snapshots, independently of allocation cleanup.
+    if (operation === 'cancel') task.cancellation = { actorId: input.actorId, reason: input.reason };
     if (operation === 'reopen') task.archived = false;
   }
   if (operation === 'transfer') {

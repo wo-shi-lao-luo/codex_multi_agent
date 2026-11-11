@@ -17,6 +17,7 @@ Open questions:
 Brief start declaration: named roles/ownership and planned checks
 New-instruction delta: new outcome / same outcome / priority / status-only / pause; Board task IDs and verified synchronization result:
 Actual executor focus, waiting order or evidenced parallel operations; delegation necessity and independent gates:
+Delegated/check task IDs, related parent/input revision, actual host handle, confirmed dispatch/assignment and read-back (when a Board is enabled):
 ```
 
 ## Work contract
@@ -113,6 +114,8 @@ Host-reported role identity: confirmed value | unknown (not reported)
 Source profile expectation; active tool definition; resolved model/effort: confirmed value | unknown
 Final known status; deviations and user-approved alternative evidence:
 Final user-facing actual roster: every created/used child for this task, or explicit none
+Board check task/related parent IDs, actual executor and observed lifecycle; historical omissions disclosed without fabricated past assignments:
+Related-task closeout: completed facts, remaining acceptance owner/trigger, stopped-write/process evidence, Release/read-back result and unresolved allocations:
 ```
 
 ## Debug hypothesis ledger

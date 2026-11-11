@@ -49,6 +49,8 @@ Multiple user tasks justify parallel delegation only when there are at least two
 
 A required independent gate remains separate: independent review/evaluation can legitimately be the only active child after the writer finishes. State which gate it satisfies rather than calling that parallel implementation. A context-specialist exception also needs a concrete reason; do not infer it from file extension, skill name or task size.
 
+When a Board is enabled, apply [delegated work visibility](task-coordination.md#delegated-work-visibility) before dispatch, including sole independent checkers and reused instances. A final invocation roster does not replace the check task, actual executor binding and current parent waiting/execution state. Historical omissions remain disclosed observations, not fabricated past assignments.
+
 Reassess after handoffs and when a parallel branch ends. Remaining serial work returns to the Lead only through safe freeze and handoff of exact files, state and processes; never interrupt/reassign a live or uncertain writer merely because only one child remains. Reuse/close instances through the existing lifecycle, with unknown host capacity remaining unknown. Synchronize task states and executor focus under the [new-instruction checkpoint](task-coordination.md#new-instruction-synchronization-checkpoint).
 
 ## Named-role preflight and invocation

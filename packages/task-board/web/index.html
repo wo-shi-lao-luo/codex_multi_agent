@@ -12,7 +12,6 @@
   <header class="header">
     <div class="header-main">
       <h1><span id="board-name">任务看板</span> <span class="badge">只读</span></h1>
-      <p id="identity">正在读取看板身份</p>
     </div>
     <div class="connection">
       <strong id="connection" role="status" aria-live="polite">正在完整同步</strong>
@@ -29,7 +28,7 @@
     </section>
     <p id="attention" class="notice" hidden></p>
     <form class="filters" aria-label="筛选任务" onsubmit="return false">
-      <label class="search">搜索<input id="search" type="search" placeholder="任务 ID、标题、进展" autocomplete="off"></label>
+      <label class="search">搜索<input id="search" type="search" placeholder="任务、角色、执行者" autocomplete="off"></label>
       <label>负责角色<select id="role"><option value="">全部角色</option></select></label>
       <label>负责实例<select id="instance"><option value="">全部实例</option></select></label>
       <label class="check"><input id="attention-only" type="checkbox">仅需关注</label>

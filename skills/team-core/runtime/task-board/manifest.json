@@ -7,7 +7,7 @@
     },
     {
       "path": "VERSION",
-      "sha256": "9c65612e39d2c96cbdf45f3553f62e90a8952823e22872b3ca1ddcf156105dfb"
+      "sha256": "ac466878608d7cbd7c12ceadb12b9cb60ed8b94e1f9d90b2de60439b0bf27ef4"
     },
     {
       "path": "packages/task-board/package.json",
@@ -67,7 +67,7 @@
     },
     {
       "path": "packages/task-board/src/coordination/lifecycle.mjs",
-      "sha256": "8137b966d97ee074b40d9312dcef04b11760269a2b6deaa3cbd76c395ff06c23"
+      "sha256": "2b44216ab508c9a7f327cfd6ac1efcd1804cb1bb118e53631d3ec0c6ebf52420"
     },
     {
       "path": "packages/task-board/src/coordination/projection.mjs",
@@ -215,15 +215,15 @@
     },
     {
       "path": "packages/task-board/web/app.js",
-      "sha256": "0f9d133eda38697e7e474f30a757e3b5446c346e069fa9f5dcfc59215804c6ad"
+      "sha256": "0a3381e83704f8d748dce4482974df565c4e08616d69b8b5cf81226e24fdfa33"
     },
     {
       "path": "packages/task-board/web/index.html",
-      "sha256": "0557f5d67cb72da8de8287a6f852047559d9a1a900c8562f0fbecfca813ef1c7"
+      "sha256": "2b8b89068e5c04e86e6734447345ee05ae3b450295b8d6f40c76248b5b2b7250"
     },
     {
       "path": "packages/task-board/web/style.css",
-      "sha256": "5b817feff7cfa3d9342148e1a3ca540a368fe9acd4e9c398cd027f47c3269140"
+      "sha256": "32d27994984e8e662e52cdc2315fe995d4c9fc42107e715781fd93d19b211ac0"
     },
     {
       "path": "scripts/build-task-board.mjs",
@@ -293,7 +293,7 @@
     },
     {
       "path": "src/coordination/lifecycle.mjs",
-      "sha256": "8137b966d97ee074b40d9312dcef04b11760269a2b6deaa3cbd76c395ff06c23"
+      "sha256": "2b44216ab508c9a7f327cfd6ac1efcd1804cb1bb118e53631d3ec0c6ebf52420"
     },
     {
       "path": "src/coordination/projection.mjs",
@@ -441,15 +441,15 @@
     },
     {
       "path": "web/app.js",
-      "sha256": "0f9d133eda38697e7e474f30a757e3b5446c346e069fa9f5dcfc59215804c6ad"
+      "sha256": "0a3381e83704f8d748dce4482974df565c4e08616d69b8b5cf81226e24fdfa33"
     },
     {
       "path": "web/index.html",
-      "sha256": "0557f5d67cb72da8de8287a6f852047559d9a1a900c8562f0fbecfca813ef1c7"
+      "sha256": "2b8b89068e5c04e86e6734447345ee05ae3b450295b8d6f40c76248b5b2b7250"
     },
     {
       "path": "web/style.css",
-      "sha256": "5b817feff7cfa3d9342148e1a3ca540a368fe9acd4e9c398cd027f47c3269140"
+      "sha256": "32d27994984e8e662e52cdc2315fe995d4c9fc42107e715781fd93d19b211ac0"
     }
   ],
   "buildTool": {
