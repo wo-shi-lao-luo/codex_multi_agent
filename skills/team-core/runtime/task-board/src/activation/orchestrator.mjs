@@ -12,6 +12,7 @@ import { tokenHash } from '../coordination/service.mjs';
 import { serviceStatus } from '../server/control.mjs';
 import { callCli } from './transport.mjs';
 import { normalizeScope } from '../domain/workspace-scope.mjs';
+import { requestIssues, invalidRequest } from './request.mjs';
 
 const fail = code => { throw Object.assign(new Error('Activation requires reconciliation.'), { code }); };
 const canonical = value => Array.isArray(value) ? value.map(canonical)
@@ -85,6 +86,8 @@ export async function activate(projectRoot, request) {
   let selected;
   let retainedService;
   try {
+    const issues = requestIssues(request);
+    if (issues.missingFields.length || issues.invalidFields.length) return invalidRequest(issues);
     if (!request || !['activate', 'resume', 'record-open-result'].includes(request.action)
         || typeof request.actorId !== 'string' || !request.actorId) fail('INVALID_INPUT');
     const profile = normalizeSessionProfile(request.sessionProfile);

@@ -31,6 +31,8 @@ test('HOOK.resume and task prompts return bounded checkpoint context without cop
     assert.match(context, /activation-pending/);
     assert.match(context, /planning-only/);
     assert.match(context, /child inherits/);
+    assert.match(context, /new instruction/);
+    assert.match(context, /one serial workstream/);
     assert.ok(context.length < 2000);
     assert.doesNotMatch(JSON.stringify(output), /SECRET_PAYLOAD|private-identity|private\/transcript/);
   }

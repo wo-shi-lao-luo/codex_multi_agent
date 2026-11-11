@@ -15,6 +15,8 @@ Applicable standards and conditional checks:
 Acceptance checks:
 Open questions:
 Brief start declaration: named roles/ownership and planned checks
+New-instruction delta: new outcome / same outcome / priority / status-only / pause; Board task IDs and verified synchronization result:
+Actual executor focus, waiting order or evidenced parallel operations; delegation necessity and independent gates:
 ```
 
 ## Work contract

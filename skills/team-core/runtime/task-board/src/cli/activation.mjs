@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Finite activation entry; the owned read-only service has a separate lifetime. */
 import { activate } from '../activation/orchestrator.mjs';
+import { prepareRequest } from '../activation/prepare.mjs';
 
 let reply;
 try {
@@ -8,7 +9,10 @@ try {
   if (args.length === 1 && args[0] === '--help') {
     process.stdout.write(`${JSON.stringify({ schemaVersion: 1, operation: 'activation-help',
       requiredFlags: ['--project-root', '--stdin'],
-      actions: ['activate', 'resume', 'record-open-result'],
+      actions: ['activate', 'resume', 'record-open-result', 'prepare-request'],
+      sessionProfileFields: ['hostId', 'mainSessionId', 'projectId', 'projectName', 'sessionName'],
+      scopeShape: { read: ['relative-path'], write: ['relative-path'] },
+      preparation: 'prepare-request needs approved task and fresh native sessionProfile; creates one private request file with caller-owned random credentials. No database or service is created.',
       requiredFields: ['action', 'actorId', 'sessionProfile', 'leadToken', 'claimToken',
         'serviceControlToken'],
       executionFields: ['executionApproved:true', 'task.id', 'task.title', 'task.outcome',
@@ -31,7 +35,9 @@ try {
     chunks.push(chunk);
   }
   // Decode only after concatenation: a UTF-8 character may span stdin chunks.
-  reply = await activate(args[1], JSON.parse(Buffer.concat(chunks).toString('utf8')));
+  const request = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  reply = request.action === 'prepare-request' ? prepareRequest(args[1], request)
+    : await activate(args[1], request);
 } catch (error) {
   reply = { state: 'activation-pending', reasonCode: error.code ?? 'INVALID_INPUT',
     nextStep: 'Inspect the activation prerequisites; no automatic reset or installation.' };

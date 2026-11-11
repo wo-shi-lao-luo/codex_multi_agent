@@ -7,7 +7,7 @@
     },
     {
       "path": "VERSION",
-      "sha256": "137f467241023dadfa605db00e630b25a9394d0fc7232718812983ba24b93945"
+      "sha256": "9c65612e39d2c96cbdf45f3553f62e90a8952823e22872b3ca1ddcf156105dfb"
     },
     {
       "path": "packages/task-board/package.json",
@@ -15,7 +15,15 @@
     },
     {
       "path": "packages/task-board/src/activation/orchestrator.mjs",
-      "sha256": "5dcfcbbf61b8706800e3ec3cfe934c9b6238f727f4042f73bbe6a6d86e6b8e86"
+      "sha256": "80a5f79d6071f1f93def060496448941488e9576bacd9618722ea070c8cf2db0"
+    },
+    {
+      "path": "packages/task-board/src/activation/prepare.mjs",
+      "sha256": "ddb4702ad196f88a17e88d13ea3c9a123ed6bb20607ae7252ec8554ecb4d9a80"
+    },
+    {
+      "path": "packages/task-board/src/activation/request.mjs",
+      "sha256": "d9fe325bdaca4e2c08428793e46f4188a5f7ec09458901f3606cb80e8949eddd"
     },
     {
       "path": "packages/task-board/src/activation/service-runner.mjs",
@@ -27,7 +35,7 @@
     },
     {
       "path": "packages/task-board/src/cli/activation.mjs",
-      "sha256": "e276cbf4de91a53a616c97adaea23946667f63b960834c72b40bfaddd5878be2"
+      "sha256": "77ae068b4aa0727675ca19dcc900d736673b7dcd68c580815ebdabb44ce22d8e"
     },
     {
       "path": "packages/task-board/src/cli/cli.mjs",
@@ -233,7 +241,15 @@
     },
     {
       "path": "src/activation/orchestrator.mjs",
-      "sha256": "5dcfcbbf61b8706800e3ec3cfe934c9b6238f727f4042f73bbe6a6d86e6b8e86"
+      "sha256": "80a5f79d6071f1f93def060496448941488e9576bacd9618722ea070c8cf2db0"
+    },
+    {
+      "path": "src/activation/prepare.mjs",
+      "sha256": "ddb4702ad196f88a17e88d13ea3c9a123ed6bb20607ae7252ec8554ecb4d9a80"
+    },
+    {
+      "path": "src/activation/request.mjs",
+      "sha256": "d9fe325bdaca4e2c08428793e46f4188a5f7ec09458901f3606cb80e8949eddd"
     },
     {
       "path": "src/activation/service-runner.mjs",
@@ -245,7 +261,7 @@
     },
     {
       "path": "src/cli/activation.mjs",
-      "sha256": "e276cbf4de91a53a616c97adaea23946667f63b960834c72b40bfaddd5878be2"
+      "sha256": "77ae068b4aa0727675ca19dcc900d736673b7dcd68c580815ebdabb44ce22d8e"
     },
     {
       "path": "src/cli/cli.mjs",

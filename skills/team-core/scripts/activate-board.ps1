@@ -1,7 +1,7 @@
 # Finite activation wrapper. Read JSON from stdin; never install or persist credentials.
 #requires -Version 7.0
 [CmdletBinding()]
-param([string]$ProjectRoot, [string]$AgentsHome, [switch]$Help)
+param([string]$ProjectRoot, [string]$AgentsHome, [string]$RequestPath, [switch]$Help)
 $ErrorActionPreference = 'Stop'
 # Windows .NET 10 Process.Start inherits unrelated inheritable handles as well as its redirected
 # streams. A detached descendant can retain this wrapper's outer capture pipes after we exit.
@@ -76,14 +76,19 @@ try {
     $info.ArgumentList.Add($argument)
   }
   $phase = 'input'
-  $buffer = [char[]]::new(262145)
+  # Read bytes, not Console.In: Windows Console decoding may be CP936 while JSON is UTF-8.
+  $buffer = [byte[]]::new(262145)
   $length = 0
   if (-not $Help) {
-    while ($length -lt $buffer.Length) {
-      $read = [Console]::In.Read($buffer, $length, $buffer.Length - $length)
-      if ($read -eq 0) { break }
-      $length += $read
-    }
+    $stream = if ($RequestPath) { [IO.File]::OpenRead([IO.Path]::GetFullPath($RequestPath)) }
+      else { [Console]::OpenStandardInput() }
+    try {
+      while ($length -lt $buffer.Length) {
+        $read = $stream.Read($buffer, $length, $buffer.Length - $length)
+        if ($read -eq 0) { break }
+        $length += $read
+      }
+    } finally { if ($RequestPath) { $stream.Dispose() } }
     if ($length -gt 262144) { throw 'INPUT_TOO_LARGE' }
   }
   $phase = 'launch'
@@ -95,7 +100,7 @@ try {
     $stdout = $child.StandardOutput.ReadLineAsync()
     $stderr = $child.StandardError.ReadToEndAsync()
     if (-not $Help) {
-      $child.StandardInput.Write($buffer, 0, $length)
+      $child.StandardInput.BaseStream.Write($buffer, 0, $length)
     }
     $child.StandardInput.Close()
     if (-not $child.WaitForExit(120000)) {

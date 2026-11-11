@@ -4,6 +4,14 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
 
+## [2.0.5] - 2026-11-12
+
+### Fixed
+
+- Preserve UTF-8 Chinese through the Windows activation wrapper using raw-byte input and private request-file transport. Report missing or malformed request fields before project writes, and prepare caller-owned credentials without overwriting retained Board authority.
+- Synchronize new user instructions with the existing session Board before dependent work. Preserve task identity for refinements, record priority changes and waiting work truthfully, and verify task updates without reopening the panel.
+- Keep serial implementation and verification with the Lead by default. Require a concrete independent gate or justified parallel work before child dispatch, align domain routing with that rule, and distinguish actual executor focus from unfinished ownership.
+
 ## [2.0.4] - 2026-11-11
 
 ### Fixed

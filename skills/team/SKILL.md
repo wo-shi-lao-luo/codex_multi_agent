@@ -25,4 +25,6 @@ At execution start, resume, or a transition from discussion to execution, call t
 
 ## Output contract
 
+For each new instruction during ongoing work, apply [task synchronization and truthful executor focus](../team-core/references/task-coordination.md#new-instruction-synchronization-checkpoint). Before creating or continuing a child, apply [delegation necessity](../team-core/references/role-routing.md#delegation-necessity-checkpoint); use the Lead for one serial workstream and record the reason for independent or parallel exceptions.
+
 Report the selected path and its basis, actual role invocations, completed checks and evidence, reused decisions/history, and remaining risks. Preserve the selected workflows' required handoffs. When workflows are composed, defer standalone final-feedback calls at intermediate plan/debug/review handoffs until the single router close; this changes only feedback timing, not any stage's gates or evidence. An eligible light path does not require persisted feedback or a runtime call. Other supported `$team-dev`, `$team-plan`, `$team-debug`, or `$team-review` primary paths may create at most one feedback record under that existing workflow name. Do not add a `team` workflow value. Integrated debug or review stages do not create separate close records; consultation and standalone special adapters do not record feedback.

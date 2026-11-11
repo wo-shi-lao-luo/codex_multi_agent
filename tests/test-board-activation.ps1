@@ -43,4 +43,13 @@ foreach ($entry in @('skills/team/SKILL.md','skills/team-dev/SKILL.md','skills/t
   $text = Get-Content (Join-Path $root $entry) -Raw
   Require ($text.Contains('task-coordination.md#unified-activation-entry')) "BA08: unified entry link missing: $entry"
 }
+foreach ($term in @('## New-instruction synchronization checkpoint', 'new independent outcome',
+    'same task ID', 'before dependent work', 'status-only question', 'verified read-back')) {
+  Require ($contract.Contains($term)) "BA09: follow-up synchronization rule missing: $term"
+}
+$routing = Get-Content (Join-Path $root 'skills/team-core/references/role-routing.md') -Raw
+foreach ($term in @('## Delegation necessity checkpoint', 'one serial workstream',
+    'spawn or follow-up', 'safe freeze and handoff', 'independent gate')) {
+  Require ($routing.Contains($term)) "BA10: serial delegation decision missing: $term"
+}
 Write-Output 'Board activation instruction-contract checks passed; native automatic routing remains a separate acceptance.'
