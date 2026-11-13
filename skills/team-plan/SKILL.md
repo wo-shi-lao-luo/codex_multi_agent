@@ -1,6 +1,6 @@
 ---
 name: team-plan
-description: Produce a decision-ready, evidence-backed implementation plan without editing code. Use explicitly as $team-plan for a feature, refactor, integration, or uncertain technical change.
+description: Produce a repository-backed engineering design or development plan for review before implementation. Select through Team routing or explicitly as $team-plan for a feature, refactor, integration, or uncertain technical change; planning does not authorize coding.
 ---
 
 # Team plan
