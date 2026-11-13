@@ -115,6 +115,12 @@ for (const [name, patch, missing, invalid] of [
 
 test('INPUT.prepare creates private credentials once and RequestPath activates exact Chinese task', async t => {
   const f = await fixture(t);
+  // Use ordinary dotenv exceptions plus a literal Board exclusion, as a real project would.
+  // Preparation and activation must reuse this policy unchanged and preserve the Chinese task.
+  const ignore = '.env*\n!.env.example\n/_work/task-board/\n';
+  const initialized = spawnSync('git', ['-C', f.root, 'init', '--quiet'], { encoding: 'utf8' });
+  assert.equal(initialized.status, 0, initialized.stderr);
+  await writeFile(join(f.root, '.gitignore'), ignore);
   const preparation = { ...f.request, action: 'prepare-request' };
   for (const key of ['leadToken', 'claimToken', 'serviceControlToken']) delete preparation[key];
   const run = () => spawnSync(process.execPath, [entry, '--project-root', f.root, '--stdin'], {
@@ -145,6 +151,8 @@ test('INPUT.prepare creates private credentials once and RequestPath activates e
   assert.equal(child.error, undefined);
   assert.equal(child.status, 0, child.stderr);
   assert.equal(JSON.parse(child.stdout).result.state, 'enabled', child.stdout);
+  assert.equal(await readFile(join(f.root, '.gitignore'), 'utf8'), ignore,
+    'Complete native activation must not rewrite an already effective user policy');
   await f.assertChinese();
 });
 

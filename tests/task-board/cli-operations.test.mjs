@@ -165,7 +165,8 @@ test('CLI.A1.actorAndResolutionConditions', () => {
 
 // Effective literal parent/custom policy is reusable; private excludes are not repository policy proof.
 test('CLI.A2.literalPoliciesAndPrivateExcludes', async t => {
-  for (const rule of ['/_work/\n', '/custom-coordination/\n']) {
+  // A child negation cannot re-open an excluded parent; Git still protects the whole subtree.
+  for (const rule of ['/_work/\n', '/_work/\n!/_work/board/\n', '/custom-coordination/\n']) {
     const f = await project(t);
     await writeFile(join(f.root, '.gitignore'), rule);
     const target = rule.includes('custom') ? join(f.root, 'custom-coordination') : f.board;
@@ -179,10 +180,11 @@ test('CLI.A2.literalPoliciesAndPrivateExcludes', async t => {
   await assert.rejects(access(target), { code: 'ENOENT' });
 });
 
-// Explicit negation and external excludes cannot be silently replaced by a new permissive rule.
+// Re-opening both parent and scope really exposes artifacts; external-only policy is insufficient.
+// Expect rejection without a permissive policy append or creation of the unprotected Board.
 test('CLI.A2.negationAndExternalPolicyDenied', async t => {
   const f = await project(t);
-  const policy = '/_work/\n!/_work/board/\n';
+  const policy = '/_work/\n!/_work/\n!/_work/board/\n';
   await writeFile(join(f.root, '.gitignore'), policy);
   assert.equal((await f.initialize()).code, 2);
   assert.equal(await readFile(join(f.root, '.gitignore'), 'utf8'), policy);

@@ -32,6 +32,14 @@ export function requestIssues(request, { prepare = false } = {}) {
         invalidFields.push(`task.${key}`);
       }
     }
+    // Legacy aliases otherwise disappear into the default empty scope. Never
+    // reinterpret caller ownership silently, including during private preparation.
+    for (const key of ['readScope', 'writeScope']) {
+      if (object(request.task) && Object.hasOwn(request.task, key)) {
+        invalidFields.push(`task.${key}`);
+      }
+      if (Object.hasOwn(request, key)) invalidFields.push(key);
+    }
     if (request.task?.scope !== undefined) {
       if (!object(request.task.scope)) invalidFields.push('task.scope');
       else for (const key of ['read', 'write']) {
@@ -46,5 +54,9 @@ export function requestIssues(request, { prepare = false } = {}) {
 
 export function invalidRequest(issues) {
   return { state: 'activation-pending', reasonCode: 'REQUEST_INVALID', ...issues,
-    nextStep: 'Obtain current native host/project/main-session metadata and correct the listed fields; never invent IDs or omit credentials.' };
+    nextStep: 'Obtain current native host/project/main-session metadata and correct the listed fields. '
+      + 'Use task.scope.read/write arrays, not readScope/writeScope aliases. '
+      + 'For a new Board with no retained state, call prepare-request to create private random credentials, '
+      + 'then activate using -RequestPath. For existing state, recover the retained private handoff instead; '
+      + 'never rotate credentials, invent IDs or treat process exit 0 as enabled.' };
 }

@@ -9,6 +9,8 @@ Apply [new-instruction synchronization and executor focus](../team-core/referenc
 
 At authorized execution start or resume, complete the [unified Board activation entry](../team-core/references/task-coordination.md#unified-activation-entry) with an actual enabled/exempt/pending decision; help/runtime probes alone are insufficient. Preserve the task's existing risk tier, ownership and exemptions.
 
+Use its [complete request preparation](../team-core/references/task-coordination.md#preparing-a-complete-request) sequence before dispatch. Resolve available request fields and prepare/recover private credentials; process success or an internal pending note is not successful activation. Report genuine unresolved blockers to the user without fabricating identity or resetting retained state.
+
 Act as the Lead. This workflow owns the full shared [execution contract](../team-core/references/execution-contract.md): **Context → Discover → Contract → Execute → Verify → Handoff**.
 
 Ordinary child agents share the task filesystem. When choosing separate checkouts for parallel production writers, follow [isolated worktree guidance](../team-core/references/isolated-worktrees.md); read-only research and review stay in the existing checkout.

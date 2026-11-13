@@ -23,6 +23,8 @@ Apply the [default Board activation checkpoint](../team-core/references/task-coo
 
 At execution start, resume, or a transition from discussion to execution, call the [unified activation entry](../team-core/references/task-coordination.md#unified-activation-entry) and use its actual result. Help/runtime probe success does not complete activation. Native hook configuration remains optional and separately trusted.
 
+Follow its [complete request preparation](../team-core/references/task-coordination.md#preparing-a-complete-request) sequence: resolve native identity, prepare or recover the private request, activate with `-RequestPath`, and inspect the actual state. Correctable missing fields must not become a standing degradation or disappear into a backlog without a user-facing handoff.
+
 ## Output contract
 
 For each new instruction during ongoing work, apply [task synchronization and truthful executor focus](../team-core/references/task-coordination.md#new-instruction-synchronization-checkpoint). Before creating or continuing a child, apply [delegation necessity](../team-core/references/role-routing.md#delegation-necessity-checkpoint); use the Lead for one serial workstream and record the reason for independent or parallel exceptions.

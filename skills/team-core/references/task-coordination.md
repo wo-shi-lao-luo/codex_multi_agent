@@ -57,6 +57,14 @@ Invoke the installed script with `-ProjectRoot <target-project>` and send bounde
 
 ### Preparing a complete request
 
+Complete this caller sequence before dependent work, rather than repeatedly sending an incomplete request:
+
+1. Resolve fresh native main-chat, host and project identity. When available, `CODEX_THREAD_ID`/`CODEX_SESSION_ID` are lookup hints to verify against native chat/project metadata, not substitutes for the full profile or permission to use a child's ID.
+2. Check for retained Board/request state. Reuse and authenticate an existing private handoff; only a genuinely new scope may run `prepare-request` to generate its credentials. Missing first-use tokens are not an unavailable runtime or a reason to ask the user to invent secrets.
+3. Supply the approved task using `task.scope.read` and `task.scope.write`; `task.writeScope`/`task.readScope` are rejected rather than silently becoming a progress-only card. Never erase a production scope to make activation pass.
+4. After `prepared`, invoke the returned private file with `-RequestPath`. Read the structured result: exit code 0, `ok: true`, and `prepared` do not mean `enabled`. Resolve listed request errors with available evidence before declaring prerequisite degradation; if actual context/access is unavailable, report that exact blocker and next step without blind retry.
+5. Only after `enabled`, perform the authorized first presentation action and record its observed result. `queued` remains different from a visible Board. Report unresolved activation to the user at the handoff, not only in an internal backlog; preserve state on authority/policy conflicts and do not turn this into a retry loop or a new approval gate for already-authorized work.
+
 Before the first activation, obtain current host metadata with the available native chat/project queries (for example `list_threads` and `list_projects`). Use the actual main chat ID and host ID; match the native project record to the canonical project root. An unassigned chat may use a uniquely verified native project record for its root, but an ambiguous/missing match remains `SESSION_CONTEXT_UNAVAILABLE`. Never substitute a folder-name slug, mutable title, child ID, empty object or fabricated project ID. Read current names as labels, not identities.
 
 Supply all five `sessionProfile` fields: `hostId`, `mainSessionId`, `projectId`, `projectName`, `sessionName`. Task `scope` is an object with `read` and `write` arrays, not an array of paths. Pass `action: prepare-request`, the actual `actorId`, explicit `executionApproved: true`, and the approved task through UTF-8 stdin to create a new canonical `request.private.json` with random caller-owned credentials. Preparation returns `prepared`, not `enabled`; it creates no database or service. It refuses existing database/sidecar/journal/request state rather than replacing credentials. Retain that file privately and never paste it into chat.

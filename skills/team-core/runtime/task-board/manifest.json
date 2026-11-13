@@ -23,7 +23,7 @@
     },
     {
       "path": "packages/task-board/src/activation/request.mjs",
-      "sha256": "d9fe325bdaca4e2c08428793e46f4188a5f7ec09458901f3606cb80e8949eddd"
+      "sha256": "0b10746f8a4fa256ced41012d0385e8378bbf4057106b337365680d4567d0a51"
     },
     {
       "path": "packages/task-board/src/activation/service-runner.mjs",
@@ -55,7 +55,7 @@
     },
     {
       "path": "packages/task-board/src/coordination/artifact-protection.mjs",
-      "sha256": "19db73eb5ebc884b565f0595986886d7d4e914f6f7b92d4e5719b3294cf827c4"
+      "sha256": "f7f909f2753e1e458ede917ad24f293a9a7dd24ea20ae39c0e0485abfe79087f"
     },
     {
       "path": "packages/task-board/src/coordination/dispatch.mjs",
@@ -249,7 +249,7 @@
     },
     {
       "path": "src/activation/request.mjs",
-      "sha256": "d9fe325bdaca4e2c08428793e46f4188a5f7ec09458901f3606cb80e8949eddd"
+      "sha256": "0b10746f8a4fa256ced41012d0385e8378bbf4057106b337365680d4567d0a51"
     },
     {
       "path": "src/activation/service-runner.mjs",
@@ -281,7 +281,7 @@
     },
     {
       "path": "src/coordination/artifact-protection.mjs",
-      "sha256": "19db73eb5ebc884b565f0595986886d7d4e914f6f7b92d4e5719b3294cf827c4"
+      "sha256": "f7f909f2753e1e458ede917ad24f293a9a7dd24ea20ae39c0e0485abfe79087f"
     },
     {
       "path": "src/coordination/dispatch.mjs",

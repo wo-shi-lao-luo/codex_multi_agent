@@ -76,10 +76,10 @@ function conflictingInclude(file, scope, line) {
     || prefix.startsWith(`${relative}/`);
 }
 
-/** A literal directory policy must originate inside this project, with Git confirming effectiveness. */
+/** Prove exclusion of the directory itself, so Git cannot re-include any descendant filename. */
 function literalPolicy(root, repoRoot, relative) {
   const output = git(root, ['check-ignore', '--no-index', '-v', '--',
-    `${relative}/.task-board-protection-probe`], true).trim();
+    `${relative}/`], true).trim();
   if (!output) return false;
   const match = /^(.*?):\d+:([^\t]+)\t/.exec(output);
   if (!match) return false;
@@ -138,14 +138,20 @@ export function protectArtifacts({ projectRoot, boardPath, destinations = [], al
     if (git(root, ['ls-files', '-z', '--', `:(literal)${scope.relative}`]).length) {
       fail('Artifact scope contains tracked files.');
     }
-    for (const file of relevantPolicies(root, scope.absolute)) {
-      // A relevant explicit inclusion makes future output policy uncertain; never rewrite it.
-      if (policy(file).text.split(/\r?\n/)
+    // Audit every relevant file/link even when an ancestor excludes the entire directory.
+    const policies = relevantPolicies(root, scope.absolute).map(file => ({
+      file, text: policy(file).text,
+    }));
+    // Git resolves precedence and negation ordering. An excluded directory prevents traversal,
+    // so neither unrelated exceptions nor descendant includes can expose any of its contents.
+    if (literalPolicy(root, repoRoot, scope.relative)) continue;
+    for (const { file, text } of policies) {
+      // Without a directory exclusion proof, explicit includes still block policy mutation.
+      if (text.split(/\r?\n/)
         .some(line => conflictingInclude(file, scope.absolute, line))) {
         fail('Explicit include policy conflicts with the artifact scope.');
       }
     }
-    if (literalPolicy(root, repoRoot, scope.relative)) continue;
     if (!allowAppend) fail('Artifact scope needs an existing effective literal ignore policy.');
     const workScope = /^_work\/[a-zA-Z0-9][a-zA-Z0-9._-]*$/.test(scope.relative)
       && scope.relative.length <= 86;
