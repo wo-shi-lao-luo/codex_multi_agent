@@ -59,9 +59,12 @@ For a standalone small fix, use the [small-task test rule](../team-core/referenc
 
 - No usable diff or baseline → request the review scope.
 - A material issue is confirmed → return it to the owning implementation contract for a focused fix and re-verification.
+- Track each material finding to a disposition in the existing issue/Work/Review record: accountable owner, applicable source revision, accepted fix or evidenced reason for rejection/deferral, changed scope, original-symptom/affected-regression results, and whether independent rereview is required and complete. A proposed fix, author acknowledgment or passing unrelated check does not close a finding. A disputed requirement returns to the authorized decision owner; a deferred finding retains its dependent-work restriction and next checkpoint.
 - When returning a confirmed issue for repair, preserve its existing identity and cumulative history under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md); review does not reset or replenish an attempt budget.
 - A specialized risk is outside review coverage → name the gap and recommend the smallest expanded review.
 
 ## Output contract
 
 Report findings ranked by impact, followed by scope inspected, checks performed, evidence, and uncovered risks. If no material issue is found, state the coverage achieved rather than manufacturing stylistic feedback.
+
+At follow-up or final handoff, reconcile material findings against the current submitted scope and evidence. Retain prior review for unchanged inputs, and apply affected-scope rereview when a fix changes material behavior, contracts, authorization or assumptions, or when an independent gate remains due. Record the actual independent conclusion; unavailable/failed review remains a gap and Lead/author self-check is labeled non-independent. The Lead may continue independently authorized parts but cannot self-certify a required independent gate. Keep resolved, rejected, deferred and still-open dispositions explicit without creating a new tracker, status schema or mandatory extra Reviewer for low-risk work.

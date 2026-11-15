@@ -27,8 +27,9 @@ async function control(identity, operation, timeoutMs) {
   const url = validate(identity, timeoutMs);
   const expectedStatus = operation === 'stop' ? 'stopping' : 'running';
   return new Promise((resolve, reject) => {
-    const unavailable = () => reject(new BoardError(
+    const unavailable = error => reject(new BoardError(
       'SERVICE_UNAVAILABLE', 'Service request failed; service state is unknown.',
+      transportDetails(error),
     ));
     const rejected = () => reject(new BoardError(
       'SERVICE_CONTROL_REJECTED', 'Service rejected control or returned an invalid identity.',
@@ -89,11 +90,19 @@ async function control(identity, operation, timeoutMs) {
       });
     });
     // A wall-clock deadline also bounds peers that continually drip response bytes.
-    const deadline = setTimeout(() => request.destroy(), timeoutMs);
+    const deadline = setTimeout(() => request.destroy(
+      Object.assign(new Error('Service deadline exceeded.'), { code: 'ETIMEDOUT' }),
+    ), timeoutMs);
     request.on('error', unavailable);
     request.on('close', () => clearTimeout(deadline));
     request.end();
   });
+}
+
+/** Allowlist transport diagnostics; raw operating-system errors can contain private context. */
+export function transportDetails(error) {
+  return ['EACCES', 'EPERM', 'ECONNREFUSED', 'ETIMEDOUT'].includes(error?.code)
+    ? { transportCode: error.code } : {};
 }
 
 /** Query the exact retained service identity with its caller-held token (1–30000 ms deadline). */

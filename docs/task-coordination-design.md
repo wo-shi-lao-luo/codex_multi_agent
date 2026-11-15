@@ -423,7 +423,55 @@ The design references Beads dependency readiness and atomic claims, Task Master 
 
 These are design references consulted during research, not runtime dependencies or completed compatibility checks. Fix referenced versions and specific files before implementation. If third-party code is actually copied/modified, verify licensing file by file and retain required notices. The initial plan does not copy their runtime, model-call, database or integration-installation code.
 
-## 14. Review decisions and known limits
+## 14. Finite teamwork CLI and forward-only observations
+
+The Board's existing CLI remains the agent write interface; the browser remains read-only.
+`sync-task` adds three finite semantic actions inside the existing operation transaction:
+
+| Action | Composition | Boundary |
+| --- | --- | --- |
+| `prepare` | Explicitly approved task -> add -> approve | Role candidates only; no invented agent or implicit execution |
+| `assign` | Existing observed executor + current revisions -> grant -> assign | All current role, scope, source, dependency and reservation gates apply |
+| `report` | Actual allocation -> registered inline/proxy/recorded report | No impersonation of direct workers; recorded evidence required |
+
+One operation ID, request hash, SQLite transaction and receipt cover each action. This avoids a
+second orchestration journal and partially completed sequences. Receipt replay revalidates the
+semantic action's current authority and allocation; it does not create new authority. A response
+timeout requires exact-request reconciliation. The CLI does not spawn agents, schedule work,
+auto-submit, auto-accept checks or replay a backlog blindly. Existing low-level commands retain
+explicit submission, independent check/acceptance, release, transfer and maintenance behavior.
+The shared [coordination procedure](../skills/team-core/references/task-coordination.md#task-synchronization-cli)
+defines truthful milestone and dynamic-card use; authored procedure alone does not establish native adherence.
+
+CLI help adds field shapes without removing existing fields: `task.inputRevision` is a numeric
+server-owned contract counter, while submission `inputRevision` is a caller-provided immutable
+string evidence fingerprint. Dependency references are `{taskId, gate}`; check references are
+`{checkId, taskId, submissionId}`. They are separate contracts, not aliases to coerce.
+
+Legacy unknown Lead identity is repaired by explicit `bind-lead-principal`, authenticated by the
+current Lead and checked against the current Board revision. Only a registered unknown inline
+Lead can be bound; session-bound host/main-session IDs must match. Historical allocation and
+submission principal snapshots stay unknown and old allocations retain their reservations.
+A new stopped-owner transfer/allocation, freeze and newly bound independent check are needed
+for new identity evidence. Known identities cannot be replaced, and grants are not changed.
+Future activation accepts optional observed `leadPrincipal`; legacy resume cannot backfill it.
+These are authenticated declarations with evidence references, not native host attestation.
+
+Repeated workspace Git observations are shared only within one storage-owned synchronous
+operation, read or receipt replay. First use performs full Git identity verification. Subsequent
+uses retain registry/revision, directory physical identity, link rejection and Git pointer/backlink
+checks; task-path normalization, grants, sources and dependency lineage still run. Before returning
+or committing, a separate complete pass rechecks each used workspace, after the controlled
+`beforeCommit` hook. New registrations join that pass. Both success and failure discard the
+context; no service-lifetime cache exists. Drift fails closed and rolls back rather than repairing
+registration. Filesystem and SQLite have no joint transaction, so this does not remove all possible
+external races after the last observation. Count-based synthetic Git measurements and drift
+fixtures accompany the change; real-workload speed and cross-platform behavior need separate evidence.
+
+No SQL schema migration, structural reorganization, automatic installation or additional runtime
+dependency is introduced by these extensions.
+
+## 15. Review decisions and known limits
 
 The design adopts SQLite, a live-updating Board and current-task questions as requested, and adds a maintenance lifecycle. P0 fixed the runtime to the Node/SQLite combination recorded above. Preauthorized claims and bounded same-checkout/multiple-writer operation have been approved, with actual behavior subject to stage-specific verification. Retention policies, destructive maintenance and unknown-outcome handling still require their respective previews, approvals and evidence. Design agreement does not authorize automatic history deletion or dependency installation.
 

@@ -13,7 +13,8 @@ import { authorizePhysical } from './physical-protocol.mjs';
 import { convertBackup } from './compression.mjs';
 import { validateSessionInitialization } from '../domain/session.mjs';
 import { assertSession, syncSession } from './session.mjs';
-import { initializeMainWorkspace } from './workspaces.mjs';
+import { initializeMainWorkspace, beginWorkspaceObservation, finishWorkspaceObservation,
+  discardWorkspaceObservation } from './workspaces.mjs';
 
 export { StorageError } from './errors.mjs';
 export { openMaintenanceBoard } from './maintenance-board.mjs';
@@ -36,20 +37,24 @@ function boardHandle(db, paths, { readOnly = false, testHooks = {}, sessionKey }
     read(callback) {
       if (inTransaction) throw new StorageError('CONFLICT', 'Nested transactions are unsupported.');
       inTransaction = true;
+      let tx;
       try {
         db.exec('BEGIN');
         const board = readMetadata(db);
         assertSession(board, sessionKey);
-        const result = callback({ board, ...repositories(db) });
+        tx = { board, ...repositories(db) };
+        beginWorkspaceObservation(tx);
+        const result = callback(tx);
         if (result && typeof result.then === 'function') {
           throw new StorageError('INVALID_INPUT', 'Read callbacks must be synchronous.');
         }
+        finishWorkspaceObservation(tx);
         db.exec('COMMIT');
         return result;
       } catch (error) {
         try { db.exec('ROLLBACK'); } catch { /* Keep the original read failure. */ }
         throw storageFailure(error);
-      } finally { inTransaction = false; }
+      } finally { discardWorkspaceObservation(tx); inTransaction = false; }
     },
     /** Run one idempotent atomic operation; SQL remains private and hooks are test-program-only. */
     transactOperation(options, callback) {

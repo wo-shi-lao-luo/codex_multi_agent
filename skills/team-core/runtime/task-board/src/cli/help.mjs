@@ -69,6 +69,24 @@ write('register', ['worker', 'worker.id', 'worker.role', 'worker.mode', 'worker.
   ['worker.hostId', 'worker.workerToken', 'worker.principal', 'worker.runtimeIdentity'], [
     ...lead, { when: 'worker.mode=direct or lead-proxy', requiredFields: ['worker.workerToken'] },
   ]);
+write('bind-lead-principal', ['expectedBoardRevision', 'principal', 'principal.hostId',
+  'principal.agentId', 'principal.evidenceRefs']);
+commands.at(-1).notes = 'Forward-only null-to-known observed principal binding for the registered inline Lead. '
+  + 'Bound session host/main-session IDs must match. Historical allocations/submissions stay unchanged. Use explicit stopped-owner transfer '
+  + 'for a fresh allocation and freeze; independent checks must bind the new freeze. No host attestation is inferred.';
+write('sync-task', ['action'], ['task', 'contractApproved', 'taskId', 'taskRevision',
+  'approvalRevision', 'workerId', 'claimToken', 'approvedResponsibilities', 'assignmentId',
+  'phase', 'progress', 'blocker', 'nextCheckpoint', 'reportEvidenceRefs']);
+commands.at(-1).conditions.push(
+  { when: 'action=prepare', requiredFields: ['task', 'contractApproved:true'] },
+  { when: 'action=assign', requiredFields: ['taskId', 'taskRevision', 'approvalRevision', 'workerId', 'claimToken'] },
+  { when: 'action=report', requiredFields: ['taskId', 'taskRevision', 'workerId', 'assignmentId', 'claimToken'] },
+);
+commands.at(-1).notes = 'One atomic operation/receipt: prepare adds and approves the explicit contract; '
+  + 'assign grants then allocates an existing observed worker; report records a milestone through the '
+  + 'registered inline/proxy/recorded mode. Direct workers report themselves. No spawn, auto-accept, '
+  + 'implicit submit, reset or scope expansion. Retain the exact operationId and request on uncertain retry; '
+  + 'read current state after conflict or revoked replay. Activation does not update later milestones.';
 write('add', ['task', 'task.id', 'task.title', 'task.outcome', 'task.sourceRefs',
   'task.acceptanceRefs', 'task.eligibleRoles'], ['task.priority', 'task.scope.read',
   'task.scope.write', 'task.resources', 'task.dependencies', 'task.requiredSkills',
@@ -199,6 +217,32 @@ entry('resolve-maintenance-operation', [...lifecycleMutation, 'maintenanceId', '
   'integrityEvidenceRefs']);
 commands.at(-1).notes = 'decision=abandon-unknown requires matching stopped-owner and integrity '
   + 'evidence; resolution does not claim that the physical operation completed.';
+
+// Additive, machine-readable shapes for the easily confused execution fields.
+const string = { type: 'string', minLength: 1 };
+const integer = { type: 'integer', minimum: 1 };
+for (const command of commands) {
+  const fields = [...command.requiredFields, ...command.optionalFields];
+  command.fieldTypes = {};
+  for (const name of fields.filter(name => ['taskRevision', 'approvalRevision', 'expectedInputRevision',
+    'expectedBoardRevision'].includes(name))) command.fieldTypes[name] = integer;
+  if (fields.includes('inputRevision')) command.fieldTypes.inputRevision = {
+    ...string, description: 'Immutable caller evidence fingerprint (for example a source digest). '
+      + 'Different from the numeric task.inputRevision; never coerce that counter into a fingerprint.' };
+  if (fields.includes('task')) {
+    command.fieldTypes['task.inputRevision'] = { ...integer, readOnly: true,
+      description: 'Server-owned contract counter returned by show; not an add input field.' };
+    command.fieldTypes['task.dependencies'] = { type: 'array', items: { type: 'object',
+      properties: { taskId: string, gate: { enum: ['accepted-result', 'frozen-submission'] } },
+      required: ['taskId', 'gate'], additionalProperties: false } };
+  }
+  if (fields.includes('checkResults')) command.fieldTypes.checkResults = { type: 'array', items: {
+    type: 'object', properties: { checkId: string, taskId: string, submissionId: string },
+    required: ['checkId', 'taskId', 'submissionId'], additionalProperties: false } };
+  if (command.operation === 'lead-inline-assign') command.preconditions = [
+    'Register the actual Lead in lead-inline mode.', 'Explicitly approve the current task contract.',
+    'Grant the actual Lead this approvalRevision before assigning; approval alone is not a grant.' ];
+}
 
 /** Return a selected or complete catalog; unknown command names fail without runtime access. */
 export function help(args) {

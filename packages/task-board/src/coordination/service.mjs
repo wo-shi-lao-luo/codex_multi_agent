@@ -21,6 +21,7 @@ import { assertWorkspaceBinding, verifyWorkspaceRoot, workspaceBindings, MAX_WOR
 import { collectTaskWorkspaceIds, normalizeWorkspaceScope, scopeResourceKey, requireExecutionCwd,
   normalizeScope, canonicalPhysicalPathKey } from '../domain/workspace-scope.mjs';
 import { validateSessionProfile } from '../domain/session.mjs';
+import { syncTask, replaySync } from './team-sync.mjs';
 
 /** Produce a one-way credential/request digest; callers never persist the raw credential. */
 export const hash = value => createHash('sha256').update(value).digest('hex');
@@ -61,6 +62,12 @@ export function authorizeReplay(tx, operation, input, result, context = {}) {
   resetSourceObservation(tx);
   let worker = authority(tx, input,
     !['claim', 'submit', 'report', 'block', 'ask', 'ack-answer'].includes(operation));
+  if (operation === 'sync-task') return replaySync(tx, input, result, context, authorizeReplay);
+  if (operation === 'bind-lead-principal') {
+    requireValue(tx.workers.get(tx.board.leadId)?.executorKey === result.worker.executorKey,
+      'CONFLICT', 'The observed Lead principal no longer matches the binding receipt.');
+    return;
+  }
   if (['lead-inline-assign', 'lead-inline-report'].includes(operation)) {
     worker = tx.workers.get(tx.board.leadId);
     requireValue(worker?.mode === 'lead-inline', 'UNAUTHORIZED', 'Registered inline Lead required.');
@@ -222,6 +229,16 @@ export function mutate(tx, operation, input, context = {}) {
   requireValue(!Object.hasOwn(input, 'lastReportAt'), 'INVALID_INPUT', 'Report time is server-owned.');
   const leadOnly = !['claim', 'submit', 'report', 'block', 'ask', 'ack-answer'].includes(operation);
   let worker = authority(tx, input, leadOnly);
+  if (operation === 'sync-task') {
+    const result = syncTask(tx, input, context, mutate);
+    const event = { taskId: result.task.id, action: input.action,
+      taskRevision: result.task.taskRevision, actorId: input.actorId,
+      workerId: result.assignment?.workerId ?? input.workerId ?? null,
+      assignmentId: result.assignment?.id ?? input.assignmentId ?? null };
+    tx.audit('sync-task', event);
+    tx.change('sync-task', event);
+    return result;
+  }
   const provenance = { actorId: input.actorId };
   if (input.actorId === tx.board.leadId && ['ask', 'ack-answer'].includes(operation) && !input.reportedByWorkerId) {
     worker = tx.workers.get(tx.board.leadId) ?? null;
@@ -245,8 +262,10 @@ export function mutate(tx, operation, input, context = {}) {
     const task = tx.tasks.get(input.taskId);
     if (worker.mode === 'lead-proxy') {
       requireValue(operation !== 'lead-record-report', 'UNAUTHORIZED', 'Proxy workers require proxy transport.');
-      requireValue(task && task.scope.write.length === 0 && worker.capabilities.includes('read'),
+      requireValue(task && task.scope.write.length === 0,
         'UNAUTHORIZED', 'Read-only proxy work cannot have a write scope.');
+      requireValue(worker.capabilities.includes('read'),
+        'UNAUTHORIZED', 'worker.capabilities must include read for read-only proxy work.');
     } else if (worker.mode === 'lead-recorded') {
       requireValue(operation !== 'lead-proxy-report', 'UNAUTHORIZED', 'Recorded workers require recorded transport.');
       requireValue(worker.capabilities.includes('write') &&
@@ -285,6 +304,26 @@ function mutateAuthorized(tx, operation, input, worker, provenance) {
     return questionMutation(tx, operation, input, worker, { authenticate, provenance });
   }
   if (operation === 'record-dispatch') return recordDispatch(tx, input);
+  if (operation === 'bind-lead-principal') {
+    requireValue(input.expectedBoardRevision === tx.board.boardRevision,
+      'CONFLICT', 'Board revision changed before principal binding.');
+    const registered = tx.workers.get(tx.board.leadId);
+    requireValue(registered?.role === 'lead' && registered.mode === 'lead-inline',
+      'UNAUTHORIZED', 'Only the registered inline Lead can receive a forward principal binding.');
+    requireValue(registered.principal == null && registered.executorKey == null,
+      'CONFLICT', 'A known Lead principal cannot be replaced.');
+    const identity = executorIdentity({ principal: input.principal, runtimeIdentity: registered.runtimeIdentity });
+    requireValue(identity.principal && identity.executorKey, 'INVALID_INPUT', 'An observed principal is required.');
+    const profile = tx.board.sessionProfile;
+    requireValue(!profile || profile.hostId === identity.principal.hostId &&
+      profile.mainSessionId === identity.principal.agentId,
+    'UNAUTHORIZED', 'Observed Lead principal must match the bound host and main session.');
+    const record = { ...registered, ...identity };
+    tx.workers.put(record);
+    tx.audit('lead-principal-bound', { workerId: record.id, principal: record.principal,
+      executorKey: record.executorKey, historicalEvidenceChanged: false });
+    return { worker: redact(record) };
+  }
   if (lifecycleOperations.has(operation)) {
     return lifecycle(tx, operation, input, { requireValue, taskAtRevision, tokenHash,
       normalizeScope, resourcesAvailable, redact });
@@ -298,6 +337,7 @@ function mutateAuthorized(tx, operation, input, worker, provenance) {
     const workspace = { id: item.id, revision: 1, status: 'active',
       ...verifyWorkspaceRoot(tx.board.projectRoot, item.root) };
     tx.board.workspaces.push(workspace);
+    assertWorkspaceBinding(tx, workspace.id);
     return { workspace };
   }
   if (operation === 'register') {

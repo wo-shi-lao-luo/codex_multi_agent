@@ -75,9 +75,21 @@ Then invoke `activate-board.ps1 -ProjectRoot <project> -RequestPath <returned-pr
 
 The entry derives the canonical session path, checks the runtime, authenticates an existing Board before changing it, and initializes only a genuinely absent Board. It reuses existing add/approve/grant/Lead-inline and service protocols with the actual Lead as executor. Its ignored activation journal retains orchestration receipts and service/presentation intent only; SQLite remains the task, assignment and reservation authority. Preserve the database and journal on unknown schema, mismatched identity, lost credentials, unsafe artifact policy, interrupted operations or uncertain service launch. Never remove locks by TTL, replace/migrate a Board, install dependencies or take over ownership automatically. Retry after restored prerequisites reconciles retained facts rather than creating a second Board.
 
-Activation and panel presentation are separate. The entry prepares at most the first browser action and durably marks the attempt uncertain before returning a URL. Use the host panel capability, then invoke `action: record-open-result` with the actual `presentationOutcome` of `queued`, `opened`, `link-only` or `unknown`. Resume never reissues a ticket or opens a panel after an attempted/uncertain first action. Preserve the Browser presentation rules and explicit reopen authorization below. Service timeout is not evidence of process death; never stop by guessed PID or replace an uncertain service.
+Activation and panel presentation are separate. The entry prepares at most the first browser action and durably marks the attempt uncertain before returning a URL. Use the host panel capability, then invoke `action: record-open-result` with the actual `presentationOutcome` of `queued`, `opened`, `link-only` or `unknown`. Healthy resume never reissues a ticket or opens a panel after an attempted/uncertain first action. A verified service replacement may return one new first-entry URL: restore the owned same-session view once, preferably reusing its existing panel, and record the actual result. This does not authorize repeated navigation after a queued/unknown result. Preserve the Browser presentation rules and explicit reopen authorization below. Service timeout is not evidence of process death; never stop by guessed PID or replace an uncertain service.
 
-Existing Boards without the helper's matching private handoff require explicit reconciliation; authentication alone does not authorize adopting unrelated task history. A lost first response leaves presentation unknown even if no URL was observed. An unreachable retained service remains pending until its ownership and actual outcome can be reconciled. Do not rotate caller credentials, remove the activation journal, clear locks or create replacement services to bypass these conditions.
+Existing Boards without the helper's matching private handoff require explicit reconciliation; authentication alone does not authorize adopting unrelated task history. A lost first response leaves presentation unknown even if no URL was observed. An unreachable retained service remains pending until its ownership and actual outcome can be reconciled under the service recovery procedure below. Do not rotate caller credentials, remove the activation journal, clear locks or create replacement services to bypass these conditions.
+
+### Service execution and recovery
+
+Treat service activation as a host operation with both network and process-lifetime requirements. A detached child is not a guarantee that it survives a command's containment boundary. In particular, a Windows job with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` can terminate its children when the command finishes. After starting a long-lived service, verify its authenticated `service-status` in a separate completed command before reporting durable availability or presenting it. The in-process first status check alone is insufficient evidence of survival.
+
+The launcher probes its own temporary loopback connection before a new service launch. `SERVICE_UNAVAILABLE` with `transportCode: EACCES` or `EPERM` identifies a permission failure; it does not prove the retained process stopped. Use the host's normal explicit approval mechanism for a permitted local-service command when available and authorized, and then recheck. Never self-elevate, disable containment/security settings, alter firewall policy, or repeat the same restricted launch in the background. A timeout, invalid service identity or unknown launch outcome also remains unresolved; none permits a replacement.
+
+New launches retain the actual spawned child's process ID separately from its public HTTP identity. During ordinary `activate`/`resume`, automatically recover a refused retained service only when its actor/session/Board/generation, known launch intent and control credential all match, and the recorded process ID is positively absent (`process.kill(pid, 0)` reports `ESRCH`). The zero signal only checks existence; it does not terminate a process. An alive or reused PID, missing legacy PID, permission failure, timeout or uncertain outcome never authorizes automatic replacement. PID reuse may conservatively defer recovery. Record the actual machine proof in the retained recovery history; do not invent caller confirmation or evidence references for automatic mode. This repairs the display service within already-authorized execution and does not broaden task authority.
+
+For legacy receipts without this machine proof, use the explicit `action: recover-service` with the existing approved private request and `serviceRecovery: { expectedServiceId, confirmedStopped: true, evidenceRefs: [...] }`. Confirm the exact retained endpoint refuses connections from the host and the matching owned process has exited; a connection refusal by itself is not complete process-lifetime proof. Inspect the exact installed runner path and bound the absence check to that execution context, rather than kill guessed PIDs. Put the actual checks and limitations in the existing ignored verification/handoff record and reference it. The confirmation/evidence fields declare the caller's verified facts; they are not independent machine proof or substitute user authorization.
+
+Recovery authenticates the retained Board, checks the expected service identity and independently requires `ECONNREFUSED`. It preserves task state, assignments, credentials, database identity and generation. Only the display service and its presentation attempt are replaced; the old identity and recovery evidence remain in a bounded journal history. Persisted unknown launch intent still prevents blind retry. Do not use recovery to take over another session, reset tasks, rewrite ownership or reopen an already visible panel without authority. Verify the replacement from a separate command, then use and record the actual authorized presentation result.
 
 ### Optional start/resume hook
 
@@ -100,6 +112,61 @@ On a supporting host, configure the installed adapter through the host's existin
 ```
 
 Kit installation does not install, enable or trust hooks. Never merge these settings into user/project configuration automatically or bypass trust review. Unsupported/disabled/untrusted hooks leave the explicit Lead checkpoint in force. See the [official hook contract](https://learn.chatgpt.com/docs/hooks). Helper and hook-output tests do not prove native routing, current-session loading, visible panel rendering or automatic activation in an old chat; retain separate live acceptance outcomes.
+
+## Task synchronization CLI
+
+The Board already has a local JSON CLI; the browser is its read-only projection. After activation,
+use the finite `sync-task` operation for routine teamwork updates instead of rerunning activation
+or manually assembling a sequence of low-level commands. Keep the existing raw operations for
+explicit lifecycle, submission, independent acceptance and maintenance actions.
+
+| Action | Explicit input and effect |
+| --- | --- |
+| `prepare` | `contractApproved:true` and the complete approved `task`; atomically add and approve a bounded outcome. Candidate `eligibleRoles` do not create an executor. Dependencies may still prevent readiness. |
+| `assign` | Current numeric `taskRevision` and `approvalRevision`, actual registered `workerId`, caller-held `claimToken`, and applicable `approvedResponsibilities`; atomically grant and assign that known executor. Never register or spawn implicitly. |
+| `report` | Current numeric `taskRevision`, actual `workerId`, `assignmentId`, `claimToken` and the milestone fields; route through its registered inline, read-only proxy or lead-recorded mode. Recorded work still requires `reportEvidenceRefs`. Direct workers use their own authenticated `report` transport. |
+
+All three require the usual mutation envelope and current Lead credentials. Each commits one
+SQLite receipt or rolls back entirely. Save the exact private request and its `operationId` before
+calling; an uncertain response is not permission to create another operation ID. Retry only the
+same request through the supported receipt flow, then read current state on conflict or revoked
+replay. Do not blindly replay old dispatch or progress intents after a restore, transfer, scope
+change or interrupted handoff. Keep unresolved synchronization as a concise, current item in the
+existing Work record until actual Board state is reconciled; no background retry or second task list.
+
+Use `help --operation sync-task` for the current shapes and `help --operation submit` for the
+immutable string evidence fingerprint. The numeric `task.inputRevision` is a server-owned contract
+counter, not a submission fingerprint. Dependencies use `{taskId, gate}` and acceptance check
+references use `{checkId, taskId, submissionId}`. Approval, authorization to an executor, assignment,
+submission and independent acceptance remain distinct facts even when routine commands are composed.
+If the selected installed CLI does not advertise `sync-task`, use its supported raw operations
+and report that capability gap. Source changes do not update an installed runtime or authorize installation.
+An exact receipt retry returns historical success, not a fresh ready/running observation; read
+current state before dispatching further work or relying on an old revision.
+
+Create a new card when a new independently acceptable outcome, owner or required check appears,
+before doing or dispatching that work. Report commands/tests and intermediate milestones on the
+current card. Preserve an overall goal as context/dependency without leaving it falsely running;
+one serial executor advances one current implementation card. A sole required independent checker
+is a check gate, not evidence of parallel implementation.
+
+### Forward-only Lead identity binding
+
+New activation requests may supply `leadPrincipal: {hostId, agentId, evidenceRefs}` obtained from
+actual native metadata. Its host and agent must match the bound session's host and main-session
+IDs. Omitted identity remains unknown; a session label, actor alias or role is never independence proof.
+
+For an already registered unknown inline Lead, explicitly call `bind-lead-principal` with the
+current `expectedBoardRevision` and observed `principal`. This fills only the worker's future
+identity, never changes role/capabilities/tokens/grants and never rewrites historical assignments,
+submissions or check records. Existing allocations keep their holds and old unknown snapshots;
+their execution and successful-execution receipt replays cannot become current merely by binding.
+Use the existing stopped-owner `transfer` with current authorization to create a fresh allocation,
+then a fresh submission and independently bound checks. Old checks remain tied to the old freeze.
+Resume does not perform this repair automatically. A known principal cannot be replaced.
+
+Principal evidence remains an authenticated Lead declaration of observed native facts. Matching
+the stored session establishes internal consistency, not a host signature or cryptographic attestation.
 
 ## Authority and activation
 

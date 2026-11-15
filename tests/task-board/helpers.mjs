@@ -4,8 +4,11 @@ import { mkdtemp, mkdir, rm } from 'node:fs/promises';
 import { resolve, join, dirname } from 'node:path';
 import { randomBytes, createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
 
-export const cli = resolve('packages/task-board/src/cli/cli.mjs');
+// Module location pins the tested checkout even when Node starts in a different cwd.
+export const sourcePath = (...parts) => resolve(fileURLToPath(new URL('../../', import.meta.url)), ...parts);
+export const cli = sourcePath('packages/task-board/src/cli/cli.mjs');
 // Generate caller-owned fixture credentials with the production minimum entropy.
 export const secret = () => randomBytes(32).toString('hex');
 
@@ -40,7 +43,7 @@ export function invoke(project, board, operation, request, options = {}) {
 
 // Create an isolated project with real registration/grant helpers and owner-scoped cleanup.
 export async function fixture(t) {
-  const parent = resolve('_work/task-board/test-fixtures');
+  const parent = sourcePath('_work/task-board/test-fixtures');
   await mkdir(parent, { recursive: true });
   const project = await mkdtemp(join(parent, 'p0-'));
   const children = [];

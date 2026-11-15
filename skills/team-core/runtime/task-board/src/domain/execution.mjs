@@ -1,5 +1,5 @@
 /** Shared execution eligibility. Authorization and immutable input history are separate from task CAS. */
-import { roleEligible, requireWorkerScope } from './executor.mjs';
+import { executorIdentity, roleEligible, requireWorkerScope } from './executor.mjs';
 import { collectTaskWorkspaceIds, validateTaskScopes } from './workspace-scope.mjs';
 import { workspaceBindings } from '../storage/workspaces.mjs';
 import { BoardError } from './errors.mjs';
@@ -36,6 +36,10 @@ export function executionBinding(tx, task) {
 export function currentExecutionEligibility(tx, task, { worker, grant, record,
   requireGrant = false, requireActive = false, allowApprovalHold = false } = {}) {
   currentAuthorization(task, { worker, grant, requireGrant });
+  if (worker && record && (executorIdentity(worker).executorKey !== (record.executorKey ?? null)
+      || executorIdentity(worker).executorKey !== (record.actualExecutor?.executorKey ?? null))) {
+    throw new BoardError('STALE_ASSIGNMENT', 'The allocation predates the current observed executor identity.');
+  }
   validateTaskScopes(tx, task);
   const currentWorkspaces = workspaceBindings(tx, collectTaskWorkspaceIds(task, tx));
   if (requireGrant && JSON.stringify(grant.workspaceBindings) !== JSON.stringify(currentWorkspaces)) {

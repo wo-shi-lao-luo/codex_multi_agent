@@ -2,6 +2,7 @@
 import { readMetadata, writeMetadata } from './connection.mjs';
 import { repositories } from './repositories.mjs';
 import { StorageError, storageFailure } from './errors.mjs';
+import { beginWorkspaceObservation, finishWorkspaceObservation, discardWorkspaceObservation } from './workspaces.mjs';
 
 /** Run a synchronous domain callback; no host actions or asynchronous work may enter this boundary. */
 export function transactOperation(
@@ -12,6 +13,7 @@ export function transactOperation(
   }
   let active = false;
   let committed = false;
+  let observationTx;
   try {
     db.exec('BEGIN IMMEDIATE');
     active = true;
@@ -34,10 +36,13 @@ export function transactOperation(
       }
       const envelope = JSON.parse(receipt.payload);
       // Revoked credentials cannot retrieve an earlier successful assignment after transfer/release.
-      const authorization = authorizeReplay?.({ board, ...repositories(db) }, envelope);
+      observationTx = { board, ...repositories(db) };
+      beginWorkspaceObservation(observationTx);
+      const authorization = authorizeReplay?.(observationTx, envelope);
       if (authorization && typeof authorization.then === 'function') {
         throw new StorageError('INVALID_INPUT', 'Replay authorization must be synchronous.');
       }
+      finishWorkspaceObservation(observationTx);
       db.exec('COMMIT');
       active = false;
       return envelope;
@@ -55,6 +60,8 @@ export function transactOperation(
       /** Queue a committed transport event; delivery happens only after this transaction exits. */
       change(type, data) { assertWritable(); changes.push({ type, data }); },
     };
+    observationTx = tx;
+    beginWorkspaceObservation(tx);
     const result = callback(tx);
     if (result && typeof result.then === 'function') {
       throw new StorageError('INVALID_INPUT', 'Operation callbacks must be synchronous.');
@@ -88,6 +95,7 @@ export function transactOperation(
     );
     // Only controlled test children supply hooks; neither hook is exposed by the CLI.
     hooks.beforeCommit?.();
+    finishWorkspaceObservation(tx);
     db.exec('COMMIT');
     active = false;
     committed = true;
@@ -99,5 +107,5 @@ export function transactOperation(
     }
     active = false;
     throw storageFailure(error);
-  }
+  } finally { discardWorkspaceObservation(observationTx); }
 }

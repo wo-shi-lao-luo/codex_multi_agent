@@ -9,7 +9,9 @@ try {
   if (args.length === 1 && args[0] === '--help') {
     process.stdout.write(`${JSON.stringify({ schemaVersion: 1, operation: 'activation-help',
       requiredFlags: ['--project-root', '--stdin'],
-      actions: ['activate', 'resume', 'record-open-result', 'prepare-request'],
+      actions: ['activate', 'resume', 'recover-service', 'record-open-result', 'prepare-request'],
+      serviceRecovery: { expectedServiceId: 'retained service ID', confirmedStopped: true,
+        evidenceRefs: ['local host listener and runner proof reference'] },
       sessionProfileFields: ['hostId', 'mainSessionId', 'projectId', 'projectName', 'sessionName'],
       scopeShape: { read: ['relative-path'], write: ['relative-path'] },
       preparation: 'prepare-request needs approved task and fresh native sessionProfile; creates one private request file with caller-owned random credentials. No database or service is created.',
@@ -18,10 +20,15 @@ try {
       executionFields: ['executionApproved:true', 'task.id', 'task.title', 'task.outcome',
         'task.sourceRefs', 'task.acceptanceRefs'],
       optionalFields: ['task.scope', 'task.responsibilities', 'task.requiredSkills',
-        'phase', 'progress', 'nextCheckpoint', 'presentationOutcome'],
+        'phase', 'progress', 'nextCheckpoint', 'presentationOutcome', 'leadPrincipal'],
+      leadPrincipalShape: { hostId: 'observed host matching sessionProfile.hostId',
+        agentId: 'observed main session matching sessionProfile.mainSessionId',
+        evidenceRefs: ['reference to actual native observation'] },
       presentationOutcomes: ['queued', 'opened', 'link-only', 'unknown'],
-      notes: 'Tokens remain caller-held and must be reused. Only first activation returns a URL. '
-        + 'Record the observed host outcome separately; resume never reopens the panel.' })}\n`);
+      notes: 'Tokens remain caller-held and must be reused. First activation or verified service '
+        + 'recovery (explicit or automatic) may return the replacement service first URL. '
+        + 'Automatic recovery requires exact refusal and an OS-confirmed absent retained runner PID. '
+        + 'Record the observed host outcome separately; healthy resume never reopens the panel.' })}\n`);
     process.exit(0);
   }
   if (args.length !== 3 || args[0] !== '--project-root' || args[2] !== '--stdin') {

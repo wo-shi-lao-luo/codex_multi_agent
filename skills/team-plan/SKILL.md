@@ -26,6 +26,8 @@ When the plan includes application AI behavior evaluation, read the shared [AI e
 
 At task start, use the shared [risk-proportional design-exploration contract](../team-core/references/design-exploration.md) to choose a light check or fuller exploration from material risk and unresolved uncertainty, not task/file size. An already accepted cross-module design does not need to be reopened unless relevant evidence or scope changed. For child assignments, pass the overall goal, applicable PRD and accepted design/Blueprint revisions, non-goals, relevant constraints/evidence/decisions/unknowns, and the exact applicable shared reference; do not assume conversation or Skill inheritance. Use [approved constraint continuity](../team-core/references/approved-constraints.md) to preserve authority through bounded assignments, and [Agent documentation](../team-core/references/agent-documentation.md) only when the project maintains that source-linked guidance. Explorer supplies bounded facts, Architects propose read-only designs when material questions require them, and no role is added without a concrete need.
 
+Apply the shared [system-fit](../team-core/references/design-exploration.md#system-fit-and-behavior) and [critical-premise evidence](../team-core/references/design-exploration.md#critical-premises-and-technical-evidence) checks before handing off the affected design as ready. Design explains how new and existing behavior works together and why the chosen mechanisms are supported; the implementation plan orders delivery against those contracts. The Lead resolves role-reported critical factual gaps in Discover instead of moving feasibility checks into future implementation tasks. Keep conditional candidates and independently ready parts explicit, without requiring completed production code, real model calls or a literature search for every plan.
+
 Apply [role routing](../team-core/references/role-routing.md) before delegation: check needed named roles in the active tool catalog, explicitly select them, and ask before any unavailable-role alternative. Task labels and source profiles do not prove runtime identity. Reconcile actual calls and include the [handoff format](../team-core/references/handoff-format.md)'s actual child roster in the final response, including failures/retries or explicit none.
 
 Read the [documentation governance](../team-core/references/documentation-governance.md) authority in full. Assess task-specific docs, stale evidence and applicable PRDs; use team-docs-maintainer for substantial inventory/consistency work and Explorer for code facts. Report ambiguity rather than resolving it. Planning may identify governance gaps but does not authorize records or claim development readiness; `$team-dev` validates the current assessment before writers start.
@@ -52,7 +54,7 @@ Apply the [efficient test execution and tier rules](../team-core/references/test
 2. Discover repository facts. Use `team-explorer` for unfamiliar scope and `team-architect` for cross-module contracts; request bounded findings with evidence.
 3. Turn evidence into a Work contract. Define affected boundaries, ownership, compatibility, verification, and rollout or recovery needs when material.
 4. Write ordered tasks only after shared contracts are resolved. Each task needs an owner, a deliverable, dependencies, and a verification step.
-5. Self-check the plan: every acceptance check has a task and verification; no task assumes facts that discovery did not establish.
+5. Before handoff of each new or materially revised formal design/plan, perform the shared [design and plan backcheck](../team-core/references/design-exploration.md#design-and-plan-backcheck). Trace goals and authority through the representative system flow, evidence, implementation contracts, tasks and observable acceptance; no task assumes facts that discovery did not establish. Keep self-check distinct from independent review and readiness scoped to supported parts.
 6. Include use cases, coverage-category decisions, a preliminary behavior-to-test mapping, likely TDD tracks, known test entrypoints and environment gaps, automated/E2E plan, and human verification requirements. `$team-dev` turns this into the tracked, validated stage packet before implementation.
 
 Read the [manual-scope and automated-coverage rules](../team-core/references/test-acceptance-contract.md#manual-scope-and-automated-coverage) in full. Map every manual case to E2E conditions/results and checkpoints, assess other applicable layers, and ask before exceptions or ambiguous scope; planning does not implement tests or rewrite archived acceptance.
@@ -60,6 +62,7 @@ Read the [manual-scope and automated-coverage rules](../team-core/references/tes
 ## Decision and return gates
 
 - Missing repository facts, conflicting findings, or an unknown test entrypoint → return to Discover.
+- An unresolved critical premise could change feasibility, the selected approach or required contract → return the affected conclusion to Discover under the shared evidence check; retain only explicitly conditional candidates and independently supported work, not a decision-ready dependent plan.
 - A shared API, schema, generated client, or lockfile has no owner → return to Contract.
 - A material product or compatibility decision belongs to the user → present options and pause the affected task.
 
@@ -71,11 +74,13 @@ Return a plan package with:
 Objective and acceptance checks
 Repository evidence and affected areas
 Proposed contracts and compatibility decisions
+System interaction and key mechanisms, with applicable evidence, versions and limitations
 Ordered tasks: owner, dependency, deliverable, verification
 Test, migration, rollout, or recovery strategy
 Risks and unresolved decisions
+Backcheck scope, conclusion, evidence, revisions and remaining decisions; self-check versus actual independent review
 ```
 
-State what was verified from the repository versus what remains an assumption. The Lead hands this package to `$team-dev` or the user; it does not claim implementation completion.
+State what was verified from the repository or other applicable evidence versus what remains an assumption. Identify reusable native capabilities, business behavior still to implement, and the readiness of each affected decision under the shared design contract. The Lead hands this package to `$team-dev` or the user; it does not claim implementation completion.
 
 After preparing this plan handoff, create the local minimal feedback record described in [feedback recording](../team-core/references/feedback-recording.md). Record evidence quality and unresolved decisions, never repository contents. If recording fails, keep the planning result intact and state the local recording gap only as a remaining risk.

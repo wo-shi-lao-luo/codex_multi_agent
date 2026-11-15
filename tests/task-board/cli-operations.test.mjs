@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, rm, readFile, writeFile, access } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
-import { cli, invoke, secret } from './helpers.mjs';
+import { cli, invoke, secret, sourcePath } from './helpers.mjs';
+import { fixtureDirectoryLink } from './fixture-environment.mjs';
 
 // Read-only help invocation intentionally supplies neither project nor coordination location.
 function help(operation) {
@@ -22,7 +23,7 @@ function git(root, args) {
 }
 
 async function project(t, withGit = true) {
-  const parent = resolve('_work/task-board/test-fixtures');
+  const parent = sourcePath('_work/task-board/test-fixtures');
   await mkdir(parent, { recursive: true });
   const root = await mkdtemp(join(parent, 'cli-operations-'));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -234,7 +235,7 @@ test('CLI.A2.linkAndEscapeDenied', async t => {
   const real = join(f.root, 'real-target');
   const linked = join(f.root, 'linked-target');
   await mkdir(real);
-  await symlink(real, linked, 'junction');
+  await fixtureDirectoryLink(real, linked);
   assert.equal((await f.initialize(join(linked, '_work', 'board'))).code, 2);
   await assert.rejects(access(join(real, '_work')), { code: 'ENOENT' });
   const childProject = join(f.root, 'child-project');

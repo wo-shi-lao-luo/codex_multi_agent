@@ -1,4 +1,5 @@
 /** Validate public request structure without echoing values or touching project state. */
+import { executorIdentity } from '../domain/executor.mjs';
 export function requestIssues(request, { prepare = false } = {}) {
   const missingFields = [];
   const invalidFields = [];
@@ -8,15 +9,35 @@ export function requestIssues(request, { prepare = false } = {}) {
     else if (typeof value !== 'string' || !value.trim()) invalidFields.push(name);
   };
   if (!object(request)) return { missingFields, invalidFields: ['request'] };
-  if (!['activate', 'resume', 'record-open-result', 'prepare-request'].includes(request.action)) {
+  const actions = ['activate', 'resume', 'recover-service', 'record-open-result', 'prepare-request'];
+  if (!actions.includes(request.action)) {
     invalidFields.push('action');
   }
   text(request.actorId, 'actorId');
+  if (request.action === 'recover-service') {
+    const recovery = request.serviceRecovery;
+    if (!object(recovery) || recovery.confirmedStopped !== true
+        || typeof recovery.expectedServiceId !== 'string'
+        || !/^[\x21-\x7e]{1,256}$/.test(recovery.expectedServiceId)
+        || !Array.isArray(recovery.evidenceRefs) || !recovery.evidenceRefs.length
+        || recovery.evidenceRefs.length > 16
+        || recovery.evidenceRefs.some(ref => typeof ref !== 'string'
+          || !ref.trim() || ref.length > 1024 || /[\x00-\x1f]/.test(ref))) {
+      invalidFields.push('serviceRecovery');
+    }
+  }
   for (const key of ['hostId', 'mainSessionId', 'projectId', 'projectName', 'sessionName']) {
     text(request.sessionProfile?.[key], `sessionProfile.${key}`);
   }
   if (request.sessionProfile !== undefined && !object(request.sessionProfile)) {
     invalidFields.push('sessionProfile');
+  }
+  if (request.leadPrincipal !== undefined) {
+    try {
+      const { principal } = executorIdentity({ principal: request.leadPrincipal });
+      if (!principal || principal.hostId !== request.sessionProfile?.hostId
+          || principal.agentId !== request.sessionProfile?.mainSessionId) throw new Error('Mismatch');
+    } catch { invalidFields.push('leadPrincipal'); }
   }
   if (!prepare) for (const key of ['leadToken', 'claimToken', 'serviceControlToken']) {
     text(request[key], key);

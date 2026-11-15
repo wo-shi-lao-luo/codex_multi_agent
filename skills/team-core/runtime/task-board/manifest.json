@@ -15,7 +15,7 @@
     },
     {
       "path": "packages/task-board/src/activation/orchestrator.mjs",
-      "sha256": "80a5f79d6071f1f93def060496448941488e9576bacd9618722ea070c8cf2db0"
+      "sha256": "1124b6dce5bbc28efabb56760977a51a8131066236e7a7c67c528a6623c8b742"
     },
     {
       "path": "packages/task-board/src/activation/prepare.mjs",
@@ -23,7 +23,11 @@
     },
     {
       "path": "packages/task-board/src/activation/request.mjs",
-      "sha256": "0b10746f8a4fa256ced41012d0385e8378bbf4057106b337365680d4567d0a51"
+      "sha256": "616254b21a726e878657fbf43ab5b2dc08e4a3e4be07c65db000112e16ae92ac"
+    },
+    {
+      "path": "packages/task-board/src/activation/service-recovery.mjs",
+      "sha256": "a1b6a6675d81d6f01e655af4c7cf5c5f9e59aca97be53193bdd3a9dd689dbe42"
     },
     {
       "path": "packages/task-board/src/activation/service-runner.mjs",
@@ -35,7 +39,7 @@
     },
     {
       "path": "packages/task-board/src/cli/activation.mjs",
-      "sha256": "77ae068b4aa0727675ca19dcc900d736673b7dcd68c580815ebdabb44ce22d8e"
+      "sha256": "669eaa34ff37d8967bb7d5b28e6b263a1c7035b9c36568fe29479652628bd6f9"
     },
     {
       "path": "packages/task-board/src/cli/cli.mjs",
@@ -47,7 +51,7 @@
     },
     {
       "path": "packages/task-board/src/cli/help.mjs",
-      "sha256": "e1325efdb242c5c27561348a512d141908867779056b8ba17f380d32a30e3299"
+      "sha256": "e4b2a95b726ecfbed51cf43de9ea7c53f96be879371b5269f98cb34fd7db9e3f"
     },
     {
       "path": "packages/task-board/src/cli/maintenance.mjs",
@@ -75,7 +79,11 @@
     },
     {
       "path": "packages/task-board/src/coordination/service.mjs",
-      "sha256": "d65bb3f11a92b8cccc2775ff5eb1cc2014a25966e7257f91114dc479b4a8fc53"
+      "sha256": "8098e3f9f2d129144c362ca8b75644658062642022ddb3c2c4f9c14e564916e3"
+    },
+    {
+      "path": "packages/task-board/src/coordination/team-sync.mjs",
+      "sha256": "763a8ec76b056280c7be5ffc1b5aeea262418440d04ec9a707d99855a17554fa"
     },
     {
       "path": "packages/task-board/src/domain/errors.mjs",
@@ -83,7 +91,7 @@
     },
     {
       "path": "packages/task-board/src/domain/execution.mjs",
-      "sha256": "fe62cfc94ba0e77ce8a4c0fa0cf4d020a8be1259d36b3e1387e916bca92632a1"
+      "sha256": "bec0cdd202c6c99e9738bfa37699e00ae6b65a287a55a0a9667c30bed45e584d"
     },
     {
       "path": "packages/task-board/src/domain/executor.mjs",
@@ -119,7 +127,7 @@
     },
     {
       "path": "packages/task-board/src/server/control.mjs",
-      "sha256": "4f38196838a2f63a9f657472d635c22d875579e1b8f6cc415a49fb55cc4f443d"
+      "sha256": "7830da9071f1adcf470360dcc20382d3730615e76c270bf94a77d419cecffec5"
     },
     {
       "path": "packages/task-board/src/server/server.mjs",
@@ -147,7 +155,7 @@
     },
     {
       "path": "packages/task-board/src/storage/index.mjs",
-      "sha256": "e609f5ce69c75010eb829155d402fd0e88e4c1efc5c0304707800a8f1ab91fba"
+      "sha256": "aaf8077ef087ace89995fe312c322eacaba0267a1bbf862b1da98de7c07f8730"
     },
     {
       "path": "packages/task-board/src/storage/inspection.mjs",
@@ -175,7 +183,7 @@
     },
     {
       "path": "packages/task-board/src/storage/operations.mjs",
-      "sha256": "e5b5576a9b5d7bd66b79dff6e0957478688eb64eb2de52b008d41179906cb70f"
+      "sha256": "9435416a034a4e1c2701990b70bfd681798c03b2d1bcbc35b0227a6055835a9e"
     },
     {
       "path": "packages/task-board/src/storage/paths.mjs",
@@ -211,7 +219,7 @@
     },
     {
       "path": "packages/task-board/src/storage/workspaces.mjs",
-      "sha256": "f0049540f45a1742e338c6ff3c8fdf63d5ac38f3a866b27b0d8066b70c69eea8"
+      "sha256": "36fbed03265881a7c110381a9c2b791ff75b28fd1e65d7c6e32807f39b037672"
     },
     {
       "path": "packages/task-board/web/app.js",
@@ -241,7 +249,7 @@
     },
     {
       "path": "src/activation/orchestrator.mjs",
-      "sha256": "80a5f79d6071f1f93def060496448941488e9576bacd9618722ea070c8cf2db0"
+      "sha256": "1124b6dce5bbc28efabb56760977a51a8131066236e7a7c67c528a6623c8b742"
     },
     {
       "path": "src/activation/prepare.mjs",
@@ -249,7 +257,11 @@
     },
     {
       "path": "src/activation/request.mjs",
-      "sha256": "0b10746f8a4fa256ced41012d0385e8378bbf4057106b337365680d4567d0a51"
+      "sha256": "616254b21a726e878657fbf43ab5b2dc08e4a3e4be07c65db000112e16ae92ac"
+    },
+    {
+      "path": "src/activation/service-recovery.mjs",
+      "sha256": "a1b6a6675d81d6f01e655af4c7cf5c5f9e59aca97be53193bdd3a9dd689dbe42"
     },
     {
       "path": "src/activation/service-runner.mjs",
@@ -261,7 +273,7 @@
     },
     {
       "path": "src/cli/activation.mjs",
-      "sha256": "77ae068b4aa0727675ca19dcc900d736673b7dcd68c580815ebdabb44ce22d8e"
+      "sha256": "669eaa34ff37d8967bb7d5b28e6b263a1c7035b9c36568fe29479652628bd6f9"
     },
     {
       "path": "src/cli/cli.mjs",
@@ -273,7 +285,7 @@
     },
     {
       "path": "src/cli/help.mjs",
-      "sha256": "e1325efdb242c5c27561348a512d141908867779056b8ba17f380d32a30e3299"
+      "sha256": "e4b2a95b726ecfbed51cf43de9ea7c53f96be879371b5269f98cb34fd7db9e3f"
     },
     {
       "path": "src/cli/maintenance.mjs",
@@ -301,7 +313,11 @@
     },
     {
       "path": "src/coordination/service.mjs",
-      "sha256": "d65bb3f11a92b8cccc2775ff5eb1cc2014a25966e7257f91114dc479b4a8fc53"
+      "sha256": "8098e3f9f2d129144c362ca8b75644658062642022ddb3c2c4f9c14e564916e3"
+    },
+    {
+      "path": "src/coordination/team-sync.mjs",
+      "sha256": "763a8ec76b056280c7be5ffc1b5aeea262418440d04ec9a707d99855a17554fa"
     },
     {
       "path": "src/domain/errors.mjs",
@@ -309,7 +325,7 @@
     },
     {
       "path": "src/domain/execution.mjs",
-      "sha256": "fe62cfc94ba0e77ce8a4c0fa0cf4d020a8be1259d36b3e1387e916bca92632a1"
+      "sha256": "bec0cdd202c6c99e9738bfa37699e00ae6b65a287a55a0a9667c30bed45e584d"
     },
     {
       "path": "src/domain/executor.mjs",
@@ -345,7 +361,7 @@
     },
     {
       "path": "src/server/control.mjs",
-      "sha256": "4f38196838a2f63a9f657472d635c22d875579e1b8f6cc415a49fb55cc4f443d"
+      "sha256": "7830da9071f1adcf470360dcc20382d3730615e76c270bf94a77d419cecffec5"
     },
     {
       "path": "src/server/server.mjs",
@@ -373,7 +389,7 @@
     },
     {
       "path": "src/storage/index.mjs",
-      "sha256": "e609f5ce69c75010eb829155d402fd0e88e4c1efc5c0304707800a8f1ab91fba"
+      "sha256": "aaf8077ef087ace89995fe312c322eacaba0267a1bbf862b1da98de7c07f8730"
     },
     {
       "path": "src/storage/inspection.mjs",
@@ -401,7 +417,7 @@
     },
     {
       "path": "src/storage/operations.mjs",
-      "sha256": "e5b5576a9b5d7bd66b79dff6e0957478688eb64eb2de52b008d41179906cb70f"
+      "sha256": "9435416a034a4e1c2701990b70bfd681798c03b2d1bcbc35b0227a6055835a9e"
     },
     {
       "path": "src/storage/paths.mjs",
@@ -437,7 +453,7 @@
     },
     {
       "path": "src/storage/workspaces.mjs",
-      "sha256": "f0049540f45a1742e338c6ff3c8fdf63d5ac38f3a866b27b0d8066b70c69eea8"
+      "sha256": "36fbed03265881a7c110381a9c2b791ff75b28fd1e65d7c6e32807f39b037672"
     },
     {
       "path": "web/app.js",

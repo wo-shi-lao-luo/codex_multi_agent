@@ -5,13 +5,14 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, writeFile, cp, rm, readdir } from 'node:fs/promises';
 import { resolve, join, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
-import { invoke, secret } from './helpers.mjs';
+import { invoke, secret, sourcePath } from './helpers.mjs';
+import { checkFixturePath, requireLoopback } from './fixture-environment.mjs';
 
 const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-const entry = resolve('packages/task-board/src/cli/activation.mjs');
+const entry = sourcePath('packages/task-board/src/cli/activation.mjs');
 const quote = value => `'${value.replaceAll("'", "''")}'`;
 async function fixture(t) {
-  const parent = resolve('_work/task-board/test-fixtures');
+  const parent = sourcePath('_work/task-board/test-fixtures');
   await mkdir(parent, { recursive: true });
   const root = await mkdtemp(join(parent, 'activation-input-'));
   const request = { action: 'activate', actorId: 'lead', executionApproved: true,
@@ -34,14 +35,16 @@ async function fixture(t) {
     await rm(root, { recursive: true, force: true });
   });
   async function wrapper(cp936 = false) {
+    checkFixturePath(join(root, board, 'board.sqlite-shm'));
+    await requireLoopback();
     const skill = join(root, 'candidate', 'skills', 'team-core');
     await mkdir(join(skill, 'scripts'), { recursive: true });
     await mkdir(join(skill, 'runtime'), { recursive: true });
     for (const file of ['activate-board.ps1', 'board-runtime.ps1']) {
-      await cp(resolve('skills/team-core/scripts', file), join(skill, 'scripts', file));
+      await cp(sourcePath('skills/team-core/scripts', file), join(skill, 'scripts', file));
     }
-    await cp(resolve('skills/team-core/runtime/node-runtime.json'), join(skill, 'runtime/node-runtime.json'));
-    await cp(resolve('packages/task-board'), join(skill, 'runtime/task-board'), { recursive: true });
+    await cp(sourcePath('skills/team-core/runtime/node-runtime.json'), join(skill, 'runtime/node-runtime.json'));
+    await cp(sourcePath('packages/task-board'), join(skill, 'runtime/task-board'), { recursive: true });
     const target = join(skill, 'scripts/activate-board.ps1');
     if (cp936) {
       // Simulate the observed host Console decoding before running the unchanged wrapper body.

@@ -142,5 +142,6 @@ Readability review (code changes): target formatter/conventions, concrete layout
 UI review (when applicable): brief/baseline, integrated-page evidence, visual status and unobserved states
 Evidence inspected:
 Findings: impact, file reference, evidence
+Material finding closure (reuse existing issue/Work IDs): owner; applicable source revision; fixed/rejected/deferred/open disposition and authority/reason; changed scope; original-symptom and affected-regression evidence; required independent rereview and actual result/gap; remaining dependency restriction and next checkpoint
 Uncovered risk:
 ```

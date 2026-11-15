@@ -13,6 +13,7 @@ import { serviceStatus } from '../server/control.mjs';
 import { callCli } from './transport.mjs';
 import { normalizeScope } from '../domain/workspace-scope.mjs';
 import { requestIssues, invalidRequest } from './request.mjs';
+import { probeServiceTransport, verifyRecoveryCredential } from './service-recovery.mjs';
 
 const fail = code => { throw Object.assign(new Error('Activation requires reconciliation.'), { code }); };
 const canonical = value => Array.isArray(value) ? value.map(canonical)
@@ -68,7 +69,7 @@ function launchService(input) {
       child.unref();
       if (!identity || Buffer.byteLength(JSON.stringify(identity)) > 16384) {
         reject(Object.assign(new Error('Invalid service response.'), { code: 'SERVICE_OUTCOME_UNKNOWN' }));
-      } else resolve(identity);
+      } else resolve({ service: identity, processId: child.pid });
     });
     child.send(input, error => {
       if (error) {
@@ -81,6 +82,10 @@ function launchService(input) {
   });
 }
 
+/** Authenticate a private activation request and serialize its journal effects.
+ * Recovery requires a reconciled refused service or an OS-confirmed absent owned PID.
+ * Uncertain launch is never retried.
+ */
 export async function activate(projectRoot, request) {
   let release;
   let selected;
@@ -88,7 +93,7 @@ export async function activate(projectRoot, request) {
   try {
     const issues = requestIssues(request);
     if (issues.missingFields.length || issues.invalidFields.length) return invalidRequest(issues);
-    if (!request || !['activate', 'resume', 'record-open-result'].includes(request.action)
+    if (!request || !['activate', 'resume', 'recover-service', 'record-open-result'].includes(request.action)
         || typeof request.actorId !== 'string' || !request.actorId) fail('INVALID_INPUT');
     const profile = normalizeSessionProfile(request.sessionProfile);
     selected = sessionLocation(profile);
@@ -103,7 +108,8 @@ export async function activate(projectRoot, request) {
     for (const field of ['leadToken', 'claimToken', 'serviceControlToken']) tokenHash(request[field]);
     if (!/^[a-fA-F0-9]{64,256}$/.test(request.serviceControlToken)) fail('INVALID_INPUT');
     const publicText = JSON.stringify({ task: request.task, phase: request.phase,
-      progress: request.progress, nextCheckpoint: request.nextCheckpoint });
+      progress: request.progress, nextCheckpoint: request.nextCheckpoint,
+      serviceRecovery: request.serviceRecovery, leadPrincipal: request.leadPrincipal });
     if (['leadToken', 'claimToken', 'serviceControlToken'].some(field =>
       publicText.includes(request[field]))) fail('CREDENTIAL_IN_PUBLIC_CONTEXT');
     if (request.action !== 'record-open-result' && (request.executionApproved !== true
@@ -116,7 +122,8 @@ export async function activate(projectRoot, request) {
     // Authenticate existing data before touching ignore policy, journal or lock files.
     let observed;
     if (fs.existsSync(database)) observed = await call('inspect', {});
-    if (request.action === 'record-open-result' && (!observed || !fs.existsSync(journalPath))) {
+    if (['record-open-result', 'recover-service'].includes(request.action)
+        && (!observed || !fs.existsSync(journalPath))) {
       fail('ACTIVATION_HANDOFF_REQUIRED');
     }
     protectArtifacts({ ...location, allowAppend: !fs.existsSync(database) });
@@ -149,6 +156,61 @@ export async function activate(projectRoot, request) {
       observed = await call('initialize', { sessionProfile: request.sessionProfile });
     }
     if (journal.generation && journal.generation !== observed.generation) fail('STALE_GENERATION');
+    // Both recovery paths preserve task authority and use the same durable launch sequence.
+    const validateRetainedService = () => {
+      if (journal.generation !== observed.generation || journal.boardId !== observed.boardId) {
+        fail('ACTIVATION_CONTEXT_MISMATCH');
+      }
+      retainedService = journal.service;
+      if (!retainedService || journal.serviceIntent !== 'known') fail('SERVICE_OUTCOME_UNKNOWN');
+      if (retainedService.boardId !== observed.boardId
+          || retainedService.generation !== observed.generation
+          || retainedService.sessionKey !== selected.sessionKey) fail('ACTIVATION_CONTEXT_MISMATCH');
+      return verifyRecoveryCredential(
+        journal, directory, request, selected.sessionKey,
+      );
+    };
+    const replaceService = async (serviceControlTokenHash, evidence) => {
+      await probeServiceTransport();
+      journal.serviceRecoveryHistory = [...(journal.serviceRecoveryHistory ?? []), {
+        service: retainedService,
+        ...evidence,
+      }].slice(-16);
+      delete journal.service;
+      delete journal.serviceProcessId;
+      journal.serviceControlTokenHash = serviceControlTokenHash;
+      journal.serviceIntent = 'unknown';
+      journal.presentation = { status: 'unknown' };
+      save();
+      const { service, processId } = await launchService({ location, actorId: request.actorId,
+        generation: observed.generation, leadToken: request.leadToken,
+        serviceControlToken: request.serviceControlToken });
+      const { ticketUrl, ...identity } = service;
+      journal.service = identity;
+      journal.serviceProcessId = processId;
+      retainedService = identity;
+      journal.serviceIntent = 'known';
+      save();
+      await serviceStatus({ ...identity, serviceControlToken: request.serviceControlToken });
+      return { state: 'enabled', ...selected, taskId: request.task.id, boardId: observed.boardId,
+        generation: observed.generation, service: identity,
+        presentation: { ...journal.presentation, url: ticketUrl } };
+    };
+    if (request.action === 'recover-service') {
+      const verifier = validateRetainedService();
+      if (retainedService.serviceId !== request.serviceRecovery.expectedServiceId) {
+        fail('ACTIVATION_CONTEXT_MISMATCH');
+      }
+      try {
+        await serviceStatus({ ...retainedService, serviceControlToken: request.serviceControlToken });
+        fail('SERVICE_STILL_RUNNING');
+      } catch (error) {
+        if (error.code !== 'SERVICE_UNAVAILABLE'
+            || error.details?.transportCode !== 'ECONNREFUSED') throw error;
+      }
+      return await replaceService(verifier, { confirmedStopped: true,
+        evidenceRefs: request.serviceRecovery.evidenceRefs });
+    }
     journal.generation = observed.generation;
     journal.boardId = observed.boardId;
     journal.initializeIntent = 'known';
@@ -181,8 +243,12 @@ export async function activate(projectRoot, request) {
     const worker = snapshot.workers.find(item => item.id === request.actorId);
     if (!worker) await mutate('register', { worker: {
       id: request.actorId, role: 'lead', mode: 'lead-inline', capabilities: ['write'],
+      ...(request.leadPrincipal ? { principal: request.leadPrincipal } : {}),
     } }, 'register-lead');
     else if (worker.role !== 'lead' || worker.mode !== 'lead-inline') fail('EXECUTOR_CONFLICT');
+    else if (request.leadPrincipal && !worker.executorKey) fail('LEAD_PRINCIPAL_BINDING_REQUIRED');
+    else if (request.leadPrincipal && (worker.principal?.hostId !== request.leadPrincipal.hostId
+      || worker.principal?.agentId !== request.leadPrincipal.agentId)) fail('EXECUTOR_CONFLICT');
     if (!snapshot.tasks.some(item => item.id === task.id)) await mutate('add', { task }, 'add');
     let shown = (await call('show', { taskId: task.id })).result;
     snapshot = (await call('inspect', {})).result;
@@ -233,20 +299,44 @@ export async function activate(projectRoot, request) {
         expectedLabelRevision: labels.labelRevision, projectName: profile.projectName,
         sessionName: profile.sessionName });
     }
+    // All task validation and transitions precede automatic repair: a rejected task must
+    // not consume a replacement service's first presentation ticket.
     let firstUrl;
     if (journal.serviceIntent && !journal.service) fail('SERVICE_OUTCOME_UNKNOWN');
     if (journal.service) {
       retainedService = journal.service;
-      await serviceStatus({ ...journal.service, serviceControlToken: request.serviceControlToken });
+      try {
+        await serviceStatus({ ...retainedService, serviceControlToken: request.serviceControlToken });
+      } catch (error) {
+        if (error.code !== 'SERVICE_UNAVAILABLE'
+            || error.details?.transportCode !== 'ECONNREFUSED') throw error;
+        const verifier = validateRetainedService();
+        const processId = journal.serviceProcessId;
+        if (!Number.isSafeInteger(processId) || processId <= 0) throw error;
+        // Signal zero observes process existence only. Alive, inaccessible or reused PIDs
+        // remain pending; absence must be an actual ESRCH, never inferred from the port.
+        let absent = false;
+        try { process.kill(processId, 0); } catch (processError) {
+          absent = processError.code === 'ESRCH';
+        }
+        if (!absent) throw error;
+        const replacement = await replaceService(verifier, {
+          proof: { kind: 'process-not-found', processId },
+        });
+        firstUrl = replacement.presentation.url;
+      }
     } else {
+      await probeServiceTransport();
+      journal.serviceControlTokenHash = tokenHash(request.serviceControlToken);
       journal.serviceIntent = 'unknown';
       journal.presentation = { status: 'unknown' };
       save();
-      const service = await launchService({ location, actorId: request.actorId,
+      const { service, processId } = await launchService({ location, actorId: request.actorId,
         generation: observed.generation, leadToken: request.leadToken,
         serviceControlToken: request.serviceControlToken });
       const { ticketUrl, ...identity } = service;
       journal.service = identity;
+      journal.serviceProcessId = processId;
       retainedService = identity;
       journal.serviceIntent = 'known';
       save();
@@ -255,11 +345,28 @@ export async function activate(projectRoot, request) {
     }
     return { state: 'enabled', ...selected, taskId: task.id, boardId: observed.boardId,
       generation: observed.generation, service: journal.service,
+      identityBinding: request.leadPrincipal || worker?.executorKey ? 'observed' : 'unknown',
       presentation: { ...journal.presentation, ...(firstUrl ? { url: firstUrl } : {}) } };
   } catch (error) {
+    const transportCode = error.details?.transportCode;
+    let nextStep = 'Reconcile the indicated prerequisite or retained state; '
+      + 'do not reset or install automatically.';
+    if (['EACCES', 'EPERM'].includes(transportCode)) {
+      nextStep = 'Use explicitly authorized host execution with loopback permission; '
+        + 'reconcile retained state before retry.';
+    } else if (transportCode === 'ECONNREFUSED') {
+      nextStep = 'Reconcile the exact retained service with host listener and runner evidence, '
+        + 'then explicitly recover-service.';
+    } else if (error.code === 'LEAD_PRINCIPAL_BINDING_REQUIRED') {
+      nextStep = 'Read the current Board revision and explicitly bind-lead-principal using observed '
+        + 'native evidence. Preserve old allocations and frozen evidence; use stopped-owner transfer, '
+        + 'a fresh freeze and newly bound independent checks. Resume never backfills historical identity.';
+    }
     return { state: 'activation-pending', ...selected,
       ...(retainedService ? { service: retainedService } : {}),
       reasonCode: error.code ?? 'ACTIVATION_STATE_INVALID',
-      nextStep: 'Reconcile the indicated prerequisite or retained state; do not reset or install automatically.' };
+      ...(['EACCES', 'EPERM', 'ECONNREFUSED', 'ETIMEDOUT'].includes(transportCode)
+        ? { transportCode } : {}),
+      nextStep };
   } finally { release?.(); }
 }
