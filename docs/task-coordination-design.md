@@ -501,16 +501,21 @@ and no mounted Boards. Server/source and generated runtime equality are checked 
 
 Shared routes have one browser origin, so cookie Path alone cannot provide prior origin
 separation. A one-use ticket redirects to a Board-scoped fragment capability; the page captures
-it in a private closure and clears the URL. Protected snapshot and fetch-stream SSE require the
+it in a private closure and the current tab's route-bound history entry, then clears the URL.
+Protected snapshot and fetch-stream SSE require the
 capability and the matching HttpOnly session cookie. Neither a different Board's capability nor
 cookie alone authorizes access. Capability is not returned by public HTML or cookie-only APIs,
-not put into stream URLs and not stored in browser storage. CSP/static-only scripts and
+not put into stream URLs or origin-wide local/session storage. Browser history may persist the
+entry; it must not be described as memory-only. CSP/static-only scripts and
 frame-ancestors protection remain. This is explicit server-request isolation, not a promise of
 browser-origin sandbox equivalence after arbitrary same-origin script/window compromise.
 
 Public root, unknown Board entry and expired/uncredentialed entry show generic HTTP200 guidance
-without private names or enumeration. API denial remains HTTP401. Browser reload loses its
-in-memory capability and needs a fresh authorized entry. Native panel queued is not visible proof.
+without private names or enumeration. API denial remains HTTP401. Browser reload restores a valid
+capability only from the same route's history entry; 401 clears it. An expired or never-authorized
+entry needs explicit authenticated reopen-service, independently of any stale task contract.
+Reopen retains the two-minute ticket limit and binds record-open-result to its attempt ID.
+Native panel queued is not visible proof; delayed opening may require a fresh explicit reopen.
 This corrects the confusing bare-URL browser transport error while preserving data authorization.
 
 Migration order is authenticated old identity -> attach/verify new endpoint -> persist new

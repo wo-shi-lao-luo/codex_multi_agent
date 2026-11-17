@@ -50,6 +50,42 @@ test('SHARED.webClosedCapabilityAndSplitFetchStream', async () => {
   }
 });
 
+// A real reload starts a fresh JS closure with only the same history entry. Restore the
+// capability for exactly its Board route, preserve unrelated state and erase rejected access.
+test('SHARED.historyEntryRestoresOnlyItsBoardAndClearsOn401', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const vm = await import('node:vm');
+  const source=await readFile('packages/task-board/web/app.js','utf8');
+  const route=`/boards/${'12'.repeat(32)}/`,capability='ab'.repeat(32);
+  async function load(hash,entry,pathname=route,status=200) {
+    const requests=[],elements=new Map();
+    const element=()=>({textContent:'',value:'',checked:false,hidden:false,dataset:{},children:[],scrollLeft:0,
+      addEventListener(){},setAttribute(){},focus(){},append(...x){this.children.push(...x);},replaceChildren(...x){this.children=x;},querySelectorAll(){return [];}});
+    const location={pathname,hash};
+    const history={state:entry,replaceState(state,_title,url){this.state=state;location.hash='';assert.equal(url,pathname);}};
+    const context=vm.createContext({window:{location,history,addEventListener(){}},
+      document:{title:'',activeElement:null,createElement:element,getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);}},
+      AbortController,TextDecoder,setTimeout:()=>1,clearTimeout(){},fetch:async(url,options)=>{
+        requests.push({url,headers:options.headers});if(url!=='api/snapshot')return new Promise(()=>{});
+        return {status,ok:status===200,json:async()=>({schemaVersion:1,boardId:'fixture',generation:'g',revision:1,eventSeq:0,tasks:[],questions:[]})};
+      }});
+    vm.runInContext(source,context);await new Promise(r=>setImmediate(r));
+    return {history,requests,context};
+  }
+  const first=await load('#view='+capability,{unrelated:'preserved'});
+  assert.equal(first.history.state.taskBoardView.capability,capability);
+  assert.equal(first.history.state.unrelated,'preserved');
+  const reloaded=await load('',JSON.parse(JSON.stringify(first.history.state)));
+  assert.equal(reloaded.requests[0].headers['X-Task-Board-View'],capability);
+  assert.equal(vm.runInContext('typeof viewCapability',reloaded.context),'undefined');
+  const wrong=await load('',first.history.state,`/boards/${'34'.repeat(32)}/`,401);
+  assert.equal(wrong.requests[0].headers['X-Task-Board-View'],undefined);
+  assert.equal(wrong.history.state.taskBoardView,undefined);
+  const rejected=await load('',first.history.state,route,401);
+  assert.equal(rejected.history.state.taskBoardView,undefined);
+  assert.equal(rejected.history.state.unrelated,'preserved');
+});
+
 // Scenario: an authenticated page requests the shipped resources from an owned loopback server.
 // Expected: each trusted asset has nonempty HTTP 200 content of the declared MIME, anonymous
 // access is denied, and serving resources leaves the fixed read projection unchanged.

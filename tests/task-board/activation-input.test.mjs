@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, writeFile, cp, rm, readdir } from 'node:fs/promises';
 import { resolve, join, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { invoke, secret, sourcePath } from './helpers.mjs';
 import { checkFixturePath, requireLoopback, closeFixtureSharedRuntime } from './fixture-environment.mjs';
 
@@ -105,7 +106,7 @@ for (const [name, patch, missing, invalid] of [
       input: JSON.stringify({ ...f.request, ...patch }), encoding: 'utf8', timeout: 10000,
       env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(f.root) },
     });
-    assert.equal(child.status, 0, child.stderr);
+    assert.equal(child.status, 2, child.stderr);
     const result = JSON.parse(child.stdout).result;
     assert.equal(result.state, 'activation-pending');
     assert.equal(result.reasonCode, 'REQUEST_INVALID');
@@ -173,4 +174,38 @@ test('INPUT.prepare rejects empty native context without creating caller files',
   assert.equal(result.reasonCode, 'REQUEST_INVALID');
   assert.ok(result.missingFields.includes('sessionProfile.projectId'));
   assert.deepEqual(await readdir(f.root), before);
+});
+
+// Native callers can select approved new work without editing the old private authority.
+// Reject credential-shaped public overrides; a released old executor and fresh private claim
+// must produce the right new card through the actual copied PowerShell/CLI entrypoints.
+test('INPUT.TaskPathSelectsNewWorkAndRejectsAuthorityOverrides', async t => {
+  const f=await fixture(t),wrapper=await f.wrapper();
+  const retained=join(f.root,'retained.private.json'),taskPath=join(f.root,'new-task.json');
+  await writeFile(retained,JSON.stringify(f.request));const before=await readFile(retained);
+  const args=['-NoProfile','-File',wrapper,'-ProjectRoot',f.root,'-AgentsHome',resolve(dirname(process.execPath),'../../../../..'),
+    '-SharedRuntimeHome',join(f.root,'hub'),'-RequestPath',retained];
+  const run=extra=>spawnSync('pwsh',[...args,...extra],{encoding:'utf8',timeout:30000,
+    env:{...process.env,GIT_CEILING_DIRECTORIES:dirname(f.root)}});
+  const first=run([]);assert.equal(first.status,0,first.stdout+first.stderr);
+  const initial=JSON.parse(first.stdout).result;
+  const authority={actorId:f.request.actorId,leadToken:f.request.leadToken};
+  const boardCall=async(operation,data)=>{const r=await invoke(f.root,f.board,operation,{...authority,...data},{sessionKey:f.sessionKey});assert.equal(r.code,0,JSON.stringify(r.reply));return r.reply;};
+  const shown=(await boardCall('show',{taskId:f.request.task.id})).result;
+  await boardCall('release',{generation:initial.generation,operationId:randomUUID(),
+    taskId:f.request.task.id,taskRevision:shown.task.taskRevision,writesStopped:true,processStopped:true});
+  const spec={executionApproved:true,task:{...f.request.task,id:'new-work',title:'新的浏览器任务'}};
+  await writeFile(taskPath,JSON.stringify({...spec,leadToken:'ab'.repeat(32)}));
+  const denied=run(['-TaskPath',taskPath]);assert.equal(denied.status,2);
+  assert.equal(JSON.parse(denied.stdout).result.reasonCode,'TASK_INPUT_INVALID');
+  await writeFile(taskPath,JSON.stringify(spec));
+  const started=run(['-TaskPath',taskPath]);assert.equal(started.status,0,started.stdout+started.stderr);
+  const result=JSON.parse(started.stdout).result;assert.equal(result.state,'enabled');assert.equal(result.taskId,'new-work');
+  assert.notEqual(result.requestPath,retained);assert.deepEqual(await readFile(retained),before);
+  const next=JSON.parse(await readFile(result.requestPath,'utf8'));assert.equal(next.leadToken,f.request.leadToken);
+  assert.equal(next.serviceControlToken,f.request.serviceControlToken);assert.notEqual(next.claimToken,f.request.claimToken);
+  const replay=run(['-TaskPath',taskPath]);assert.equal(replay.status,0,replay.stdout+replay.stderr);
+  assert.equal(JSON.parse(replay.stdout).result.taskId,'new-work');
+  const snapshot=(await boardCall('inspect',{})).result;
+  assert.equal(snapshot.tasks.length,2);assert.equal(snapshot.assignments.filter(a=>a.active).length,1);
 });

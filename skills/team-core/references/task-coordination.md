@@ -57,6 +57,26 @@ Invoke the installed script with `-ProjectRoot <target-project>` and send bounde
 
 ### Preparing a complete request
 
+For a **new outcome on an existing Board**, reuse the private authority but select new
+work explicitly: `activate-board.ps1 -ProjectRoot <project> -RequestPath <retained-file>
+-TaskPath <approved-public-task.json>`. The public file contains `executionApproved: true`,
+`task` with a new ID and the approved contract, and optional `phase`, `progress`,
+`nextCheckpoint`; it cannot replace action, identity or credentials. The CLI
+`prepare-next-task` performs preparation only; the wrapper combines preparation with
+activation and returns the derived private `requestPath`. Retain that exact file for
+resume/report handoff. Lead/service credentials stay unchanged; the new task gets a
+new claim. Matching preparation retries reuse the same file; conflicting specs or an
+unrelated existing task ID are rejected. Do not overwrite the old request or restore
+old write scopes. Before starting new work, safely release/transfer an actual prior
+executor through the normal lifecycle; preparation does not bypass single-executor rules.
+
+`activation-pending` exits **2**, including wrapper failures. A parseable `ok: true`
+envelope is transport acknowledgment only. Inspect `state`, `activationScope` and
+`taskExecution`; prepared, service-only and presentation-only results do not authorize
+production work. TASK_CONTRACT_CHANGED is a stop for dependent execution, not a reason
+to continue without a card. Reconcile the same outcome explicitly, or prepare a genuinely
+new task. No helper can prevent an agent from ignoring this contract and writing directly.
+
 Complete this caller sequence before dependent work, rather than repeatedly sending an incomplete request:
 
 1. Resolve fresh native main-chat, host and project identity. When available, `CODEX_THREAD_ID`/`CODEX_SESSION_ID` are lookup hints to verify against native chat/project metadata, not substitutes for the full profile or permission to use a child's ID.
@@ -80,6 +100,24 @@ Activation and panel presentation are separate. The entry prepares at most the f
 Existing Boards without the helper's matching private handoff require explicit reconciliation; authentication alone does not authorize adopting unrelated task history. A lost first response leaves presentation unknown even if no URL was observed. An unreachable retained service remains pending until its ownership and actual outcome can be reconciled under the service recovery procedure below. Do not rotate caller credentials, remove the activation journal, clear locks or create replacement services to bypass these conditions.
 
 ### Service execution and recovery
+
+For an expired browser entry with a healthy service, use explicit `reopen-service` with
+the retained actor/session/Lead/service credentials and
+`servicePresentation: { expectedServiceId, evidenceRefs: [...] }`. It authenticates the
+Board and exact service, issues a fresh one-use ticket and returns
+`activationScope: presentation-only`, `taskExecution: not-resumed`, plus a presentation
+`attemptId`. It needs no task or claim and does not resume tasks, recover processes or
+relax the two-minute ticket expiry. Record the actual host result with this
+`presentationAttemptId`; older results cannot overwrite a newer attempt. A queued or
+expired entry remains presentation pending; an explicitly authorized retry obtains a
+new ticket rather than replaying the expired URL. Never report queued as visible.
+
+Shared pages keep the Board view capability in the current tab's `history.state`, bound
+to the exact route, so a reload can restore it after clearing the fragment. Both the
+HttpOnly cookie and per-Board header remain required; cookie-only access is denied.
+401 clears the saved capability. No localStorage or origin-wide sessionStorage is used.
+Browser history state is not an isolation boundary against arbitrary same-origin code
+and may be persisted by the browser; do not describe it as memory-only or never stored.
 
 The unified CLI uses a shared local service by default: one process/listener per selected trusted
 Agents runtime home, with each session mounted at `/boards/<sessionKey>/`. Each Board keeps its

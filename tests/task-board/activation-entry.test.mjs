@@ -48,8 +48,8 @@ async function fixture(t) {
       env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(root), CODEX_BOARD_SERVICE_HOME: join(root, 'hub') },
     });
     assert.equal(child.error, undefined, 'Activation must return without waiting for its detached service');
-    assert.equal(child.status, 0, child.stdout + child.stderr);
     const result = JSON.parse(child.stdout);
+    assert.equal(child.status, result.result?.state === 'activation-pending' ? 2 : 0, child.stdout + child.stderr);
     if (result.result?.service) service = result.result.service;
     for (const token of [request.leadToken, request.claimToken, request.serviceControlToken]) {
       assert.ok(!child.stdout.includes(token), 'Public response must not expose caller credentials');
@@ -225,7 +225,7 @@ test('ACTIVATION.wrapperRejectsConflictingRuntimeWithoutDownloading', async t =>
   await mkdir(target, { recursive: true });
   const child = spawnSync('pwsh', ['-NoProfile', '-File', wrapper, '-AgentsHome', fakeHome,
     '-ProjectRoot', f.root], { input: JSON.stringify(f.request), encoding: 'utf8', timeout: 15000 });
-  assert.equal(child.status, 0, child.stdout + child.stderr);
+  assert.equal(child.status, 2, child.stdout + child.stderr);
   const result = JSON.parse(child.stdout).result;
   assert.equal(result.state, 'activation-pending');
   assert.equal(result.reasonCode, 'RUNTIME_UNAVAILABLE');

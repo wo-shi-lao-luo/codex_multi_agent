@@ -1,9 +1,20 @@
-/** Read-only snapshot/SSE client. No credential storage, mutation or dispatch authority. */
+/** Read-only snapshot/SSE client. Only this history entry retains its Board capability. */
 'use strict';
 (() => {
 const sharedView = /^\/boards\/[a-f0-9]{64}\/$/.test(window.location.pathname);
-const viewCapability = sharedView ? /^#view=([a-f0-9]{64})$/.exec(window.location.hash)?.[1] : null;
-if (sharedView && window.location.hash) window.history.replaceState(null, '', window.location.pathname);
+const fragmentCapability = sharedView ? /^#view=([a-f0-9]{64})$/.exec(window.location.hash)?.[1] : null;
+const retainedView = sharedView ? window.history.state?.taskBoardView : null;
+const viewCapability = fragmentCapability ?? (sharedView && retainedView?.version === 1
+  && retainedView.routeBase === window.location.pathname && /^[a-f0-9]{64}$/.test(retainedView.capability)
+  ? retainedView.capability : null);
+if (sharedView && viewCapability) window.history.replaceState({ ...window.history.state,
+  taskBoardView: { version: 1, routeBase: window.location.pathname, capability: viewCapability } }, '', window.location.pathname);
+else if (sharedView && window.location.hash) window.history.replaceState(null, '', window.location.pathname);
+function forgetView() {
+  if (!sharedView) return;
+  const { taskBoardView, ...rest } = window.history.state ?? {};
+  window.history.replaceState(rest, '', window.location.pathname);
+}
 const viewHeaders = () => sharedView && viewCapability ? { 'X-Task-Board-View': viewCapability } : {};
 
 const ui = Object.fromEntries([
@@ -442,7 +453,7 @@ async function subscribeShared(cursor) {
   try {
     const response = await fetch(`api/events?after=${encodeURIComponent(cursor)}`, {
       headers: viewHeaders(), credentials: 'same-origin', signal: controller.signal, cache: 'no-store' });
-    if (response.status === 401) { state.stopped = true; connection('访问凭据已失效 · 请通过授权入口重新打开'); return; }
+    if (response.status === 401) { forgetView(); state.stopped = true; connection('访问凭据已失效 · 请让本会话重新打开看板'); return; }
     if (!response.ok || !response.body) throw Error('Stream unavailable');
     state.attempt = 0; connection('实时连接正常');
     const reader = response.body.getReader(), decoder = new TextDecoder();
@@ -480,6 +491,7 @@ async function refresh(full = true) {
       cache: 'no-store', signal: controller.signal });
     if (request !== state.request) return;
     if (response.status === 401) {
+      forgetView();
       state.stopped = true;
       state.stream?.close();
       clearTimeout(state.timer);

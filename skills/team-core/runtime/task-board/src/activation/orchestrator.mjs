@@ -9,7 +9,7 @@ import { inspectPath } from '../storage/paths.mjs';
 import { protectArtifacts } from '../coordination/artifact-protection.mjs';
 import { probeRuntime } from '../runtime/preflight.mjs';
 import { tokenHash } from '../coordination/service.mjs';
-import { serviceStatus, stopService } from '../server/control.mjs';
+import { serviceStatus, serviceOpen, stopService } from '../server/control.mjs';
 import { attachSharedService } from './shared-service.mjs';
 import { sharedHome } from './shared-registry.mjs';
 import { callCli } from './transport.mjs';
@@ -95,7 +95,7 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
   try {
     const issues = requestIssues(request);
     if (issues.missingFields.length || issues.invalidFields.length) return invalidRequest(issues);
-    if (!request || !['activate', 'resume', 'recover-service', 'migrate-service', 'record-open-result'].includes(request.action)
+    if (!request || !['activate', 'resume', 'recover-service', 'reopen-service', 'migrate-service', 'record-open-result'].includes(request.action)
         || typeof request.actorId !== 'string' || !request.actorId) fail('INVALID_INPUT');
     const profile = normalizeSessionProfile(request.sessionProfile);
     selected = sessionLocation(profile);
@@ -107,17 +107,18 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
     const lockPath = inspectPath(path.join(directory, 'activation.lock'));
     const runtime = await probeRuntime();
     if (!runtime.available) fail(runtime.reasonCode);
-    const credentials = ['recover-service', 'migrate-service'].includes(request.action)
+    const credentials = ['record-open-result', 'recover-service', 'reopen-service', 'migrate-service'].includes(request.action)
       ? ['leadToken', 'serviceControlToken'] : ['leadToken', 'claimToken', 'serviceControlToken'];
     for (const field of credentials) tokenHash(request[field]);
     if (!/^[a-fA-F0-9]{64,256}$/.test(request.serviceControlToken)) fail('INVALID_INPUT');
     const publicText = JSON.stringify({ task: request.task, phase: request.phase,
       progress: request.progress, nextCheckpoint: request.nextCheckpoint,
-      serviceRecovery: request.serviceRecovery, serviceMigration: request.serviceMigration, leadPrincipal: request.leadPrincipal });
+      serviceRecovery: request.serviceRecovery, servicePresentation: request.servicePresentation,
+      serviceMigration: request.serviceMigration, leadPrincipal: request.leadPrincipal });
     if (['leadToken', 'claimToken', 'serviceControlToken'].some(field =>
       typeof request[field] === 'string' && request[field].length > 0
         && publicText.includes(request[field]))) fail('CREDENTIAL_IN_PUBLIC_CONTEXT');
-    if (!['record-open-result', 'recover-service', 'migrate-service'].includes(request.action) && (request.executionApproved !== true
+    if (!['record-open-result', 'recover-service', 'reopen-service', 'migrate-service'].includes(request.action) && (request.executionApproved !== true
         || !request.task?.id || !request.task.title || !request.task.outcome
         || !request.task.sourceRefs?.length || !request.task.acceptanceRefs?.length)) {
       fail('EXECUTION_APPROVAL_REQUIRED');
@@ -127,7 +128,7 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
     // Authenticate existing data before touching ignore policy, journal or lock files.
     let observed;
     if (fs.existsSync(database)) observed = await call('inspect', {});
-    if (['record-open-result', 'recover-service', 'migrate-service'].includes(request.action)
+    if (['record-open-result', 'recover-service', 'reopen-service', 'migrate-service'].includes(request.action)
         && (!observed || !fs.existsSync(journalPath))) {
       fail('ACTIVATION_HANDOFF_REQUIRED');
     }
@@ -286,6 +287,17 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
           ? { legacyCleanupTransportCode: cleanupTransportCode } : {}),
         presentation: { status: 'unknown', url } };
     };
+    if (request.action === 'reopen-service') {
+      validateRetainedService();
+      if (retainedService.serviceId !== request.servicePresentation.expectedServiceId) fail('ACTIVATION_CONTEXT_MISMATCH');
+      await serviceStatus({...retainedService,serviceControlToken:request.serviceControlToken});
+      const attemptId=randomUUID();
+      journal.presentation={status:'unknown',attemptId};save();
+      const entry=await serviceOpen({...retainedService,serviceControlToken:request.serviceControlToken});
+      return {state:'enabled',...selected,boardId:observed.boardId,generation:observed.generation,
+        activationScope:'presentation-only',taskExecution:'not-resumed',service:retainedService,
+        presentation:{status:'unknown',attemptId,url:entry.ticketUrl,ticketExpiresAt:entry.ticketExpiresAt}};
+    }
     if (request.action === 'migrate-service') return await migrate(request.serviceMigration);
     if (request.action === 'recover-service') {
       const verifier = validateRetainedService();
@@ -313,9 +325,10 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
       ...input,
     });
     if (request.action === 'record-open-result') {
+      if (journal.presentation?.attemptId && request.presentationAttemptId !== journal.presentation.attemptId) fail('PRESENTATION_CONFLICT');
       if (!['queued', 'opened', 'link-only', 'unknown'].includes(request.presentationOutcome)
           || journal.presentation.status !== 'unknown') fail('PRESENTATION_CONFLICT');
-      journal.presentation = { status: request.presentationOutcome };
+      journal.presentation = { ...journal.presentation, status: request.presentationOutcome };
       save();
       return { state: 'enabled', ...selected, presentation: journal.presentation };
     }
@@ -464,9 +477,10 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
     } else if (error.code === 'TASK_CONTRACT_CHANGED') {
       nextStep = 'The task contract requires explicit reconciliation; no task execution was resumed. '
         + 'For display-only recovery, use recover-service with the exact retained service identity, '
-        + 'credentials and fresh host-confirmed stop evidence. Do not restore an obsolete task scope.';
+        + 'credentials and fresh host-confirmed stop evidence. For a healthy display use reopen-service; '
+        + 'for a new outcome prepare-next-task (wrapper -TaskPath). Do not restore an obsolete task scope.';
     }
-    return { state: 'activation-pending', ...selected,
+    return { state: 'activation-pending', taskExecution:'not-resumed', ...selected,
       ...(retainedService ? { service: retainedService } : {}),
       reasonCode: error.code ?? 'ACTIVATION_STATE_INVALID',
       ...(['EACCES', 'EPERM', 'ECONNREFUSED', 'ETIMEDOUT'].includes(transportCode)

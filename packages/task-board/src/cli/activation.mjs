@@ -2,6 +2,7 @@
 /** Finite activation entry; the owned read-only service has a separate lifetime. */
 import { activate } from '../activation/orchestrator.mjs';
 import { prepareRequest } from '../activation/prepare.mjs';
+import { prepareNextTask, readPreparedTask } from '../activation/next-task.mjs';
 import { sharedHome } from '../activation/shared-registry.mjs';
 
 let reply;
@@ -10,7 +11,9 @@ try {
   if (args.length === 1 && args[0] === '--help') {
     process.stdout.write(`${JSON.stringify({ schemaVersion: 1, operation: 'activation-help',
       requiredFlags: ['--project-root', '--stdin'],
-      actions: ['activate', 'resume', 'recover-service', 'migrate-service', 'record-open-result', 'prepare-request'],
+      actions: ['activate', 'resume', 'recover-service', 'reopen-service', 'migrate-service', 'record-open-result', 'prepare-request', 'prepare-next-task'],
+      nextTask: 'prepare-next-task or nextTask on an activate request explicitly selects approved new work with retained Board credentials; wrapper -TaskPath supplies the public spec.',
+      presentationOnly: { action:'reopen-service', requiredFields:['servicePresentation.expectedServiceId','servicePresentation.evidenceRefs'], result:'presentation-only; taskExecution:not-resumed' },
       sharedService: { default: true, perBoardRoute: '/boards/<sessionKey>/',
         serviceMigration: { expectedServiceId: 'retained legacy service ID', evidenceRefs: ['authorized migration'],
           confirmedStopped: 'required only if the legacy endpoint is already refused' } },
@@ -27,7 +30,7 @@ try {
         claimTokenRequired: false, executionApprovalRequired: false,
         result: { state: 'enabled', activationScope: 'service-only', taskExecution: 'not-resumed' } },
       optionalFields: ['task.scope', 'task.responsibilities', 'task.requiredSkills',
-        'phase', 'progress', 'nextCheckpoint', 'presentationOutcome', 'leadPrincipal'],
+        'phase', 'progress', 'nextCheckpoint', 'presentationOutcome', 'presentationAttemptId', 'leadPrincipal'],
       leadPrincipalShape: { hostId: 'observed host matching sessionProfile.hostId',
         agentId: 'observed main session matching sessionProfile.mainSessionId',
         evidenceRefs: ['reference to actual native observation'] },
@@ -52,12 +55,24 @@ try {
   }
   // Decode only after concatenation: a UTF-8 character may span stdin chunks.
   const request = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-  reply = request.action === 'prepare-request' ? prepareRequest(args[1], request)
-    : await activate(args[1], request, { serviceMode: 'shared',
+  if (request.action === 'prepare-request') reply=prepareRequest(args[1],request);
+  else if (request.action === 'prepare-next-task' || Object.hasOwn(request,'nextTask')) {
+    if (!['prepare-next-task','activate','resume'].includes(request.action)) throw Object.assign(Error(),{code:'NEXT_TASK_INVALID'});
+    reply=await prepareNextTask(args[1],request);
+    if (reply.state==='prepared' && request.action!=='prepare-next-task') {
+      const preparedPath=reply.requestPath;
+      const prepared=readPreparedTask(preparedPath,reply.requestDigest);
+      reply=await activate(args[1],prepared,{serviceMode:'shared',sharedRuntimeHome:process.env.CODEX_BOARD_SERVICE_HOME??sharedHome()});
+      reply.requestPath=preparedPath;
+    }
+  } else reply=await activate(args[1], request, { serviceMode: 'shared',
       sharedRuntimeHome: process.env.CODEX_BOARD_SERVICE_HOME ?? sharedHome() });
 } catch (error) {
-  reply = { state: 'activation-pending', reasonCode: error.code ?? 'INVALID_INPUT',
+  reply = { state: 'activation-pending', taskExecution:'not-resumed', reasonCode: error.code ?? 'INVALID_INPUT',
     nextStep: 'Inspect the activation prerequisites; no automatic reset or installation.' };
 }
+if (reply.state==='activation-pending') reply.taskExecution='not-resumed';
 process.stdout.write(`${JSON.stringify({ schemaVersion: 1, operation: 'activation',
   ok: true, result: reply })}\n`);
+// A parseable protocol envelope does not mean execution was authorized.
+if (reply.state === 'activation-pending') process.exitCode=2;

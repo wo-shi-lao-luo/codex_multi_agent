@@ -1,7 +1,7 @@
 # Finite activation wrapper. Read JSON from stdin; never install or persist credentials.
 #requires -Version 7.0
 [CmdletBinding()]
-param([string]$ProjectRoot, [string]$AgentsHome, [string]$RequestPath,
+param([string]$ProjectRoot, [string]$AgentsHome, [string]$RequestPath, [string]$TaskPath,
   [string]$SharedRuntimeHome, [switch]$Help)
 $ErrorActionPreference = 'Stop'
 # Windows .NET 10 Process.Start inherits unrelated inheritable handles as well as its redirected
@@ -94,6 +94,19 @@ try {
       }
     } finally { if ($RequestPath) { $stream.Dispose() } }
     if ($length -gt 262144) { throw 'INPUT_TOO_LARGE' }
+    if ($TaskPath) {
+      if (-not $RequestPath) { throw 'TASK_INPUT_INVALID' }
+      $taskFile = Get-Item -LiteralPath ([IO.Path]::GetFullPath($TaskPath)) -Force
+      if ($taskFile.Length -gt 262144 -or $taskFile.PSIsContainer -or ($taskFile.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'TASK_INPUT_INVALID' }
+      $taskSpec = [IO.File]::ReadAllText($taskFile.FullName) | ConvertFrom-Json -AsHashtable
+      if ($taskSpec -isnot [Collections.IDictionary] -or @($taskSpec.Keys | Where-Object { $_ -cnotin @('executionApproved','task','phase','progress','nextCheckpoint') }).Count) { throw 'TASK_INPUT_INVALID' }
+      $retainedRequest = [Text.Encoding]::UTF8.GetString($buffer,0,$length) | ConvertFrom-Json -AsHashtable
+      if ($retainedRequest['action'] -cnotin @('activate','resume')) { throw 'TASK_INPUT_INVALID' }
+      $retainedRequest['nextTask'] = $taskSpec
+      $buffer = [Text.Encoding]::UTF8.GetBytes(($retainedRequest | ConvertTo-Json -Depth 30 -Compress))
+      $length = $buffer.Length
+      if ($length -gt 262144) { throw 'INPUT_TOO_LARGE' }
+    }
   }
   $phase = 'launch'
   $child = Start-BoardActivationProcess $info
@@ -121,13 +134,14 @@ try {
   } finally { $child.Dispose() }
 } catch {
   $safeReasons = @('INPUT_TOO_LARGE', 'ACTIVATION_TIMEOUT', 'ACTIVATION_RESPONSE_UNKNOWN',
-    'PIPE_ISOLATION_FAILED', 'PROJECT_ROOT_REQUIRED')
+    'PIPE_ISOLATION_FAILED', 'PROJECT_ROOT_REQUIRED', 'TASK_INPUT_INVALID')
   $reason = if ($_.Exception.Message -cin $safeReasons) { $_.Exception.Message }
     elseif ($phase -eq 'runtime') { 'RUNTIME_UNAVAILABLE' }
     elseif ($phase -eq 'launch') { 'PIPE_ISOLATION_FAILED' }
     else { 'ACTIVATION_OUTCOME_UNKNOWN' }
   @{schemaVersion=1;operation='activation';ok=$true;result=@{
-    state='activation-pending';reasonCode=$reason;
+    state='activation-pending';taskExecution='not-resumed';reasonCode=$reason;
     nextStep='Inspect the indicated prerequisite or retained activation outcome; do not reset or install automatically.'
   }} | ConvertTo-Json -Compress -Depth 4
+  exit 2
 }

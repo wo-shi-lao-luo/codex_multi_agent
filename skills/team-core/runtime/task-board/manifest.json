@@ -14,8 +14,12 @@
       "sha256": "8ce1d0277a1a981cc4cb5f6f43e5e3e85373d6201aa1742a28b5b8996d633f0f"
     },
     {
+      "path": "packages/task-board/src/activation/next-task.mjs",
+      "sha256": "794716205c4cd760830225360a8be7d7c16ca180aec34918be5f3ce5ee66e023"
+    },
+    {
       "path": "packages/task-board/src/activation/orchestrator.mjs",
-      "sha256": "0e03c341718138d289c7784d73e8987204426f1f66c4fc3446863ad3fac99bac"
+      "sha256": "f4efb81ec2de6d20f13a082cbe16c7e10ef170a147f5e4d611412eea1d937d54"
     },
     {
       "path": "packages/task-board/src/activation/prepare.mjs",
@@ -23,7 +27,7 @@
     },
     {
       "path": "packages/task-board/src/activation/request.mjs",
-      "sha256": "2582afacc3e8674639597658d93665426138aea862c025609a9cd6ff219edbeb"
+      "sha256": "11578802599037d96ca8ff77158b5aa231be5494341738d746fbaad1141ec5dd"
     },
     {
       "path": "packages/task-board/src/activation/service-recovery.mjs",
@@ -51,7 +55,7 @@
     },
     {
       "path": "packages/task-board/src/cli/activation.mjs",
-      "sha256": "900bb4320ab0a1cfb15715edd59be06e0cdb7904dc203c950bdc007bba8c39a3"
+      "sha256": "2bf3fad3cd15bd11f9ae75ffa9ff5e74664110b7e3c473b221a84df5f0e9e8fa"
     },
     {
       "path": "packages/task-board/src/cli/cli.mjs",
@@ -239,7 +243,7 @@
     },
     {
       "path": "packages/task-board/web/app.js",
-      "sha256": "6a148bc5341c963889f4d80b5ec765f7703f0efb964d68d0dd554c3cbdd58407"
+      "sha256": "8f5c1e38f9d1a57dc8cfc36ab8d0b86d4cdf212a3b64979f926315bd1e99c981"
     },
     {
       "path": "packages/task-board/web/index.html",
@@ -264,8 +268,12 @@
       "sha256": "8ce1d0277a1a981cc4cb5f6f43e5e3e85373d6201aa1742a28b5b8996d633f0f"
     },
     {
+      "path": "src/activation/next-task.mjs",
+      "sha256": "794716205c4cd760830225360a8be7d7c16ca180aec34918be5f3ce5ee66e023"
+    },
+    {
       "path": "src/activation/orchestrator.mjs",
-      "sha256": "0e03c341718138d289c7784d73e8987204426f1f66c4fc3446863ad3fac99bac"
+      "sha256": "f4efb81ec2de6d20f13a082cbe16c7e10ef170a147f5e4d611412eea1d937d54"
     },
     {
       "path": "src/activation/prepare.mjs",
@@ -273,7 +281,7 @@
     },
     {
       "path": "src/activation/request.mjs",
-      "sha256": "2582afacc3e8674639597658d93665426138aea862c025609a9cd6ff219edbeb"
+      "sha256": "11578802599037d96ca8ff77158b5aa231be5494341738d746fbaad1141ec5dd"
     },
     {
       "path": "src/activation/service-recovery.mjs",
@@ -301,7 +309,7 @@
     },
     {
       "path": "src/cli/activation.mjs",
-      "sha256": "900bb4320ab0a1cfb15715edd59be06e0cdb7904dc203c950bdc007bba8c39a3"
+      "sha256": "2bf3fad3cd15bd11f9ae75ffa9ff5e74664110b7e3c473b221a84df5f0e9e8fa"
     },
     {
       "path": "src/cli/cli.mjs",
@@ -489,7 +497,7 @@
     },
     {
       "path": "web/app.js",
-      "sha256": "6a148bc5341c963889f4d80b5ec765f7703f0efb964d68d0dd554c3cbdd58407"
+      "sha256": "8f5c1e38f9d1a57dc8cfc36ab8d0b86d4cdf212a3b64979f926315bd1e99c981"
     },
     {
       "path": "web/index.html",
