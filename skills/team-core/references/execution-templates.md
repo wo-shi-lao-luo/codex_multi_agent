@@ -65,6 +65,7 @@ Attach to the Work contract and reuse its references across stages; no separate 
 ```text
 Audience and primary user task:
 Page/flow and stage scope within the product:
+Task object/state -> action -> expected visible consequence and recovery (when interaction changes; see ui-design-and-evaluation.md):
 Content and action priorities:
 Visual baseline, existing pages/components/styles and reference paths:
 Page/flow owner and authorized page/shared-style files:

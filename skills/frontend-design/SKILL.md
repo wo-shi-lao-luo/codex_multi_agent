@@ -1,6 +1,6 @@
 ---
 name: frontend-design
-description: Provide concrete design guidance and refine web interfaces with clear hierarchy, consistent styling and usable interactions. Use for page design requests and visible UI implementation; pair with frontend-engineering when implementing, not for backend-only work or inferred redesigns.
+description: Design and assess web interfaces and user flows with clear hierarchy, consistent styling and usable interactions. Use for UI/UX design, rendered-page assessment and interaction diagnosis; pair with frontend-engineering when implementing, not for backend-only work or inferred redesigns.
 ---
 
 # Frontend design
@@ -14,6 +14,13 @@ Use for design proposals when the user asks to design or adjust a page, for a mi
 ## Establish a lightweight baseline
 
 Read the UI brief and inspect available existing pages, components and style definitions before designing. Identify the audience, primary task, content priorities and supported screens. Preserve explicit user choices and established brand language. References guide relevant qualities, not wholesale copying of content or assets.
+
+Use [task-driven design and evaluation](../team-core/references/ui-design-and-evaluation.md)
+when defining a material flow or diagnosing UI/UX. Trace the user's starting state,
+object/scope, action, visible consequence and next/recovery step. Use that chain to
+set information priority, layout and component states; typography and spacing alone
+do not define the design. Reuse the existing brief rather than creating another
+mandatory document, and preserve the product's supported sizes and visual baseline.
 
 Without an established system, describe a concise baseline for the brief: type hierarchy, spacing rhythm, content width/grid, density, neutral and accent colors, status colors, borders/radii and component states. Implement reusable tokens/components only when implementation is assigned. Prefer familiar, clear interaction patterns and a restrained, coherent appearance. Choose density for the task: an operations table is not a marketing hero. Do not impose gradients, giant headlines, identical cards or decorative animation on every brief.
 
@@ -33,6 +40,12 @@ For an assigned design-only proposal, make the brief concrete enough for an engi
 ## Inspect and refine
 
 Follow the UI delivery contract's rendered-page checks for implementation. The engineer remains responsible for required rendered verification. When assigned, Designer may provide a bounded visual check against the selected design at handoff; this is a design comparison, not another functional test or user-acceptance gate. Inspect the assembled page and core interactions at declared viewports with realistic content and relevant states. Fix specific problems and re-inspect; passing component tests or taking an unexamined screenshot is insufficient. Keep functional evidence and visual status separate. If browser inspection is unavailable, report `not verified` without blocking unrelated safe implementation or claiming visual readiness.
+
+For an assessment, carry out representative task transitions and distinguish
+confirmed defects, usability hypotheses, requirement questions and preferences.
+Check ambiguous tool findings against the actual interface. Agent inspection and
+provider scores do not establish representative-user behavior or measured design
+improvement; retain successful behavior and unobserved states as well as issues.
 
 ## Return paths
 

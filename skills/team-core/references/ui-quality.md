@@ -20,6 +20,12 @@ Use the UI brief in [execution templates](execution-templates.md), not a separat
 
 Use the [frontend-design Skill](../../frontend-design/SKILL.md) for concrete design decisions and refinement. When implementing, the frontend engineer also uses [frontend-engineering](../../frontend-engineering/SKILL.md) for maintainable implementation. For applicable assigned UI/design work, follow the [Impeccable adapter](impeccable-integration.md) and its linked [workflow guide](impeccable-usage.md); it distinguishes an absent provider, inaccessible known installation, and an engine operation failure. Do not silently skip accessible, relevant provider guidance. Ask only for a consequential brand, redesign or scope decision, or when the user requested approval.
 
+For a material flow design or UI/UX diagnosis, use the relevant parts of
+[task-driven design and evaluation](ui-design-and-evaluation.md). Ground the brief
+in a representative task, object/state transitions, expected visible consequences
+and recovery. This operational method supplements the existing ownership and
+evidence contract; it adds no mandatory study, report, score or role to a small fix.
+
 Within authorized scope, typography, spacing, responsive layout and component-state polish are normal implementation, not optional extras requiring repeated approval. If coherent delivery requires an unassigned shared style or layout file, request a bounded ownership adjustment from the Lead. Do not patch around it with local overrides or cross another writer's ownership. New dependencies, design-system replacement, unrelated changes and structural refactoring retain their existing approval requirements.
 
 ## Build and integrate
@@ -33,6 +39,14 @@ The owner delivers the complete assigned experience, including loading, empty, f
 Functional tests and builds do not establish visual quality. For applicable changes, use available browser tools to inspect the actual rendered, integrated page, including below the fold and important interaction states. Cover declared desktop and narrow-screen sizes unless the supported environment has a justified narrower scope. Use representative content, long labels/text and realistic data density. Do not expose sensitive production data or perform unapproved external actions to obtain evidence.
 
 Check purpose and primary action clarity; hierarchy, alignment, spacing, typography and component consistency; overflow and responsive behavior; loading/empty/error recovery; keyboard focus, readable contrast and feedback for core actions. Apply these against the brief rather than personal taste. Capture screenshots when supported, actually inspect them, and record page/route, viewport, state and concrete observations. Screenshots without inspection, self-awarded scores and screenshot-diff tests alone are not acceptance evidence.
+
+Inspect a representative chain of actual actions, including meaningful switches or
+failure/recovery steps where relevant, rather than judging disconnected screens.
+Confirm that final feedback and reachable next actions match the real outcome.
+Separate confirmed failures from hypotheses and preferences; cross-check ambiguous
+automation signals and apply technical criteria with their conditions/exceptions.
+Preserve supported-size results separately from exploratory observations and keep
+unobserved states explicit.
 
 Fix observed in-scope defects and re-inspect affected results. Do not require an arbitrary number of polish loops or repeatedly redesign an adequate page. If remaining repairs exceed authorization, report the specific gap and needed decision.
 

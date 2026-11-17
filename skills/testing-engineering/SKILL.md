@@ -35,6 +35,13 @@ Do not use to impose a generic coverage target, create tests solely to increase 
 
 Use the task's approved expected-behavior source as the QA oracle; ask the Lead to resolve missing or conflicting authority rather than treating implementation as truth. Assigned cases are a minimum: make bounded observations of relevant adjacent user-facing behavior, not a full-app audit. Apply the canonical [QA input, finding and handoff guidance](../team-core/references/test-acceptance-contract.md#qa-inputs-and-user-perspective-verification); observations do not grant repair authority or expand scope.
 
+For UI/UX verification, use [task-driven evaluation](../team-core/references/ui-design-and-evaluation.md)
+to select meaningful transitions and counterexamples. Observe discoverability,
+object/scope, actual effects, final feedback and a workable next step; interleave
+switches or source changes when continuity is the risk. Keep product failures,
+tool limitations, supported versus exploratory environments, and inspection versus
+real-user evidence distinct. Retest the original observed consequence after repair.
+
 ## Build a test contract
 
 For an enabled OpenSpec project, apply the [spec lifecycle](../team-core/references/spec-lifecycle.md). Map requirement/scenario and task IDs to CASE IDs in the existing stage packet, cover changes/removals with regression evidence, and reassess results whenever the specification snapshot changes. Keep test results only in packets; the association index stores links, not duplicate outcomes. Agent verification never fabricates user acceptance.

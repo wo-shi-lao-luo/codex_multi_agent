@@ -55,4 +55,14 @@ foreach ($invariant in @('must-fix', 'human-decision', 'optional', 'unproven',
 }
 Assert-Contains 'skills/team-core/references/execution-templates.md' 'Disposition and human decision' 'Handoff must retain actionable decisions'
 
+# Scenario: design, implementation, testing and review use the same packaged UI method.
+# Expected: each real entrypoint reaches the authoritative UI contract and its guide.
+# This is context-routing evidence, not a test of model judgment or user experience.
+foreach ($entry in @('frontend-design', 'frontend-engineering', 'testing-engineering', 'code-review')) {
+  Assert-Contains "skills/$entry/SKILL.md" '](../team-core/references/ui-quality.md)' 'UI contract must be reachable from its consumers'
+}
+Assert-Contains 'skills/team-core/references/ui-quality.md' '](ui-design-and-evaluation.md)' 'UI contract must expose the shared design and diagnosis method'
+$uiMethodPath = Join-Path $root 'skills/team-core/references/ui-design-and-evaluation.md'
+if (-not (Test-Path -LiteralPath $uiMethodPath -PathType Leaf)) { throw 'ASSERTION_FAILED: Missing packaged UI design and diagnosis method' }
+
 Write-Host 'PASS: review context source contracts (model behavior not tested)'
