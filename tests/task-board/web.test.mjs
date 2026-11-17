@@ -3,6 +3,53 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { serve } from '../../packages/task-board/src/server/server.mjs';
 
+// Legacy text/projection unit probes hoist the app closure only inside their isolated VM.
+// They do not test browser authorization; shared capability tests use the unmodified source.
+function legacyProjectionSource(source) {
+  return "window.location = { pathname: '/', hash: '' };\n" + source
+    .replace('(() => {\n', '').replace(/\}\)\(\);\s*$/, '');
+}
+
+// Execute the untouched app: private capability is cleared from URL, carried in headers,
+// and split SSE frames invalidate the view without placing credentials in URLs/globals.
+test('SHARED.webClosedCapabilityAndSplitFetchStream', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const vm = await import('node:vm');
+  const element = () => ({ textContent: '', value: '', checked: false, hidden: false,
+    dataset: {}, children: [], scrollLeft: 0, addEventListener() {}, setAttribute() {}, focus() {},
+    append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; },
+    querySelectorAll() { return []; } });
+  const elements = new Map(), callbacks = [], requests = [];
+  const capability = 'ab'.repeat(32), route = `/boards/${'12'.repeat(32)}/`;
+  let cleared;
+  const context = vm.createContext({
+    document: { title: '', activeElement: null, createElement: element,
+      getElementById(id) { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); } },
+    window: { location: { pathname: route, hash: '#view=' + capability },
+      history: { replaceState(_state, _title, url) { cleared = url; } }, addEventListener() {} },
+    AbortController, TextDecoder, setTimeout(fn, ms) { if (ms === 150) callbacks.push(fn); return 1; }, clearTimeout() {},
+    fetch: async (url, options) => {
+      requests.push({ url, headers: options.headers });
+      if (url === 'api/snapshot') return { ok: true, status: 200, json: async () => ({ schemaVersion: 1,
+        boardId: 'fixture', generation: 'g', revision: 1, eventSeq: 0, tasks: [], questions: [] }) };
+      const chunks = ['event: cha', 'nge\ndata: {}\n\nevent: change\ndata: {}\n\n']; let n = 0;
+      return { ok: true, status: 200, body: { getReader: () => ({ read: () => n < chunks.length
+        ? Promise.resolve({ done: false, value: new TextEncoder().encode(chunks[n++]) }) : new Promise(() => {}) }) } };
+    },
+  });
+  vm.runInContext(await readFile('packages/task-board/web/app.js', 'utf8'), context);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(cleared, route);
+  assert.equal(vm.runInContext('typeof viewCapability', context), 'undefined');
+  assert.equal(vm.runInContext('typeof state', context), 'undefined');
+  assert.equal(requests.length, 2);
+  assert.equal(callbacks.length, 1, 'Split/coalesced stream changes enqueue one refresh');
+  for (const request of requests) {
+    assert.equal(request.headers['X-Task-Board-View'], capability);
+    assert.ok(!request.url.includes(capability)); assert.ok(!request.url.startsWith('/'));
+  }
+});
+
 // Scenario: an authenticated page requests the shipped resources from an owned loopback server.
 // Expected: each trusted asset has nonempty HTTP 200 content of the declared MIME, anonymous
 // access is denied, and serving resources leaves the fixed read projection unchanged.
@@ -90,7 +137,7 @@ test('P3.trustedAssets', async t => {
 test('P3.approvalHoldClassification', async () => {
   const { readFile } = await import('node:fs/promises');
   const vm = await import('node:vm');
-  const source = await readFile('packages/task-board/web/app.js', 'utf8');
+  const source = legacyProjectionSource(await readFile('packages/task-board/web/app.js', 'utf8'));
   const context = vm.createContext({
     document: { getElementById: () => ({ addEventListener() {} }) },
     window: { addEventListener() {} },
@@ -135,7 +182,7 @@ test('P3.approvalHoldDetailText', async () => {
     window: { addEventListener() {} }, AbortController,
     fetch: () => new Promise(() => {}), setTimeout: () => 0, clearTimeout() {},
   });
-  vm.runInContext(await readFile('packages/task-board/web/app.js', 'utf8'), context,
+  vm.runInContext(legacyProjectionSource(await readFile('packages/task-board/web/app.js', 'utf8')), context,
     { filename: 'production-web-app.js' });
   const actual = JSON.parse(vm.runInContext(`
     state.snapshot = { tasks: [{ id: 'held', title: 'held' }], questions: [
@@ -170,7 +217,7 @@ test('P3.humanQuestionAnswerDetail', async () => {
     window: { addEventListener() {} }, AbortController,
     fetch: () => new Promise(() => {}), setTimeout: () => 0, clearTimeout() {},
   });
-  vm.runInContext(await readFile('packages/task-board/web/app.js', 'utf8'), context,
+  vm.runInContext(legacyProjectionSource(await readFile('packages/task-board/web/app.js', 'utf8')), context,
     { filename: 'production-web-app.js' });
   const result = JSON.parse(vm.runInContext(`
     state.snapshot = { tasks: [{ id: 'held', title: '审批示例' }], questions: [{
@@ -239,7 +286,7 @@ test('P3.sessionTitleSnapshotRefresh', async () => {
     setTimeout: () => 1, clearTimeout() {},
     EventSource: class { addEventListener() {} close() {} },
   });
-  vm.runInContext(await readFile('packages/task-board/web/app.js', 'utf8'), context,
+  vm.runInContext(legacyProjectionSource(await readFile('packages/task-board/web/app.js', 'utf8')), context,
     { filename: 'production-web-app.js' });
   await vm.runInContext('refresh(false)', context);
   assert.equal(vm.runInContext('state.snapshot.revision', context), 1,
@@ -290,7 +337,7 @@ test('Usability.webSummaryReportTimeAndScope', async () => {
   const context = vm.createContext({ document, window: { addEventListener() {} }, AbortController,
     fetch: async () => ({ ok: true, status: 200, json: async () => structuredClone(snapshot) }),
     setTimeout: () => 1, clearTimeout() {}, EventSource: class { addEventListener() {} close() {} } });
-  vm.runInContext(await readFile('packages/task-board/web/app.js', 'utf8'), context);
+  vm.runInContext(legacyProjectionSource(await readFile('packages/task-board/web/app.js', 'utf8')), context);
   await vm.runInContext('refresh(false)', context);
   assert.equal(vm.runInContext('state.snapshot.revision', context), 1,
     'Whole real app must apply the snapshot before checking new usability behavior');
@@ -344,7 +391,7 @@ test('Usability.webAttentionUsesActualProjectedFacts', async () => {
     window: { addEventListener() {} }, AbortController,
     fetch: () => new Promise(() => {}), setTimeout: () => 0, clearTimeout() {}, projected,
   });
-  vm.runInContext(await readFile('packages/task-board/web/app.js', 'utf8'), context);
+  vm.runInContext(legacyProjectionSource(await readFile('packages/task-board/web/app.js', 'utf8')), context);
   const actual = JSON.parse(vm.runInContext(`
     state.snapshot = projected;
     JSON.stringify(Object.fromEntries(projected.tasks.map(task => [task.id, needsAttention(task)])));

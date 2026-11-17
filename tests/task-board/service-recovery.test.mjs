@@ -113,6 +113,54 @@ test('SERVICE.recovery.requiresExplicitHostEvidence', () => {
   assert.deepEqual(requestIssues(request), { missingFields: [], invalidFields: [] });
 });
 
+// Display recovery authenticates the retained Board, not a new task execution contract.
+test('SERVICE.recovery.minimalServiceOnlyRequest', () => {
+  const request = { action: 'recover-service', actorId: 'lead',
+    sessionProfile: { hostId: 'h', mainSessionId: 'm', projectId: 'p', projectName: 'P', sessionName: 'S' },
+    leadToken: 'a'.repeat(64), serviceControlToken: 'c'.repeat(64),
+    serviceRecovery: { expectedServiceId: 'old', confirmedStopped: true, evidenceRefs: ['host/check'] } };
+  assert.deepEqual(requestIssues(request), { missingFields: [], invalidFields: [] });
+  assert.ok(requestIssues({ ...request, action: 'resume' }).invalidFields.includes('executionApproved'));
+  assert.ok(requestIssues({ ...request, serviceRecovery: undefined }).invalidFields.includes('serviceRecovery'));
+});
+
+// The user's legacy case: amended task and missing PID cannot prevent explicit display repair.
+// Expected: old request remains strict; minimal recovery preserves every authoritative DB row.
+test('SERVICE.recovery.amendedTaskLegacyPidIndependentDisplay', async t => {
+  const f = await fixture(t);
+  const call = (operation, input = {}) => callCli(f.root, f.first.boardPath, f.first.sessionKey,
+    operation, { actorId: f.request.actorId, leadToken: f.request.leadToken,
+      generation: f.first.generation, operationId: randomUUID(), ...input });
+  let task = (await call('show', { taskId: f.request.task.id })).result.task;
+  await call('release', { taskId: task.id, taskRevision: task.taskRevision, writesStopped: true, processStopped: true });
+  task = (await call('show', { taskId: task.id })).result.task;
+  await call('amend', { taskId: task.id, taskRevision: task.taskRevision,
+    expectedInputRevision: task.inputRevision, reason: 'Approved task scope changed',
+    patch: { scope: { read: ['notes'], write: [] } } });
+  await f.stop();
+  const legacy = f.journal(); delete legacy.serviceProcessId; delete legacy.serviceControlTokenHash;
+  fs.writeFileSync(f.journalPath, JSON.stringify(legacy));
+  const before = (await call('inspect')).result;
+  const taskJournal = f.journal().tasks;
+  const retainedRequest = fs.readFileSync(f.requestPath);
+  const rejected = await activate(f.root, { ...f.request, action: 'resume' });
+  assert.equal(rejected.reasonCode, 'TASK_CONTRACT_CHANGED');
+  assert.match(rejected.nextStep, /recover-service/);
+  const request = f.recovery(); delete request.task; delete request.claimToken; delete request.executionApproved;
+  const restored = await activate(f.root, request);
+  assert.equal(restored.state, 'enabled', JSON.stringify(restored));
+  assert.equal(restored.activationScope, 'service-only');
+  assert.equal(restored.taskExecution, 'not-resumed');
+  assert.equal(Object.hasOwn(restored, 'taskId'), false);
+  assert.equal(restored.boardId, f.first.boardId);
+  assert.equal(restored.generation, f.first.generation);
+  assert.deepEqual((await call('inspect')).result, before);
+  assert.deepEqual(f.journal().tasks, taskJournal);
+  assert.deepEqual(fs.readFileSync(f.requestPath), retainedRequest);
+  assert.equal((await serviceStatus({ ...restored.service,
+    serviceControlToken: f.request.serviceControlToken })).status, 'running');
+});
+
 // A stopped service is replaced only explicitly; task, generation, credentials and original scope survive.
 test('SERVICE.recovery.replacesStoppedDisplayPreservingBoard', async t => {
   const f = await fixture(t);

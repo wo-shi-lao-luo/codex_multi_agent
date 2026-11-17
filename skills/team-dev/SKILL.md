@@ -105,6 +105,8 @@ After the normal Handoff is prepared, read [feedback recording](../team-core/ref
 
 ## Return paths
 
+For implementation backchecks and independent review, follow the internal mode of the [shared code-review method](../team-core/references/code-review-method.md). Hand off approved intent, the exact source snapshot, actual verification and known gaps; inspect structure/reuse and replaced-code lifecycle. Keep self-check labeled non-independent. Declare due independent Board checks before execution and consume actual checker submissions at acceptance; an empty policy does not enforce review. Preserve human-decision restrictions and route must-fix findings to the authorized writer, with affected retest/rereview. Read-only review grants no rewrite or repository-cleanup authority.
+
 - New scope, contract, or ownership concern → update the Work contract before continuing.
 - Failed verification or valid review finding → assign a focused return to Execute, then rerun the affected verification.
 - Before each repeated repair, apply the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md); a reached threshold or earlier decision blocker pauses the affected issue and requires its evidence-led user report.

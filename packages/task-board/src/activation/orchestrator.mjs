@@ -9,7 +9,9 @@ import { inspectPath } from '../storage/paths.mjs';
 import { protectArtifacts } from '../coordination/artifact-protection.mjs';
 import { probeRuntime } from '../runtime/preflight.mjs';
 import { tokenHash } from '../coordination/service.mjs';
-import { serviceStatus } from '../server/control.mjs';
+import { serviceStatus, stopService } from '../server/control.mjs';
+import { attachSharedService } from './shared-service.mjs';
+import { sharedHome } from './shared-registry.mjs';
 import { callCli } from './transport.mjs';
 import { normalizeScope } from '../domain/workspace-scope.mjs';
 import { requestIssues, invalidRequest } from './request.mjs';
@@ -86,14 +88,14 @@ function launchService(input) {
  * Recovery requires a reconciled refused service or an OS-confirmed absent owned PID.
  * Uncertain launch is never retried.
  */
-export async function activate(projectRoot, request) {
+export async function activate(projectRoot, request, { serviceMode = 'legacy', sharedRuntimeHome } = {}) {
   let release;
   let selected;
   let retainedService;
   try {
     const issues = requestIssues(request);
     if (issues.missingFields.length || issues.invalidFields.length) return invalidRequest(issues);
-    if (!request || !['activate', 'resume', 'recover-service', 'record-open-result'].includes(request.action)
+    if (!request || !['activate', 'resume', 'recover-service', 'migrate-service', 'record-open-result'].includes(request.action)
         || typeof request.actorId !== 'string' || !request.actorId) fail('INVALID_INPUT');
     const profile = normalizeSessionProfile(request.sessionProfile);
     selected = sessionLocation(profile);
@@ -105,14 +107,17 @@ export async function activate(projectRoot, request) {
     const lockPath = inspectPath(path.join(directory, 'activation.lock'));
     const runtime = await probeRuntime();
     if (!runtime.available) fail(runtime.reasonCode);
-    for (const field of ['leadToken', 'claimToken', 'serviceControlToken']) tokenHash(request[field]);
+    const credentials = ['recover-service', 'migrate-service'].includes(request.action)
+      ? ['leadToken', 'serviceControlToken'] : ['leadToken', 'claimToken', 'serviceControlToken'];
+    for (const field of credentials) tokenHash(request[field]);
     if (!/^[a-fA-F0-9]{64,256}$/.test(request.serviceControlToken)) fail('INVALID_INPUT');
     const publicText = JSON.stringify({ task: request.task, phase: request.phase,
       progress: request.progress, nextCheckpoint: request.nextCheckpoint,
-      serviceRecovery: request.serviceRecovery, leadPrincipal: request.leadPrincipal });
+      serviceRecovery: request.serviceRecovery, serviceMigration: request.serviceMigration, leadPrincipal: request.leadPrincipal });
     if (['leadToken', 'claimToken', 'serviceControlToken'].some(field =>
-      publicText.includes(request[field]))) fail('CREDENTIAL_IN_PUBLIC_CONTEXT');
-    if (request.action !== 'record-open-result' && (request.executionApproved !== true
+      typeof request[field] === 'string' && request[field].length > 0
+        && publicText.includes(request[field]))) fail('CREDENTIAL_IN_PUBLIC_CONTEXT');
+    if (!['record-open-result', 'recover-service', 'migrate-service'].includes(request.action) && (request.executionApproved !== true
         || !request.task?.id || !request.task.title || !request.task.outcome
         || !request.task.sourceRefs?.length || !request.task.acceptanceRefs?.length)) {
       fail('EXECUTION_APPROVAL_REQUIRED');
@@ -122,7 +127,7 @@ export async function activate(projectRoot, request) {
     // Authenticate existing data before touching ignore policy, journal or lock files.
     let observed;
     if (fs.existsSync(database)) observed = await call('inspect', {});
-    if (['record-open-result', 'recover-service'].includes(request.action)
+    if (['record-open-result', 'recover-service', 'migrate-service'].includes(request.action)
         && (!observed || !fs.existsSync(journalPath))) {
       fail('ACTIVATION_HANDOFF_REQUIRED');
     }
@@ -156,6 +161,20 @@ export async function activate(projectRoot, request) {
       observed = await call('initialize', { sessionProfile: request.sessionProfile });
     }
     if (journal.generation && journal.generation !== observed.generation) fail('STALE_GENERATION');
+    const runtimeHome = sharedRuntimeHome ?? journal.sharedRuntimeHome ?? sharedHome();
+    if (journal.service?.serviceMode === 'shared-v1' && journal.sharedRuntimeHome
+        && runtimeHome !== journal.sharedRuntimeHome) fail('ACTIVATION_CONTEXT_MISMATCH');
+    const attach = () => attachSharedService({ location, actorId: request.actorId,
+      generation: observed.generation, leadToken: request.leadToken,
+      serviceControlToken: request.serviceControlToken }, { home: runtimeHome });
+    const retain = (service, processId) => {
+      const { ticketUrl, ticketExpiresAt, status, ...identity } = service;
+      journal.service = identity; journal.serviceProcessId = processId;
+      if (service.serviceMode === 'shared-v1') journal.sharedRuntimeHome = runtimeHome;
+      journal.serviceIntent = 'known'; journal.presentation = { status: 'unknown' };
+      retainedService = identity; save();
+      return ticketUrl;
+    };
     // Both recovery paths preserve task authority and use the same durable launch sequence.
     const validateRetainedService = () => {
       if (journal.generation !== observed.generation || journal.boardId !== observed.boardId) {
@@ -176,9 +195,16 @@ export async function activate(projectRoot, request) {
         service: retainedService,
         ...evidence,
       }].slice(-16);
+      journal.serviceControlTokenHash = serviceControlTokenHash;
+      if (retainedService?.serviceMode === 'shared-v1') {
+        const { service, processId } = await attach();
+        const url = retain(service, processId);
+        return { state: 'enabled', ...selected, boardId: observed.boardId, generation: observed.generation,
+          activationScope: 'service-only', taskExecution: 'not-resumed', service: journal.service,
+          presentation: { status: 'unknown', url } };
+      }
       delete journal.service;
       delete journal.serviceProcessId;
-      journal.serviceControlTokenHash = serviceControlTokenHash;
       journal.serviceIntent = 'unknown';
       journal.presentation = { status: 'unknown' };
       save();
@@ -192,10 +218,75 @@ export async function activate(projectRoot, request) {
       journal.serviceIntent = 'known';
       save();
       await serviceStatus({ ...identity, serviceControlToken: request.serviceControlToken });
-      return { state: 'enabled', ...selected, taskId: request.task.id, boardId: observed.boardId,
+      return { state: 'enabled', ...selected, activationScope: 'service-only',
+        taskExecution: 'not-resumed', boardId: observed.boardId,
         generation: observed.generation, service: identity,
         presentation: { ...journal.presentation, url: ticketUrl } };
     };
+    /** Commit the new binding before stopping only the exact authenticated legacy listener. */
+    const migrate = async migration => {
+      const verifier = validateRetainedService();
+      const shared = retainedService.serviceMode === 'shared-v1';
+      const history = journal.serviceMigrationHistory ?? [];
+      let legacy = shared ? journal.legacyCleanupPending?.service
+        ?? history.findLast(item => item.service.serviceId === migration.expectedServiceId)?.service : retainedService;
+      if (!legacy || legacy.serviceId !== migration.expectedServiceId) fail('ACTIVATION_CONTEXT_MISMATCH');
+      if (!shared) {
+        try { await serviceStatus({ ...legacy, serviceControlToken: request.serviceControlToken }); }
+        catch (error) {
+          if (error.code !== 'SERVICE_UNAVAILABLE' || error.details?.transportCode !== 'ECONNREFUSED') throw error;
+          if (migration.confirmedStopped !== true) fail('SERVICE_STOP_EVIDENCE_REQUIRED');
+        }
+      }
+      const { service, processId } = await attach();
+      if (!shared) {
+        journal.serviceMigrationHistory = [...history, { service: legacy,
+          evidenceRefs: migration.evidenceRefs }].slice(-16);
+        journal.legacyCleanupPending = { service: legacy };
+      }
+      journal.serviceControlTokenHash = verifier;
+      const url = retain(service, processId);
+      let cleanup = 'complete';
+      let cleanupReason;
+      let cleanupTransportCode;
+      if (journal.legacyCleanupPending) {
+        cleanup = 'pending';
+        try {
+          try { await stopService({ ...legacy, serviceControlToken: request.serviceControlToken }); }
+          catch (error) {
+            // Losing the stop response proves neither success nor failure. A separate fresh
+            // authenticated status observation below must prove exact refusal before cleanup.
+            if (error.code !== 'SERVICE_UNAVAILABLE'
+                || ['EACCES', 'EPERM', 'ETIMEDOUT'].includes(error.details?.transportCode)) throw error;
+          }
+          for (let attempt = 0; attempt < 20; attempt++) {
+            try { await serviceStatus({ ...legacy, serviceControlToken: request.serviceControlToken }, { timeoutMs: 250 }); }
+            catch (error) {
+              if (error.code === 'SERVICE_UNAVAILABLE' && error.details?.transportCode === 'ECONNREFUSED') {
+                cleanup = 'complete'; break;
+              }
+              if (error.code !== 'SERVICE_UNAVAILABLE'
+                  || ['EACCES', 'EPERM', 'ETIMEDOUT'].includes(error.details?.transportCode)) throw error;
+              // A closing listener may reset a racing status socket. This is not stop proof:
+              // continue only this bounded confirmation, and require a later exact refusal.
+            }
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+        } catch (error) {
+          cleanupTransportCode = error.details?.transportCode;
+          cleanupReason = ['SERVICE_CONTROL_REJECTED', 'SERVICE_UNAVAILABLE', 'INVALID_INPUT'].includes(error.code)
+            ? error.code : 'LEGACY_STOP_UNCONFIRMED';
+        }
+        if (cleanup === 'complete') { delete journal.legacyCleanupPending; save(); }
+      }
+      return { state: 'enabled', ...selected, boardId: observed.boardId, generation: observed.generation,
+        activationScope: 'service-only', taskExecution: 'not-resumed', service: journal.service,
+        legacyCleanup: cleanup, ...(cleanup === 'pending' ? { legacyCleanupReason: cleanupReason ?? 'LEGACY_STOP_UNCONFIRMED' } : {}),
+        ...(['EACCES', 'EPERM', 'ECONNREFUSED', 'ETIMEDOUT'].includes(cleanupTransportCode)
+          ? { legacyCleanupTransportCode: cleanupTransportCode } : {}),
+        presentation: { status: 'unknown', url } };
+    };
+    if (request.action === 'migrate-service') return await migrate(request.serviceMigration);
     if (request.action === 'recover-service') {
       const verifier = validateRetainedService();
       if (retainedService.serviceId !== request.serviceRecovery.expectedServiceId) {
@@ -205,8 +296,9 @@ export async function activate(projectRoot, request) {
         await serviceStatus({ ...retainedService, serviceControlToken: request.serviceControlToken });
         fail('SERVICE_STILL_RUNNING');
       } catch (error) {
-        if (error.code !== 'SERVICE_UNAVAILABLE'
-            || error.details?.transportCode !== 'ECONNREFUSED') throw error;
+        if (!(retainedService.serviceMode === 'shared-v1' && error.code === 'SERVICE_CONTROL_REJECTED')
+            && (error.code !== 'SERVICE_UNAVAILABLE'
+              || error.details?.transportCode !== 'ECONNREFUSED')) throw error;
       }
       return await replaceService(verifier, { confirmedStopped: true,
         evidenceRefs: request.serviceRecovery.evidenceRefs });
@@ -303,7 +395,11 @@ export async function activate(projectRoot, request) {
     // not consume a replacement service's first presentation ticket.
     let firstUrl;
     if (journal.serviceIntent && !journal.service) fail('SERVICE_OUTCOME_UNKNOWN');
-    if (journal.service) {
+    if (journal.service && journal.service.serviceMode !== 'shared-v1' && serviceMode === 'shared') {
+      const result = await migrate({ expectedServiceId: journal.service.serviceId,
+        evidenceRefs: ['authenticated-activation-shared-migration'] });
+      firstUrl = result.presentation.url;
+    } else if (journal.service) {
       retainedService = journal.service;
       try {
         await serviceStatus({ ...retainedService, serviceControlToken: request.serviceControlToken });
@@ -325,6 +421,10 @@ export async function activate(projectRoot, request) {
         });
         firstUrl = replacement.presentation.url;
       }
+    } else if (serviceMode === 'shared') {
+      const { service, processId } = await attach();
+      journal.serviceControlTokenHash = tokenHash(request.serviceControlToken);
+      firstUrl = retain(service, processId);
     } else {
       await probeServiceTransport();
       journal.serviceControlTokenHash = tokenHash(request.serviceControlToken);
@@ -361,6 +461,10 @@ export async function activate(projectRoot, request) {
       nextStep = 'Read the current Board revision and explicitly bind-lead-principal using observed '
         + 'native evidence. Preserve old allocations and frozen evidence; use stopped-owner transfer, '
         + 'a fresh freeze and newly bound independent checks. Resume never backfills historical identity.';
+    } else if (error.code === 'TASK_CONTRACT_CHANGED') {
+      nextStep = 'The task contract requires explicit reconciliation; no task execution was resumed. '
+        + 'For display-only recovery, use recover-service with the exact retained service identity, '
+        + 'credentials and fresh host-confirmed stop evidence. Do not restore an obsolete task scope.';
     }
     return { state: 'activation-pending', ...selected,
       ...(retainedService ? { service: retainedService } : {}),

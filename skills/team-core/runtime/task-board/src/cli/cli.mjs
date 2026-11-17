@@ -122,7 +122,7 @@ try {
       reply = { schemaVersion: 1, operation, ok: true, result: sessionLocation(input) };
     } else if (['service-status', 'service-stop', 'service-open'].includes(operation)) {
       const allowed = ['url', 'port', 'serviceId', 'boardId', 'generation',
-        'serviceControlToken', 'timeoutMs', 'sessionKey'];
+        'serviceControlToken', 'timeoutMs', 'sessionKey', 'serviceMode', 'hubId', 'routeBase'];
       if (Object.keys(input).some(key => !allowed.includes(key))) {
         throw new BoardError('INVALID_INPUT', 'Unknown service control field.');
       }

@@ -81,6 +81,49 @@ Existing Boards without the helper's matching private handoff require explicit r
 
 ### Service execution and recovery
 
+The unified CLI uses a shared local service by default: one process/listener per selected trusted
+Agents runtime home, with each session mounted at `/boards/<sessionKey>/`. Each Board keeps its
+own SQLite, generation, service credential, browser capability and event cursor. Child agents of
+one main chat still share that chat's Board. Shared bindings carry `serviceMode: shared-v1`,
+`hubId` and `routeBase`; retain these with the original flat control identity. `service-stop`
+detaches only the selected Board. It never stops unrelated Boards or the whole Hub.
+
+The private runtime registry lives outside installed Skill discovery at
+`<AgentsHome>/codex-multi-agent/board-service-v1`. Only the trusted launcher selects it. Task JSON
+and browser URLs cannot choose filesystem attachments. Manager authority and Board credentials
+are distinct; descriptors retain hashes, not Lead/service-control secrets. Startup is bounded and
+serialized; unknown launch, running-code mismatch, inaccessible owner or occupied stable port is
+an explicit reconciliation state, never permission to spawn a second Hub or kill another process.
+
+Use `migrate-service` with native session identity, retained Lead/service credentials and
+`serviceMigration: {expectedServiceId, evidenceRefs}` to adopt an existing legacy listener without
+resuming a task. An already refused legacy endpoint additionally requires fresh host-confirmed
+`confirmedStopped:true`. The new shared binding is made durable before stopping the exact old
+listener. `legacyCleanup: pending` is partial completion, not proof the old listener ended; keep
+its private identity for bounded follow-up. Other legacy sessions are not swept or reset. They
+transition through an authenticated shared-aware activation or explicit migration; direct legacy
+`serve` remains a supported compatibility path.
+
+An uncredentialed shared URL returns a generic HTTP200 page, never Board names/tasks or a Board
+list. API access still requires the selected Board's capability, bound to its generation. Open
+through a fresh one-use ticket: the page captures its fragment capability in memory and clears
+the fragment; no credential is saved to browser storage. Cookie alone cannot read another Board.
+Reloading after that in-memory capability is lost requires a fresh authorized entry. Shared origin
+is not an independent browser-origin sandbox; do not describe cookie Path as a security boundary.
+Keep CSP/static-only trusted scripts and the explicit request capability. Fresh bootstrap issuance,
+host queued, opened and actual rendered content remain separate observations. Never tell the user
+to enter only a naked URL as proof of authorized access, or label HTTP401 as a dead service.
+
+`recover-service` is a service-only operation on an existing authenticated Board. Supply the
+current native session profile, actor/Lead credential, retained service-control credential and
+`serviceRecovery` with exact expected service ID and fresh host-confirmed stop evidence. It does
+not require a task, claim token or execution approval. Its `activationScope: service-only` and
+`taskExecution: not-resumed` response describe only display availability; no task is created,
+approved, assigned or resumed. Ordinary activate/resume keep all execution/contract guards.
+On `TASK_CONTRACT_CHANGED`, reconcile task execution separately; use this explicit display path
+when needed instead of repeatedly submitting stale task scope. Legacy missing PID still requires
+explicit host evidence and retained credential continuity, never a synthesized PID or a reset.
+
 Treat service activation as a host operation with both network and process-lifetime requirements. A detached child is not a guarantee that it survives a command's containment boundary. In particular, a Windows job with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` can terminate its children when the command finishes. After starting a long-lived service, verify its authenticated `service-status` in a separate completed command before reporting durable availability or presenting it. The in-process first status check alone is insufficient evidence of survival.
 
 The launcher probes its own temporary loopback connection before a new service launch. `SERVICE_UNAVAILABLE` with `transportCode: EACCES` or `EPERM` identifies a permission failure; it does not prove the retained process stopped. Use the host's normal explicit approval mechanism for a permitted local-service command when available and authorized, and then recheck. Never self-elevate, disable containment/security settings, alter firewall policy, or repeat the same restricted launch in the background. A timeout, invalid service identity or unknown launch outcome also remains unresolved; none permits a replacement.

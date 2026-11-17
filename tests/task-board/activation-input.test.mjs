@@ -6,7 +6,7 @@ import { mkdir, mkdtemp, readFile, writeFile, cp, rm, readdir } from 'node:fs/pr
 import { resolve, join, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { invoke, secret, sourcePath } from './helpers.mjs';
-import { checkFixturePath, requireLoopback } from './fixture-environment.mjs';
+import { checkFixturePath, requireLoopback, closeFixtureSharedRuntime } from './fixture-environment.mjs';
 
 const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const entry = sourcePath('packages/task-board/src/cli/activation.mjs');
@@ -32,6 +32,7 @@ async function fixture(t) {
         serviceControlToken: request.serviceControlToken }, { sessionKey });
       assert.equal(stopped.code, 0, 'Confirm owned service stop before fixture removal');
     }
+    await closeFixtureSharedRuntime(join(root, 'hub'));
     await rm(root, { recursive: true, force: true });
   });
   async function wrapper(cp936 = false) {
@@ -71,9 +72,10 @@ for (const pipeline of [false, true]) {
     const f = await fixture(t);
     const wrapper = await f.wrapper(true);
     const agents = resolve(dirname(process.execPath), '../../../../..');
-    const args = ['-NoProfile', '-File', wrapper, '-ProjectRoot', f.root, '-AgentsHome', agents];
+    const args = ['-NoProfile', '-File', wrapper, '-ProjectRoot', f.root, '-AgentsHome', agents,
+      '-SharedRuntimeHome', join(f.root, 'hub')];
     const command = "$OutputEncoding = [Text.UTF8Encoding]::new($false); [Console]::InputEncoding = [Text.UTF8Encoding]::new($false); "
-      + `[Console]::In.ReadToEnd() | pwsh -NoProfile -File ${quote(wrapper)} -ProjectRoot ${quote(f.root)} -AgentsHome ${quote(agents)}`;
+      + `[Console]::In.ReadToEnd() | pwsh -NoProfile -File ${quote(wrapper)} -ProjectRoot ${quote(f.root)} -AgentsHome ${quote(agents)} -SharedRuntimeHome ${quote(join(f.root, 'hub'))}`;
     const child = spawnSync('pwsh', pipeline ? ['-NoProfile', '-Command', command] : args, {
       input: Buffer.from(JSON.stringify(f.request), 'utf8'), encoding: 'utf8', timeout: 25000,
       env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(f.root) },
@@ -147,7 +149,8 @@ test('INPUT.prepare creates private credentials once and RequestPath activates e
   Object.assign(f.request, prepared); // fixture retains the actual caller tokens for authenticated cleanup
   const wrapper = await f.wrapper(true);
   const child = spawnSync('pwsh', ['-NoProfile', '-File', wrapper, '-ProjectRoot', f.root,
-    '-AgentsHome', resolve(dirname(process.execPath), '../../../../..'), '-RequestPath', result.requestPath], {
+    '-AgentsHome', resolve(dirname(process.execPath), '../../../../..'), '-SharedRuntimeHome', join(f.root, 'hub'),
+    '-RequestPath', result.requestPath], {
     encoding: 'utf8', timeout: 25000,
     env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(f.root) },
   });

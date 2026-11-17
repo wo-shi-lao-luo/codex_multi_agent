@@ -9,11 +9,21 @@ export function requestIssues(request, { prepare = false } = {}) {
     else if (typeof value !== 'string' || !value.trim()) invalidFields.push(name);
   };
   if (!object(request)) return { missingFields, invalidFields: ['request'] };
-  const actions = ['activate', 'resume', 'recover-service', 'record-open-result', 'prepare-request'];
+  const actions = ['activate', 'resume', 'recover-service', 'migrate-service', 'record-open-result', 'prepare-request'];
   if (!actions.includes(request.action)) {
     invalidFields.push('action');
   }
   text(request.actorId, 'actorId');
+  if (request.action === 'migrate-service') {
+    const migration = request.serviceMigration;
+    if (!object(migration) || typeof migration.expectedServiceId !== 'string'
+        || !/^[\x21-\x7e]{1,256}$/.test(migration.expectedServiceId)
+        || !Array.isArray(migration.evidenceRefs) || !migration.evidenceRefs.length
+        || migration.evidenceRefs.length > 16 || migration.evidenceRefs.some(ref =>
+          typeof ref !== 'string' || !ref.trim() || ref.length > 1024 || /[\x00-\x1f]/.test(ref))) {
+      invalidFields.push('serviceMigration');
+    }
+  }
   if (request.action === 'recover-service') {
     const recovery = request.serviceRecovery;
     if (!object(recovery) || recovery.confirmedStopped !== true
@@ -39,13 +49,15 @@ export function requestIssues(request, { prepare = false } = {}) {
           || principal.agentId !== request.sessionProfile?.mainSessionId) throw new Error('Mismatch');
     } catch { invalidFields.push('leadPrincipal'); }
   }
-  if (!prepare) for (const key of ['leadToken', 'claimToken', 'serviceControlToken']) {
+  const credentials = ['recover-service', 'migrate-service'].includes(request.action)
+    ? ['leadToken', 'serviceControlToken'] : ['leadToken', 'claimToken', 'serviceControlToken'];
+  if (!prepare) for (const key of credentials) {
     text(request[key], key);
     if (typeof request[key] === 'string' && request[key]
         && (!/^[a-fA-F0-9]{64,}$/.test(request[key])
           || key === 'serviceControlToken' && request[key].length > 256)) invalidFields.push(key);
   }
-  if (request.action !== 'record-open-result') {
+  if (!['record-open-result', 'recover-service', 'migrate-service'].includes(request.action)) {
     if (request.executionApproved !== true) invalidFields.push('executionApproved');
     for (const key of ['id', 'title', 'outcome']) text(request.task?.[key], `task.${key}`);
     for (const key of ['sourceRefs', 'acceptanceRefs']) {

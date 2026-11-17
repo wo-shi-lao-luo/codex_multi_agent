@@ -1,5 +1,10 @@
 /** Read-only snapshot/SSE client. No credential storage, mutation or dispatch authority. */
 'use strict';
+(() => {
+const sharedView = /^\/boards\/[a-f0-9]{64}\/$/.test(window.location.pathname);
+const viewCapability = sharedView ? /^#view=([a-f0-9]{64})$/.exec(window.location.hash)?.[1] : null;
+if (sharedView && window.location.hash) window.history.replaceState(null, '', window.location.pathname);
+const viewHeaders = () => sharedView && viewCapability ? { 'X-Task-Board-View': viewCapability } : {};
 
 const ui = Object.fromEntries([
   'connection', 'sync', 'attention', 'search', 'role', 'instance',
@@ -409,7 +414,8 @@ function subscribe() {
   state.stream?.close();
   const snapshot = state.snapshot;
   const cursor = `${snapshot.generation}:${snapshot.eventSeq}`;
-  const stream = new EventSource(`/api/events?after=${encodeURIComponent(cursor)}`);
+  if (sharedView) { subscribeShared(cursor); return; }
+  const stream = new EventSource(`api/events?after=${encodeURIComponent(cursor)}`);
   state.stream = stream;
   stream.onopen = () => {
     if (state.stream !== stream) return;
@@ -428,6 +434,34 @@ function subscribe() {
   });
   stream.onerror = () => { if (state.stream === stream) recover(); };
 }
+/** Fetch streaming keeps the Board capability out of URLs and supports cancellation/backpressure. */
+async function subscribeShared(cursor) {
+  const controller = new AbortController();
+  const stream = { close: () => controller.abort() };
+  state.stream = stream;
+  try {
+    const response = await fetch(`api/events?after=${encodeURIComponent(cursor)}`, {
+      headers: viewHeaders(), credentials: 'same-origin', signal: controller.signal, cache: 'no-store' });
+    if (response.status === 401) { state.stopped = true; connection('访问凭据已失效 · 请通过授权入口重新打开'); return; }
+    if (!response.ok || !response.body) throw Error('Stream unavailable');
+    state.attempt = 0; connection('实时连接正常');
+    const reader = response.body.getReader(), decoder = new TextDecoder();
+    let buffer = '';
+    while (state.stream === stream && !controller.signal.aborted) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      if (buffer.length > 1048576) throw Error('Stream bound exceeded');
+      let end;
+      while ((end = buffer.indexOf('\n\n')) !== -1) {
+        const event = buffer.slice(0, end); buffer = buffer.slice(end + 2);
+        if (/^event: reset$/m.test(event)) { refresh(true); return; }
+        if (/^event: change$/m.test(event)) queueRefresh();
+      }
+    }
+    if (!controller.signal.aborted && state.stream === stream) recover();
+  } catch { if (!controller.signal.aborted && state.stream === stream) recover(); }
+}
 /** Latest request wins. 401 stops retries; successful full snapshots reopen the gap-filled stream. */
 async function refresh(full = true) {
   if (state.stopped) return;
@@ -442,7 +476,7 @@ async function refresh(full = true) {
     connection(state.snapshot ? '正在重连并完整同步 · 内容可能过期' : '正在完整同步');
   }
   try {
-    const response = await fetch('/api/snapshot', { credentials: 'same-origin',
+    const response = await fetch('api/snapshot', { credentials: 'same-origin', headers: viewHeaders(),
       cache: 'no-store', signal: controller.signal });
     if (request !== state.request) return;
     if (response.status === 401) {
@@ -502,3 +536,4 @@ ui.retry.addEventListener('click', () => {
 window.addEventListener('offline', recover);
 window.addEventListener('online', () => { if (!state.stopped) refresh(true); });
 refresh();
+})();

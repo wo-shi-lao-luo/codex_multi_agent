@@ -471,7 +471,61 @@ fixtures accompany the change; real-workload speed and cross-platform behavior n
 No SQL schema migration, structural reorganization, automatic installation or additional runtime
 dependency is introduced by these extensions.
 
-## 15. Review decisions and known limits
+## 15. Shared local display service
+
+The unified activation CLI defaults to one local HTTP Hub per trusted selected Agents runtime
+home, rather than one Node process per chat. It mounts independent Board endpoints in process at
+`/boards/<sessionKey>/`, retaining separate SQLite databases, task authority, generations,
+credentials and event cursors. Low-level standalone `serve()` remains compatible; old live
+listeners transition on authenticated shared-aware activation or explicit `migrate-service`,
+not a bulk filesystem scan. A machine can temporarily retain legacy listeners during adoption.
+
+| Module | Location and permitted dependencies |
+| --- | --- |
+| Board endpoint / compatibility wrapper | `server/server.mjs`: existing fixed routes, identity, tickets and SSE; can mount in an existing HTTP server or own its legacy listener |
+| Shared HTTP owner | `server/shared-server.mjs`: one listener, authenticated private management, bounded Board mounts, public generic entry; uses endpoint and storage read APIs |
+| Discovery and lifecycle | `activation/shared-service.mjs` and `shared-service-runner.mjs`: authenticated discovery, code fingerprint, finite startup and attachment |
+| Private registry | `activation/shared-registry.mjs`: bounded link-rejecting reads, atomic files and startup lock under the trusted runtime home |
+| Callers | Activation orchestrator/CLI, trusted PowerShell launcher and service control adapter carry explicit shared identity; tasks cannot select runtime-home paths |
+| Browser | Relative resources/API, fragment-to-private-closure capability, authenticated fetch SSE, existing bounded retry/cursor/reset behavior |
+
+The private registry is `<AgentsHome>/codex-multi-agent/board-service-v1`, outside Skill discovery
+and global configuration. Manager credentials are separate from Board credentials. Mounting must
+authenticate actual Board metadata, Lead hash, generation, native session binding and protected
+paths; browser routing accepts no filesystem paths. Attachment descriptors retain hashes and
+canonical identities, not raw Lead/control credentials. Rehydration rejects drift rather than
+adopting a new generation. Startup records unknown intent before creating a child; caller timeout
+does not authorize duplicate launch. Stable port conflicts and code fingerprint mismatches remain
+explicit failures. A perBoard stop detaches just that mount; Hub stop requires manager authority
+and no mounted Boards. Server/source and generated runtime equality are checked at handoff.
+
+Shared routes have one browser origin, so cookie Path alone cannot provide prior origin
+separation. A one-use ticket redirects to a Board-scoped fragment capability; the page captures
+it in a private closure and clears the URL. Protected snapshot and fetch-stream SSE require the
+capability and the matching HttpOnly session cookie. Neither a different Board's capability nor
+cookie alone authorizes access. Capability is not returned by public HTML or cookie-only APIs,
+not put into stream URLs and not stored in browser storage. CSP/static-only scripts and
+frame-ancestors protection remain. This is explicit server-request isolation, not a promise of
+browser-origin sandbox equivalence after arbitrary same-origin script/window compromise.
+
+Public root, unknown Board entry and expired/uncredentialed entry show generic HTTP200 guidance
+without private names or enumeration. API denial remains HTTP401. Browser reload loses its
+in-memory capability and needs a fresh authorized entry. Native panel queued is not visible proof.
+This corrects the confusing bare-URL browser transport error while preserving data authorization.
+
+Migration order is authenticated old identity -> attach/verify new endpoint -> persist new
+activation journal and retained old cleanup identity -> stop exact old listener -> separately
+confirm refusal. Uncertain stop responses are not success; only a later independent refused
+connection closes cleanup. Other transport/permission failures retain `legacyCleanup: pending`.
+Migration never calls task add/approve/grant/assign or edits old task scope. The reviewed
+service-only recovery remains independent of task execution. No schema migration is introduced.
+
+Shared synchronous projection work is bounded per materialized snapshot, reusing workspace
+observations only inside that projection and retaining final full identity revalidation. This
+avoids repeating Git per scope/dependency in a shared event loop. Count-based fixtures verify
+the boundary; no universal latency or capacity claim follows from synthetic tests.
+
+## 16. Review decisions and known limits
 
 The design adopts SQLite, a live-updating Board and current-task questions as requested, and adds a maintenance lifecycle. P0 fixed the runtime to the Node/SQLite combination recorded above. Preauthorized claims and bounded same-checkout/multiple-writer operation have been approved, with actual behavior subject to stage-specific verification. Retention policies, destructive maintenance and unknown-outcome handling still require their respective previews, approvals and evidence. Design agreement does not authorize automatic history deletion or dependency installation.
 

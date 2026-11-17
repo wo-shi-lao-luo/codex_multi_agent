@@ -136,12 +136,17 @@ Ordinary repair extension gate (if applicable): evidence supports a materially n
 
 ```text
 Review scope:
+Review mode and frozen input: internal | external PR | non-independent backcheck; base/head or dirty/untracked manifest; intent/constraints; current-source comparison
 Coverage: correctness | tests | data | unfamiliar area
+System/maintenance coverage: callers, contracts, placement/layering, shared versus independent semantics, inheritance, generated copies, old-code disposition; concrete impact and exclusions
 Comment review (code changes): scope, layered minimums, per-test scenario/expected results, semantic/assertion consistency, exemptions and gaps
 Readability review (code changes): target formatter/conventions, concrete layout concerns, meaningful literals preserved, style preferences excluded, outcome and gaps
 UI review (when applicable): brief/baseline, integrated-page evidence, visual status and unobserved states
 Evidence inspected:
 Findings: impact, file reference, evidence
+Disposition and human decision: finding ID, certainty, trigger/path, mitigations, must-fix | human-decision | optional, decision owner/question/options/consequences, affected gate and permitted independent work
+Internal gate evidence when due: requiredChecks, subject freeze, distinct actual principal, accepted checker submission/checkResults; explicitly non-independent self-check or absent machine gate
+PR assistance: change/impact map, issue/discussion/CI, contributor-code execution limits, draft versus authorized external action, updated-commit reconciliation
 Material finding closure (reuse existing issue/Work IDs): owner; applicable source revision; fixed/rejected/deferred/open disposition and authority/reason; changed scope; original-symptom and affected-regression evidence; required independent rereview and actual result/gap; remaining dependency restriction and next checkpoint
 Uncovered risk:
 ```

@@ -19,6 +19,11 @@ function validate(identity, timeoutMs) {
     !Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30000) {
     throw new BoardError('INVALID_INPUT', 'Invalid service identity, credential or timeout.');
   }
+  if (identity.serviceMode !== undefined && (identity.serviceMode !== 'shared-v1'
+      || identity.routeBase !== `/boards/${identity.sessionKey}/`
+      || typeof identity.hubId !== 'string' || !/^[a-f0-9-]{36}$/.test(identity.hubId))) {
+    throw new BoardError('INVALID_INPUT', 'Invalid shared service binding.');
+  }
   return url;
 }
 
@@ -34,7 +39,7 @@ async function control(identity, operation, timeoutMs) {
     const rejected = () => reject(new BoardError(
       'SERVICE_CONTROL_REJECTED', 'Service rejected control or returned an invalid identity.',
     ));
-    const request = http.request(new URL(`/_service/${operation}`, url), {
+    const request = http.request(new URL(`${identity.routeBase ?? '/'}_service/${operation}`, url), {
       method: operation === 'status' ? 'GET' : 'POST',
       agent: false,
       headers: {
@@ -43,6 +48,7 @@ async function control(identity, operation, timeoutMs) {
         'X-Task-Board-Id': identity.boardId,
         'X-Task-Board-Generation': identity.generation,
         ...(identity.sessionKey === undefined ? {} : { 'X-Task-Board-Session-Key': identity.sessionKey }),
+        ...(identity.serviceMode === undefined ? {} : { 'X-Task-Board-Hub-Id': identity.hubId }),
       },
     }, response => {
       let size = 0;
@@ -71,10 +77,11 @@ async function control(identity, operation, timeoutMs) {
               || result.sessionKey !== identity.sessionKey) {
             return rejected();
           }
+          if (['serviceMode', 'routeBase', 'hubId'].some(key => result[key] !== identity[key])) return rejected();
           if (operation === 'open') {
             // Validate raw canonical spelling, not just a normalized URL that can hide extra
             // query keys, encoded tokens or fragments. Never forward untrusted response extras.
-            const prefix = `${url.origin}/?ticket=`;
+            const prefix = `${url.origin}${identity.routeBase ?? '/'}?ticket=`;
             if (result.url !== url.origin || typeof result.ticketUrl !== 'string'
                 || !result.ticketUrl.startsWith(prefix)
                 || !/^[a-f0-9]{64}$/.test(result.ticketUrl.slice(prefix.length))
@@ -84,6 +91,8 @@ async function control(identity, operation, timeoutMs) {
             resolve({ serviceId: result.serviceId, boardId: result.boardId,
               generation: result.generation, port: result.port, url: result.url,
               ...(identity.sessionKey === undefined ? {} : { sessionKey: result.sessionKey }),
+              ...(identity.serviceMode === undefined ? {} : { serviceMode: result.serviceMode,
+                routeBase: result.routeBase, hubId: result.hubId }),
               status: 'running', ticketUrl: result.ticketUrl, ticketExpiresAt: result.ticketExpiresAt });
           } else resolve(result);
         } catch { rejected(); }

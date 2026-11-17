@@ -18,7 +18,11 @@ const CSP = "default-src 'self'; script-src 'self'; style-src 'self'; connect-sr
  * The caller retains its token; close() shares one Promise and awaits onClose exactly once.
  * onClose owns only caller-selected cleanup; startup failure leaves that ownership with caller.
  */
-export async function serve(board, { port = 0, serviceControlToken, onClose = () => {} } = {}) {
+export async function serve(board, { port = 0, serviceControlToken, onClose = () => {},
+  sharedServer, routeBase = '/', hubId, retainedServiceId, retainedControlHash } = {}) {
+  const shared = sharedServer !== undefined;
+  if (shared && (!sharedServer.listening || !/^\/boards\/[a-f0-9]{64}\/$/.test(routeBase)
+      || typeof hubId !== 'string' || !hubId)) throw new BoardError('INVALID_INPUT', 'Invalid shared mount.');
   if (!Number.isInteger(port) || port < 0 || port > 65535) {
     throw new BoardError('INVALID_INPUT', 'Port must be an integer from 0 to 65535.');
   }
@@ -33,9 +37,10 @@ export async function serve(board, { port = 0, serviceControlToken, onClose = ()
   // Cache immutable context once; controls must not reread SQLite or follow mutable display labels.
   const sessionKey = sessionProfile === undefined ? undefined : validateSessionProfile(sessionProfile).sessionKey;
   const sessionIdentity = sessionKey === undefined ? {} : { sessionKey };
-  const serviceId = randomUUID();
+  const serviceId = shared && retainedServiceId ? retainedServiceId : randomUUID();
+  const sharedIdentity = shared ? { serviceMode: 'shared-v1', hubId, routeBase } : {};
   const cookieName = `task_board_session_${serviceId.replaceAll('-', '')}`;
-  const controlHash = serviceControlToken === undefined ? null :
+  const controlHash = shared && retainedControlHash ? Buffer.from(retainedControlHash, 'hex') : serviceControlToken === undefined ? null :
     createHash('sha256').update(serviceControlToken).digest();
   serviceControlToken = undefined;
   let closing;
@@ -58,12 +63,14 @@ export async function serve(board, { port = 0, serviceControlToken, onClose = ()
   }
   const initialTicket = mintTicket().ticket;
   const session = randomBytes(32).toString('hex');
+  const viewCapability = randomBytes(32).toString('hex');
   const clients = new Set();
   let origin;
-  const server = http.createServer(async (request, response) => {
+  const handler = async (request, response) => {
     response.setHeader('Content-Security-Policy', CSP);
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Cache-Control', 'no-store');
+    response.setHeader('Referrer-Policy', 'no-referrer');
     try {
       if (request.headers.host !== new URL(origin).host ||
         (request.headers.origin && request.headers.origin !== origin)) {
@@ -101,7 +108,8 @@ export async function serve(board, { port = 0, serviceControlToken, onClose = ()
         if (request.headers['x-task-board-service-id'] !== serviceId ||
           request.headers['x-task-board-id'] !== boardId ||
           request.headers['x-task-board-generation'] !== generation ||
-          request.headers['x-task-board-session-key'] !== sessionKey) {
+          request.headers['x-task-board-session-key'] !== sessionKey ||
+          shared && request.headers['x-task-board-hub-id'] !== hubId) {
           response.writeHead(409).end();
           return;
         }
@@ -113,14 +121,14 @@ export async function serve(board, { port = 0, serviceControlToken, onClose = ()
             response.writeHead(429).end(JSON.stringify({ error: { code: 'TICKET_CAPACITY' } }));
             return;
           }
-          response.end(JSON.stringify({ serviceId, boardId, generation, ...sessionIdentity, port: actualPort,
-            url: origin, status: 'running', ticketUrl: `${origin}/?ticket=${minted.ticket}`,
+          response.end(JSON.stringify({ serviceId, boardId, generation, ...sessionIdentity, ...sharedIdentity, port: actualPort,
+            url: origin, status: 'running', ticketUrl: `${origin}${routeBase}?ticket=${minted.ticket}`,
             ticketExpiresAt: minted.ticketExpiresAt }));
           return;
         }
         // A stop response acknowledges acceptance; it does not claim cleanup completed.
         if (stopping) response.once('finish', () => { close().catch(() => {}); });
-        response.end(JSON.stringify({ serviceId, boardId, generation, ...sessionIdentity, port: actualPort,
+        response.end(JSON.stringify({ serviceId, boardId, generation, ...sessionIdentity, ...sharedIdentity, port: actualPort,
           status: stopping ? 'stopping' : 'running' }));
         return;
       }
@@ -132,19 +140,27 @@ export async function serve(board, { port = 0, serviceControlToken, onClose = ()
       const ticket = /^\/\?ticket=([a-f0-9]{64})$/.exec(request.url)?.[1];
       if (ticket && pendingTickets.has(ticket)) {
         pendingTickets.delete(ticket);
-        response.setHeader('Set-Cookie', `${cookieName}=${session}; HttpOnly; SameSite=Strict; Path=/`);
-        response.writeHead(303, { Location: '/' }).end();
+        response.setHeader('Set-Cookie', `${cookieName}=${session}; HttpOnly; SameSite=Strict; Path=${routeBase}`);
+        response.writeHead(303, { Location: shared ? `${routeBase}#view=${viewCapability}` : '/' }).end();
         return;
       }
       const authorized = request.headers.cookie?.split(';').some(value =>
         value.trim() === `${cookieName}=${session}`);
-      if (!authorized) {
+      const view = request.headers['x-task-board-view'];
+      const viewAuthorized = typeof view === 'string' && /^[a-f0-9]{64}$/.test(view)
+        && timingSafeEqual(Buffer.from(view), Buffer.from(viewCapability));
+      const publicAsset = ['/', '/app.js', '/style.css'].includes(url.pathname);
+      if ((!authorized || shared && !viewAuthorized) && !(shared && publicAsset)) {
         response.writeHead(401).end();
         return;
       }
       if (url.pathname === '/api/snapshot') {
+        const snapshot = board.snapshot();
+        if (snapshot.board.boardId !== boardId || snapshot.board.generation !== generation) {
+          response.writeHead(401).end(); return;
+        }
         response.setHeader('Content-Type', 'application/json');
-        response.end(JSON.stringify(publicSnapshot(board.snapshot())));
+        response.end(JSON.stringify(publicSnapshot(snapshot)));
         return;
       }
       if (url.pathname === '/api/events') {
@@ -181,13 +197,14 @@ export async function serve(board, { port = 0, serviceControlToken, onClose = ()
       if (!response.headersSent) response.writeHead(503);
       response.end();
     }
-  });
+  };
+  const server = sharedServer ?? http.createServer(handler);
 
   /** A bounded event batch fills snapshot/subscription gaps; slow clients reconnect from storage. */
   function push(client) {
     try {
       const batch = board.eventsAfter({ generation: client.generation, eventSeq: client.eventSeq }, 100);
-      if (batch.reset) {
+      if (batch.reset || batch.boardId !== boardId || batch.generation !== generation) {
         client.response.end(`event: reset\ndata: ${JSON.stringify({ reason: 'CURSOR_INVALID' })}\n\n`);
         clients.delete(client);
         return;
@@ -210,7 +227,7 @@ export async function serve(board, { port = 0, serviceControlToken, onClose = ()
       clients.delete(client);
     }
   }
-  await new Promise((resolve, reject) => {
+  if (!shared) await new Promise((resolve, reject) => {
     server.once('error', reject);
     server.listen(port, '127.0.0.1', resolve);
   });
@@ -230,14 +247,15 @@ export async function serve(board, { port = 0, serviceControlToken, onClose = ()
     clearInterval(heartbeat);
     for (const client of clients) client.response.destroy();
     clients.clear();
-    closing = new Promise((resolve, reject) => {
+    closing = (shared ? Promise.resolve() : new Promise((resolve, reject) => {
       server.close(error => error ? reject(error) : resolve());
       server.closeAllConnections();
-    }).then(() => onClose());
+    })).then(() => onClose());
     return closing;
   }
   return {
-    serviceId, boardId, generation, ...sessionIdentity, port: actualPort, url: origin,
-    ticketUrl: `${origin}/?ticket=${initialTicket}`, close,
+    serviceId, boardId, generation, ...sessionIdentity, ...sharedIdentity, port: actualPort, url: origin,
+    ticketUrl: `${origin}${routeBase}?ticket=${initialTicket}`, close,
+    ...(shared ? { handler } : {}),
   };
 }

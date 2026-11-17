@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { invoke, secret } from './helpers.mjs';
 
 const entry = resolve('packages/task-board/src/cli/activation.mjs');
+import { closeFixtureSharedRuntime } from './fixture-environment.mjs';
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 async function fixture(t) {
   const parent = resolve('_work/task-board/test-fixtures');
@@ -38,12 +39,13 @@ async function fixture(t) {
         serviceControlToken: request.serviceControlToken }, { sessionKey });
       assert.equal(stopped.code, 0, 'Owned service stop must be observed before fixture cleanup');
     }
+    await closeFixtureSharedRuntime(join(root, 'hub'));
     await rm(root, { recursive: true, force: true });
   });
   function run(patch = {}, nodeArgs = []) {
     const child = spawnSync(process.execPath, [...nodeArgs, entry, '--project-root', root, '--stdin'], {
       input: JSON.stringify({ ...request, ...patch }), encoding: 'utf8', timeout: 20000,
-      env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(root) },
+      env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(root), CODEX_BOARD_SERVICE_HOME: join(root, 'hub') },
     });
     assert.equal(child.error, undefined, 'Activation must return without waiting for its detached service');
     assert.equal(child.status, 0, child.stdout + child.stderr);
@@ -196,7 +198,7 @@ test('ACTIVATION.wrapperUsesManagedRuntimeAndForwardsStdin', async t => {
   const wrapper = await wrapperFixture(f);
   // This suite is run with the verified managed runtime; locate its owning AgentsHome generically.
   const agentsHome = resolve(dirname(process.execPath), '../../../../..');
-  const args = ['-NoProfile', '-File', wrapper, '-AgentsHome', agentsHome];
+  const args = ['-NoProfile', '-File', wrapper, '-AgentsHome', agentsHome, '-SharedRuntimeHome', join(f.root, 'hub')];
   const help = spawnSync('pwsh', [...args, '-Help'], { encoding: 'utf8', timeout: 15000 });
   assert.equal(help.status, 0, help.stdout + help.stderr);
   assert.equal(JSON.parse(help.stdout).operation, 'activation-help');
@@ -301,7 +303,8 @@ test('ACTIVATION.splitUtf8StdinPreservesObservedSessionName', async t => {
   const split = bytes.indexOf(Buffer.from('测')) + 1;
   assert.ok(split > 0);
   const child = spawn(process.execPath, [entry, '--project-root', f.root, '--stdin'], {
-    stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(f.root) },
+    stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(f.root),
+      CODEX_BOARD_SERVICE_HOME: join(f.root, 'hub') },
   });
   const output = [];
   child.stdout.on('data', chunk => output.push(chunk));

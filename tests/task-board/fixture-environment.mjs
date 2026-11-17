@@ -1,6 +1,26 @@
 // These checks diagnose fixture prerequisites, never turn unavailable product assertions green.
 import { createServer, createConnection } from 'node:net';
 import { symlink } from 'node:fs/promises';
+import fs from 'node:fs';
+import { readRuntime } from '../../packages/task-board/src/activation/shared-registry.mjs';
+import { hubRequest } from '../../packages/task-board/src/activation/shared-service.mjs';
+
+// The fixture already detached its Board. Stop only its private empty Hub and wait for exit
+// before deleting its cwd; never use real user runtime homes or kill a live unknown process.
+export async function closeFixtureSharedRuntime(home) {
+  if (!fs.existsSync(home)) return;
+  const instance = readRuntime(home, 'instance.json');
+  if (!instance?.hubId) return;
+  const authority = readRuntime(home, 'authority.json');
+  try { await hubRequest(instance, authority.token, 'stop'); }
+  catch (error) { if (error.code !== 'SHARED_UNAVAILABLE') throw error; }
+  for (let i = 0; i < 100; i++) {
+    try { process.kill(instance.processId, 0); }
+    catch (error) { if (error.code === 'ESRCH') return; throw error; }
+    await new Promise(resolve => setTimeout(resolve, 30));
+  }
+  throw setupError('SHARED_FIXTURE_PROCESS_STILL_RUNNING');
+}
 
 function setupError(capability, cause) {
   const error = new Error(`TEST_SETUP: ${capability}; use an environment permitting this fixture capability.`,

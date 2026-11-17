@@ -8,7 +8,7 @@ import path from 'node:path';
 import { initializeBoard, openBoard } from '../../packages/task-board/src/storage/index.mjs';
 import { assertWorkspaceBinding } from '../../packages/task-board/src/storage/workspaces.mjs';
 import { validateTaskScopes } from '../../packages/task-board/src/domain/workspace-scope.mjs';
-import { hash, mutate as domainMutation } from '../../packages/task-board/src/coordination/service.mjs';
+import { hash, mutate as domainMutation, publicSnapshot } from '../../packages/task-board/src/coordination/service.mjs';
 import { sourcePath } from './helpers.mjs';
 
 function fixture(t) {
@@ -96,6 +96,10 @@ test('WORKSPACE.realAssignmentWithAcceptedDependencyChecksEachWorkspaceTwice', t
   });
   t.diagnostic(JSON.stringify({ operation: 'assign with accepted dependency and 52 scopes', ...measurement }));
   assert.equal(measurement.calls, 8);
+  call('release', { taskId: 'downstream', taskRevision: 3, writesStopped: true, processStopped: true });
+  const projection = counted(() => publicSnapshot(f.board.snapshot()));
+  t.diagnostic(JSON.stringify({ operation: 'browser snapshot projection', ...projection }));
+  assert.equal(projection.calls, 8, 'Shared browser projection must not repeat Git per scope or dependency');
 });
 
 for (const barrier of ['callback', 'beforeCommit', 'read', 'replay']) {

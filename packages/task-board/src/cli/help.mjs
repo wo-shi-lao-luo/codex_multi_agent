@@ -58,13 +58,15 @@ commands.at(-1).notes = 'Restore output requires an existing effective literal i
 entry('serve', ['actorId', 'leadToken'], ['generation', 'port', 'serviceControlToken']);
 for (const name of ['service-status', 'service-stop', 'service-open']) {
   entry(name, ['url', 'port', 'serviceId', 'boardId', 'generation', 'serviceControlToken'],
-    ['timeoutMs', 'sessionKey'], [],
+    ['timeoutMs', 'sessionKey', 'serviceMode', 'hubId', 'routeBase'], [],
     'Caller-held flat service identity. No database access. Stop status stopping acknowledges '
     + 'acceptance; it does not certify completed shutdown.');
 }
 commands.at(-1).notes = 'Returns an ephemeral one-use browser URL, valid for 120 seconds; '
   + 'at most 8 pending tickets including startup. Capacity rejects without eviction. Running means '
   + 'issuance succeeded, not host-opened proof. No database access or automatic browser launch.';
+commands.at(-1).notes += ' Shared mode requires serviceMode=shared-v1, hubId and '
+  + 'routeBase=/boards/<sessionKey>/. service-stop detaches only that Board.';
 write('register', ['worker', 'worker.id', 'worker.role', 'worker.mode', 'worker.capabilities'],
   ['worker.hostId', 'worker.workerToken', 'worker.principal', 'worker.runtimeIdentity'], [
     ...lead, { when: 'worker.mode=direct or lead-proxy', requiredFields: ['worker.workerToken'] },

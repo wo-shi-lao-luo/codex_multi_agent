@@ -1,7 +1,8 @@
 # Finite activation wrapper. Read JSON from stdin; never install or persist credentials.
 #requires -Version 7.0
 [CmdletBinding()]
-param([string]$ProjectRoot, [string]$AgentsHome, [string]$RequestPath, [switch]$Help)
+param([string]$ProjectRoot, [string]$AgentsHome, [string]$RequestPath,
+  [string]$SharedRuntimeHome, [switch]$Help)
 $ErrorActionPreference = 'Stop'
 # Windows .NET 10 Process.Start inherits unrelated inheritable handles as well as its redirected
 # streams. A detached descendant can retain this wrapper's outer capture pipes after we exit.
@@ -66,6 +67,9 @@ try {
   $info = [Diagnostics.ProcessStartInfo]::new()
   $info.FileName = $runtime.nodePath
   $info.UseShellExecute = $false
+  $info.Environment['CODEX_BOARD_SERVICE_HOME'] = if ($SharedRuntimeHome) {
+    [IO.Path]::GetFullPath($SharedRuntimeHome)
+  } else { Join-Path $AgentsHome 'codex-multi-agent/board-service-v1' }
   $info.CreateNoWindow = $true
   $info.RedirectStandardInput = $true
   $info.RedirectStandardOutput = $true

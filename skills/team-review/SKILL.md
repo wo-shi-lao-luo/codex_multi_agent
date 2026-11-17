@@ -28,6 +28,8 @@ delivery readiness, or authorize a Git action.
 
 ## Establish coverage
 
+Use the [shared code-review method](../team-core/references/code-review-method.md) for internal review or external PR assistance. For PRs, pin base/head, provide a change/impact map, inspect issue/discussion/CI evidence, and preserve contributor-code trust boundaries. Separate must-fix, human-decision and optional items; drafts are not permission to post, approve, modify or merge. On updates reconcile only affected evidence. Consult review-quality evaluation only when that evaluation is authorized.
+
 Read [role routing](../team-core/references/role-routing.md) in full before delegation. Check exact needed role selectors against the active catalog, preserve unavailable-role/identity limits, and reconcile call evidence; a task label or authored ledger is not independent proof. Include the actual roster, including failures/retries or explicit none, using the handoff format.
 
 For a project with `openspec/team-integration.json`, read and apply the [spec lifecycle](../team-core/references/spec-lifecycle.md) in full. Check links, changed/removed behavior, stale evidence and actual assertions; inspect CloseCheck without archiving or changing acceptance. Do not enable an absent integration.

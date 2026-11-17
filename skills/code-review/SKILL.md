@@ -22,6 +22,8 @@ Do not use without an inspectable scope. Do not turn a review into a style rewri
 
 ## Establish scope and risk coverage
 
+Read the [shared code-review method](../team-core/references/code-review-method.md) for the applicable internal or external-PR mode. Follow its evidence procedure, structure/reuse/lifecycle checks, separate certainty/impact/disposition, human-decision handoff and snapshot freshness rules. Keep risk-proportional scope and this Skill's read-only boundary; its evaluation section is conditional on authorized review-quality evaluation.
+
 For reviews covering visible UI changes, apply the [UI delivery contract](../team-core/references/ui-quality.md). Inspect available final-page evidence against the UI brief, not only the component diff. Record which routes, viewports and states were inspected; code-only evidence cannot establish visual quality. Do not relabel agent inspection as user approval.
 
 1. Record the baseline, changed files, intended behavior, and relevant tests or verification already run.

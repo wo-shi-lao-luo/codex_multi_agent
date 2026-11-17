@@ -32,4 +32,27 @@ Assert-Contains 'skills/team-review/SKILL.md' 'executable Skill, workflow, or co
 Assert-Contains 'skills/code-review/SKILL.md' 'For prose-only documentation, review factual meaning and links' 'Code review must distinguish prose-only documentation'
 Assert-Contains 'skills/code-review/SKILL.md' 'treat changes to executable Skill/workflow/configuration instructions as harness behavior' 'Harness instruction changes must receive behavior review'
 
+# Scenario: internal development and external PR review must discover the same maintained method.
+# Expected: executable Markdown routes resolve to the packaged guide, not merely its name.
+foreach ($entry in @('code-review', 'team-review', 'team-dev')) {
+  Assert-Contains "skills/$entry/SKILL.md" '](../team-core/references/code-review-method.md)' 'Shared review method must be reachable'
+}
+Assert-Contains 'skills/team-core/SKILL.md' '](references/code-review-method.md)' 'Core must expose the review method'
+Assert-Contains 'agents/team-reviewer.toml' 'Lead-supplied resolved team-core code-review method' 'Reviewer must receive cross-repository context'
+$methodPath = Join-Path $root 'skills/team-core/references/code-review-method.md'
+if (-not (Test-Path -LiteralPath $methodPath -PathType Leaf)) { throw 'ASSERTION_FAILED: Missing packaged code-review method' }
+
+# Scenario: evidence certainty, impact, and action are different decisions in both review modes.
+# Expected: a material unknown stays pending; a confirmed defect is not optional; reviewer remains read-only.
+foreach ($section in @('## Shared evidence procedure', '## Disposition and human decisions',
+  '## Structure, reuse and repository lifecycle', '## Internal development review',
+  '## External PR assistance', '## Review quality evaluation')) {
+  Assert-Contains 'skills/team-core/references/code-review-method.md' $section 'Method must cover the approved review surfaces'
+}
+foreach ($invariant in @('must-fix', 'human-decision', 'optional', 'unproven',
+  'requiredChecks', 'checkResults', 'base/head', 'hidden tests', 'false positives', 'token')) {
+  Assert-Contains 'skills/team-core/references/code-review-method.md' $invariant 'Review method must preserve evidence and evaluation boundaries'
+}
+Assert-Contains 'skills/team-core/references/execution-templates.md' 'Disposition and human decision' 'Handoff must retain actionable decisions'
+
 Write-Host 'PASS: review context source contracts (model behavior not tested)'

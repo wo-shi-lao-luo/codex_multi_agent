@@ -5,6 +5,8 @@ description: Internal reference bundle for Codex Multi-Agent Kit team workflows.
 
 # Team core
 
+For implementation review/backchecks and external PR assistance, use the [shared code-review method](references/code-review-method.md). It owns evidence procedure, certainty/impact/disposition, human decisions, structure/reuse/lifecycle and the two review modes. Its evaluation section applies only to authorized review-quality evaluation. The Lead supplies its resolved installed/source location to Reviewer children working in other repositories.
+
 When the Lead authorizes same-task factual/evidence exchange among named child peers, follow the [bounded peer communication contract](references/peer-communication.md). It defines grant contents, allowed topics, shared budgets, escalation and role-specific boundaries; it does not create all-to-all communication.
 
 For bounded external web research and same-task peer handoffs, use the optional `team-researcher` under the [external research contract](references/external-research.md). The Lead retains scope, one shared task budget, authorized peers, lifecycle and integration; peer requests do not create separate research allowances.

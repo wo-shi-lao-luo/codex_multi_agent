@@ -16,7 +16,8 @@ import { validateSourceRefs, requireCurrentSources, observeSources, resetSourceO
 import { executorIdentity, executorBinding, roleEligible, validateExecutionContract,
   requireWorkerScope } from '../domain/executor.mjs';
 import { requireIndependentChecks } from './execution-evidence.mjs';
-import { assertWorkspaceBinding, verifyWorkspaceRoot, workspaceBindings, MAX_WORKSPACES }
+import { assertWorkspaceBinding, verifyWorkspaceRoot, workspaceBindings, MAX_WORKSPACES,
+  beginWorkspaceObservation, finishWorkspaceObservation, discardWorkspaceObservation }
   from '../storage/workspaces.mjs';
 import { collectTaskWorkspaceIds, normalizeWorkspaceScope, scopeResourceKey, requireExecutionCwd,
   normalizeScope, canonicalPhysicalPathKey } from '../domain/workspace-scope.mjs';
@@ -592,7 +593,10 @@ function mutateAuthorized(tx, operation, input, worker, provenance) {
 export function publicSnapshot(snapshot, { includeArchived = false } = {}) {
   const { board, ...lists } = snapshot;
   const tx = snapshotContext(snapshot);
-  return redact({ ...lists,
+  // The materialized browser projection is one bounded read, not one Git observation per
+  // scope/candidate/dependency. Final physical revalidation still precedes returning any data.
+  beginWorkspaceObservation(tx);
+  try { return redact({ ...lists,
     tasks: lists.tasks.filter(task => includeArchived || task.archived !== true)
       .map(task => ({ ...task, ...readiness(tx, task, resourcesAvailable) })),
     questions: lists.questions.map(question => projectQuestion(tx, question)),
@@ -603,6 +607,9 @@ export function publicSnapshot(snapshot, { includeArchived = false } = {}) {
     recoveryRequired: board.recoveryRequired === true,
     maintenance: board.maintenance ? { id: board.maintenance.id, active: board.maintenance.active,
       ownerId: board.maintenance.ownerId, enteredAt: board.maintenance.enteredAt } : null });
+  } finally {
+    try { finishWorkspaceObservation(tx); } finally { discardWorkspaceObservation(tx); }
+  }
 }
 
 /** Read operations share the same dependency/resource rules as mutation-time claim checks. */

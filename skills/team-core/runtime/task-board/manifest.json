@@ -15,7 +15,7 @@
     },
     {
       "path": "packages/task-board/src/activation/orchestrator.mjs",
-      "sha256": "1124b6dce5bbc28efabb56760977a51a8131066236e7a7c67c528a6623c8b742"
+      "sha256": "0e03c341718138d289c7784d73e8987204426f1f66c4fc3446863ad3fac99bac"
     },
     {
       "path": "packages/task-board/src/activation/prepare.mjs",
@@ -23,7 +23,7 @@
     },
     {
       "path": "packages/task-board/src/activation/request.mjs",
-      "sha256": "616254b21a726e878657fbf43ab5b2dc08e4a3e4be07c65db000112e16ae92ac"
+      "sha256": "2582afacc3e8674639597658d93665426138aea862c025609a9cd6ff219edbeb"
     },
     {
       "path": "packages/task-board/src/activation/service-recovery.mjs",
@@ -34,16 +34,28 @@
       "sha256": "3075efe5a8f016d008821e5c515cdcc00278c7bc4e0f4b48a28c2e51b39a14e1"
     },
     {
+      "path": "packages/task-board/src/activation/shared-registry.mjs",
+      "sha256": "f39996f57a4abea7fc4c1a425beb1ca6277038fc8bd79796174e8cbfc510f284"
+    },
+    {
+      "path": "packages/task-board/src/activation/shared-service-runner.mjs",
+      "sha256": "e1dace682bd4ec5cb0486e6095efe0fad8e0ffe7fb676ed1b941c15f56d0134c"
+    },
+    {
+      "path": "packages/task-board/src/activation/shared-service.mjs",
+      "sha256": "036451cae4ab5e1385e9499323cfd61fc8ebd2ab2910c2ae6fa670ffef20c5cb"
+    },
+    {
       "path": "packages/task-board/src/activation/transport.mjs",
       "sha256": "71acb258b005352da92517b88655f3a7b8fefd5fd75593ca2fd99be4aa872cce"
     },
     {
       "path": "packages/task-board/src/cli/activation.mjs",
-      "sha256": "669eaa34ff37d8967bb7d5b28e6b263a1c7035b9c36568fe29479652628bd6f9"
+      "sha256": "900bb4320ab0a1cfb15715edd59be06e0cdb7904dc203c950bdc007bba8c39a3"
     },
     {
       "path": "packages/task-board/src/cli/cli.mjs",
-      "sha256": "05be475c86f2f2a1dbf0e975c9c7379fecbbc9d6a356bf407fed6431976e96cb"
+      "sha256": "90f1639bcd97016f76ff067bd1fd465349e1505a0bc3fcf63b908e1b8aa4da60"
     },
     {
       "path": "packages/task-board/src/cli/data-lifecycle.mjs",
@@ -51,7 +63,7 @@
     },
     {
       "path": "packages/task-board/src/cli/help.mjs",
-      "sha256": "e4b2a95b726ecfbed51cf43de9ea7c53f96be879371b5269f98cb34fd7db9e3f"
+      "sha256": "83d6fbdfebbca67eafbdf3c462dfe66d09ad44d7e89b62c815ff34092da19272"
     },
     {
       "path": "packages/task-board/src/cli/maintenance.mjs",
@@ -79,7 +91,7 @@
     },
     {
       "path": "packages/task-board/src/coordination/service.mjs",
-      "sha256": "8098e3f9f2d129144c362ca8b75644658062642022ddb3c2c4f9c14e564916e3"
+      "sha256": "5faab72869843d2951f570103e29af38aefbee56ddeb922838a85c1fdba05534"
     },
     {
       "path": "packages/task-board/src/coordination/team-sync.mjs",
@@ -127,11 +139,15 @@
     },
     {
       "path": "packages/task-board/src/server/control.mjs",
-      "sha256": "7830da9071f1adcf470360dcc20382d3730615e76c270bf94a77d419cecffec5"
+      "sha256": "1f62f4e2077a5586b36a98394ab20080e6666aab9108d86a07d2403e9b5d397c"
     },
     {
       "path": "packages/task-board/src/server/server.mjs",
-      "sha256": "e9073ac9792a85f992b556b7a0087b27994ed4b44d8f7d9a3b9379b1274c7625"
+      "sha256": "3f1772ca9c20152acadf8417eab7fa8cd46401ce26c0bc39c38302193719f82e"
+    },
+    {
+      "path": "packages/task-board/src/server/shared-server.mjs",
+      "sha256": "aa1a73a6738630df615cb70170d26773ce85161e44eedeccb73683964e0b5995"
     },
     {
       "path": "packages/task-board/src/sources/adapter.mjs",
@@ -223,11 +239,11 @@
     },
     {
       "path": "packages/task-board/web/app.js",
-      "sha256": "0a3381e83704f8d748dce4482974df565c4e08616d69b8b5cf81226e24fdfa33"
+      "sha256": "6a148bc5341c963889f4d80b5ec765f7703f0efb964d68d0dd554c3cbdd58407"
     },
     {
       "path": "packages/task-board/web/index.html",
-      "sha256": "2b8b89068e5c04e86e6734447345ee05ae3b450295b8d6f40c76248b5b2b7250"
+      "sha256": "eab7dcdff30dc1f7e9ada05f19896f4d91cce3173a5d741c39675154e21f138a"
     },
     {
       "path": "packages/task-board/web/style.css",
@@ -249,7 +265,7 @@
     },
     {
       "path": "src/activation/orchestrator.mjs",
-      "sha256": "1124b6dce5bbc28efabb56760977a51a8131066236e7a7c67c528a6623c8b742"
+      "sha256": "0e03c341718138d289c7784d73e8987204426f1f66c4fc3446863ad3fac99bac"
     },
     {
       "path": "src/activation/prepare.mjs",
@@ -257,7 +273,7 @@
     },
     {
       "path": "src/activation/request.mjs",
-      "sha256": "616254b21a726e878657fbf43ab5b2dc08e4a3e4be07c65db000112e16ae92ac"
+      "sha256": "2582afacc3e8674639597658d93665426138aea862c025609a9cd6ff219edbeb"
     },
     {
       "path": "src/activation/service-recovery.mjs",
@@ -268,16 +284,28 @@
       "sha256": "3075efe5a8f016d008821e5c515cdcc00278c7bc4e0f4b48a28c2e51b39a14e1"
     },
     {
+      "path": "src/activation/shared-registry.mjs",
+      "sha256": "f39996f57a4abea7fc4c1a425beb1ca6277038fc8bd79796174e8cbfc510f284"
+    },
+    {
+      "path": "src/activation/shared-service-runner.mjs",
+      "sha256": "e1dace682bd4ec5cb0486e6095efe0fad8e0ffe7fb676ed1b941c15f56d0134c"
+    },
+    {
+      "path": "src/activation/shared-service.mjs",
+      "sha256": "036451cae4ab5e1385e9499323cfd61fc8ebd2ab2910c2ae6fa670ffef20c5cb"
+    },
+    {
       "path": "src/activation/transport.mjs",
       "sha256": "71acb258b005352da92517b88655f3a7b8fefd5fd75593ca2fd99be4aa872cce"
     },
     {
       "path": "src/cli/activation.mjs",
-      "sha256": "669eaa34ff37d8967bb7d5b28e6b263a1c7035b9c36568fe29479652628bd6f9"
+      "sha256": "900bb4320ab0a1cfb15715edd59be06e0cdb7904dc203c950bdc007bba8c39a3"
     },
     {
       "path": "src/cli/cli.mjs",
-      "sha256": "05be475c86f2f2a1dbf0e975c9c7379fecbbc9d6a356bf407fed6431976e96cb"
+      "sha256": "90f1639bcd97016f76ff067bd1fd465349e1505a0bc3fcf63b908e1b8aa4da60"
     },
     {
       "path": "src/cli/data-lifecycle.mjs",
@@ -285,7 +313,7 @@
     },
     {
       "path": "src/cli/help.mjs",
-      "sha256": "e4b2a95b726ecfbed51cf43de9ea7c53f96be879371b5269f98cb34fd7db9e3f"
+      "sha256": "83d6fbdfebbca67eafbdf3c462dfe66d09ad44d7e89b62c815ff34092da19272"
     },
     {
       "path": "src/cli/maintenance.mjs",
@@ -313,7 +341,7 @@
     },
     {
       "path": "src/coordination/service.mjs",
-      "sha256": "8098e3f9f2d129144c362ca8b75644658062642022ddb3c2c4f9c14e564916e3"
+      "sha256": "5faab72869843d2951f570103e29af38aefbee56ddeb922838a85c1fdba05534"
     },
     {
       "path": "src/coordination/team-sync.mjs",
@@ -361,11 +389,15 @@
     },
     {
       "path": "src/server/control.mjs",
-      "sha256": "7830da9071f1adcf470360dcc20382d3730615e76c270bf94a77d419cecffec5"
+      "sha256": "1f62f4e2077a5586b36a98394ab20080e6666aab9108d86a07d2403e9b5d397c"
     },
     {
       "path": "src/server/server.mjs",
-      "sha256": "e9073ac9792a85f992b556b7a0087b27994ed4b44d8f7d9a3b9379b1274c7625"
+      "sha256": "3f1772ca9c20152acadf8417eab7fa8cd46401ce26c0bc39c38302193719f82e"
+    },
+    {
+      "path": "src/server/shared-server.mjs",
+      "sha256": "aa1a73a6738630df615cb70170d26773ce85161e44eedeccb73683964e0b5995"
     },
     {
       "path": "src/sources/adapter.mjs",
@@ -457,11 +489,11 @@
     },
     {
       "path": "web/app.js",
-      "sha256": "0a3381e83704f8d748dce4482974df565c4e08616d69b8b5cf81226e24fdfa33"
+      "sha256": "6a148bc5341c963889f4d80b5ec765f7703f0efb964d68d0dd554c3cbdd58407"
     },
     {
       "path": "web/index.html",
-      "sha256": "2b8b89068e5c04e86e6734447345ee05ae3b450295b8d6f40c76248b5b2b7250"
+      "sha256": "eab7dcdff30dc1f7e9ada05f19896f4d91cce3173a5d741c39675154e21f138a"
     },
     {
       "path": "web/style.css",
