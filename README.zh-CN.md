@@ -18,11 +18,11 @@
 
 **第一次使用：**先[让 Codex 安装](docs/codex-install.md)，再按[首次任务指南](docs/first-task.md)操作。指南包含一个小型开发练习、验收检查，以及遇到问题时的反馈方式。
 
-工具包目前处于 2.x 预览产品线。可用模型和权限取决于你的 Codex 账号及客户端。指引和校验器不能保证实际运行行为、成本降低或结果改善；请检查真实修改和验证证据。
+当前是 `Beta` 分支，即试用 Task Board 等开发中功能的 2.x 预览线。`Beta` 的改动通过 PR 合入。默认安装请参阅 [`master`](https://github.com/wo-shi-lao-luo/codex_multi_agent/tree/master)。可用模型和权限取决于你的 Codex 账号及客户端。指引和校验器不能保证实际运行行为、成本降低或结果改善；请检查真实修改和验证证据。
 
-当前版本: `2.0.6`
+当前版本: `2.0.7`（Beta 预览版）
 
-`2.0.6` 明确独立委派检查与关联任务收尾，区分候选角色、实际执行者和完成人，并移除 Board 展示中的内部编号。完整 Windows x64 用户安装器会复用符合要求的 Node.js `>=26.13.0 <27`／SQLite `>=3.54.0`，否则将固定版本 Node.js `26.13.0` 配置到私有缓存，并校验官方归档摘要；不会修改 `PATH` 或安装全局 npm 包。`-WhatIf` 不下载也不配置运行时。底层仅部署 payload 的命令仍保持离线。阅读 Team 指引无需 Node.js；执行 Board 命令则需要运行时，并通过已安装的 `task-board.ps1` 启动器运行，适用时明确说明例外或安全降级。默认测试运行需要兼容的 Board 运行时或显式提供运行时归档，不会联网回退。macOS 和 Linux 的运行时安装尚未验证。详见[安装说明](docs/codex-install.md)、[设置与诊断](docs/setup.md)、[Task Board 契约](skills/team-core/references/task-coordination.md)、[设计](docs/task-coordination-design.md)和[实施计划](docs/task-coordination-plan.md)。安装回执验证和启动器 doctor 都必须通过；Codex 会话实际加载情况仍需单独核验。
+`2.0.7` 将 Sol 角色升级到 GPT-6.2 Sol，改进 Board 恢复和会话面板验证，并补充 UI 设计与评估指引。详情见[更新日志](CHANGELOG.zh-CN.md)。完整 Windows x64 用户安装器会复用符合要求的 Node.js `>=26.13.0 <27`／SQLite `>=3.54.0`，否则将固定版本 Node.js `26.13.0` 配置到私有缓存，并校验官方归档摘要；不会修改 `PATH` 或安装全局 npm 包。`-WhatIf` 不下载也不配置运行时。底层仅部署 payload 的命令仍保持离线。阅读 Team 指引无需 Node.js；执行 Board 命令则需要运行时，并通过已安装的 `task-board.ps1` 启动器运行，适用时明确说明例外或安全降级。默认测试运行需要兼容的 Board 运行时或显式提供运行时归档，不会联网回退。macOS 和 Linux 的运行时安装尚未验证。详见[安装说明](docs/codex-install.md)、[设置与诊断](docs/setup.md)、[Task Board 契约](skills/team-core/references/task-coordination.md)、[设计](docs/task-coordination-design.md)和[实施计划](docs/task-coordination-plan.md)。安装回执验证和启动器 doctor 都必须通过；Codex 会话实际加载情况仍需单独核验。
 
 已授权的执行任务默认启用会话 Board，单个主 Agent 也能供人观察进度。小任务可只用一张卡，不因此增加 Agent、审查、测试或文档；普通问答、独立咨询及用户退出保留明确例外，缺少前置条件时必须说明原因。首次启用会尝试展示当前聊天面板；排队、仅链接及未知结果与实际可见看板分别记录。这属于工作流指引，不是原生任务启动钩子。
 
