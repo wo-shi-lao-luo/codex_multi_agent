@@ -2,7 +2,7 @@
 # If it already exists, merge the recommended keys into that table; do not create a second table.
 # For an existing kit installation, explicitly update max_concurrent_threads_per_session
 # and the two default_subagent keys rather than only adding missing keys.
-# Recommended Lead: select GPT-6 Astra / high in the main session.
+# Recommended Lead: GPT-6.2 Sol / medium for everyday work, GPT-6.2 Astra / high for complex work.
 # This fragment does not change the main-session model or implement model fallback.
 
 [agents]
@@ -11,6 +11,6 @@ enabled = true
 # Expand only for independent, ready tasks; the actual host/runtime cap may be lower.
 # Editing this source fragment does not establish that the runtime has loaded it.
 max_concurrent_threads_per_session = 6
-default_subagent_model = "gpt-6.1-sol"
+default_subagent_model = "gpt-6.2-sol"
 default_subagent_reasoning_effort = "medium"
 interrupt_message = true

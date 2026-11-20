@@ -51,7 +51,7 @@ try {
   # Expected: actual validator accepts the package without writing any source file.
   $profile = Get-Content (Join-Path $package $payload[0]) -Raw
   foreach ($setting in @(
-    'model = "gpt-6.1-sol"', 'model_reasoning_effort = "high"',
+    'model = "gpt-6.2-sol"', 'model_reasoning_effort = "high"',
     'sandbox_mode = "workspace-write"'
   )) {
     Assert-Scientist ($profile.Contains($setting)) "DS-02 incorrect profile: $setting"
@@ -78,7 +78,7 @@ try {
     # Expected: each independently invalid profile rejects; exact bytes restore success.
     $profilePath = Join-Path $package $payload[0]
     foreach ($mutation in @(
-      @{from='gpt-6.1-sol'; to='unsupported-data-model'},
+      @{from='gpt-6.2-sol'; to='unsupported-data-model'},
       @{from='model_reasoning_effort = "high"'; to='model_reasoning_effort = "low"'},
       @{from='sandbox_mode = "workspace-write"'; to='sandbox_mode = "read-only"'},
       @{from='data-science'; to='backend-engineering'}
