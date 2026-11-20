@@ -19,7 +19,7 @@ if(-not $BehaviorOnly){
   foreach($retired in 'skills/team-simulate','agents/team-simulation-actor.toml'){
     Assert-Condition (-not(Test-Path -LiteralPath (Join-Path $root $retired))) "Retired simulation source asset remains: $retired"
   }
-  $profiles=@{'team-ai-simulation-actor-basic'=@('gpt-6-luna','medium');'team-ai-simulation-actor-advanced'=@('gpt-6.1-sol','medium');'team-ai-architect'=@('gpt-6.1-sol','xhigh')}
+  $profiles=@{'team-ai-simulation-actor-basic'=@('gpt-6-luna','medium');'team-ai-simulation-actor-advanced'=@('gpt-6.2-sol','medium');'team-ai-architect'=@('gpt-6.2-sol','xhigh')}
   foreach($role in $profiles.Keys){
     $profile=Get-Content -LiteralPath (Join-Path $root "agents/$role.toml") -Raw
     Assert-Condition ($profile -match ('(?m)^model = "'+[regex]::Escape($profiles[$role][0])+'"\r?$') -and $profile -match ('(?m)^model_reasoning_effort = "'+$profiles[$role][1]+'"\r?$')) "Unexpected default profile for $role"

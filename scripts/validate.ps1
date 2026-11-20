@@ -65,24 +65,24 @@ if (-not (Test-Path -LiteralPath $changelogPath)) {
 }
 
 $expectedAgentProfiles = @{
-  'team-architect' = @{ model = 'gpt-6.1-sol'; reasoning = 'xhigh' }
-  'team-backend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-architect' = @{ model = 'gpt-6.2-sol'; reasoning = 'xhigh' }
+  'team-backend-engineer' = @{ model = 'gpt-6.2-sol'; reasoning = 'medium' }
   'team-code-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
   'team-delivery-checker' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
-  'team-database-specialist' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
-  'team-data-scientist' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
-  'team-designer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-database-specialist' = @{ model = 'gpt-6.2-sol'; reasoning = 'high' }
+  'team-data-scientist' = @{ model = 'gpt-6.2-sol'; reasoning = 'high' }
+  'team-designer' = @{ model = 'gpt-6.2-sol'; reasoning = 'medium' }
   'team-docs-maintainer' = @{ model = 'gpt-6-luna'; reasoning = 'high' }
   'team-explorer' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
-  'team-frontend-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
-  'team-reviewer' = @{ model = 'gpt-6.1-sol'; reasoning = 'high' }
+  'team-frontend-engineer' = @{ model = 'gpt-6.2-sol'; reasoning = 'medium' }
+  'team-reviewer' = @{ model = 'gpt-6.2-sol'; reasoning = 'high' }
   'team-researcher' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
-  'team-tester' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
-  'team-ai-tester' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
-  'team-ai-engineer' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
+  'team-tester' = @{ model = 'gpt-6.2-sol'; reasoning = 'medium' }
+  'team-ai-tester' = @{ model = 'gpt-6.2-sol'; reasoning = 'medium' }
+  'team-ai-engineer' = @{ model = 'gpt-6.2-sol'; reasoning = 'medium' }
   'team-ai-simulation-actor-basic' = @{ model = 'gpt-6-luna'; reasoning = 'medium' }
-  'team-ai-simulation-actor-advanced' = @{ model = 'gpt-6.1-sol'; reasoning = 'medium' }
-  'team-ai-architect' = @{ model = 'gpt-6.1-sol'; reasoning = 'xhigh' }
+  'team-ai-simulation-actor-advanced' = @{ model = 'gpt-6.2-sol'; reasoning = 'medium' }
+  'team-ai-architect' = @{ model = 'gpt-6.2-sol'; reasoning = 'xhigh' }
 }
 
 # The thin entry adds discoverable contracts, not an executable intent router.

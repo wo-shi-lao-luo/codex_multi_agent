@@ -153,20 +153,20 @@ try {
   Assert-Condition (Invoke-CopiedValidator) 'Validation failed after restoring the shared handoff contract.'
 
   # Scenario: shipped roles use the approved GPT-6 allocation.
-  # Expected: Architect uses 6.1 Sol/xhigh, Tester stays medium, and Explorer retains Luna/medium.
+  # Expected: Architect uses 6.2 Sol/xhigh, Tester stays medium, and Explorer retains Luna/medium.
   $approvedProfiles = @{
-    'team-architect' = @('gpt-6.1-sol', 'xhigh')
-    'team-backend-engineer' = @('gpt-6.1-sol', 'medium')
-    'team-database-specialist' = @('gpt-6.1-sol', 'high')
+    'team-architect' = @('gpt-6.2-sol', 'xhigh')
+    'team-backend-engineer' = @('gpt-6.2-sol', 'medium')
+    'team-database-specialist' = @('gpt-6.2-sol', 'high')
     'team-docs-maintainer' = @('gpt-6-luna', 'high')
     'team-explorer' = @('gpt-6-luna', 'medium')
-    'team-frontend-engineer' = @('gpt-6.1-sol', 'medium')
-    'team-reviewer' = @('gpt-6.1-sol', 'high')
-    'team-tester' = @('gpt-6.1-sol', 'medium')
+    'team-frontend-engineer' = @('gpt-6.2-sol', 'medium')
+    'team-reviewer' = @('gpt-6.2-sol', 'high')
+    'team-tester' = @('gpt-6.2-sol', 'medium')
     'team-ai-simulation-actor-basic' = @('gpt-6-luna', 'medium')
-    'team-ai-simulation-actor-advanced' = @('gpt-6.1-sol', 'medium')
-    'team-ai-architect' = @('gpt-6.1-sol', 'xhigh')
-    'team-ai-engineer' = @('gpt-6.1-sol', 'medium')
+    'team-ai-simulation-actor-advanced' = @('gpt-6.2-sol', 'medium')
+    'team-ai-architect' = @('gpt-6.2-sol', 'xhigh')
+    'team-ai-engineer' = @('gpt-6.2-sol', 'medium')
   }
   foreach ($role in $approvedProfiles.Keys) {
     $agentPath = Join-Path $testRoot "agents/$role.toml"
