@@ -51,6 +51,7 @@ $checks = @(
   @{name='git-delivery';path='tests/test-git-delivery.ps1';arguments=@()},
   @{name='install-user';path='tests/test-install-user.ps1';arguments=@()},
   @{name='install-source-contract';path='tests/test-install-source-contract.ps1';arguments=@()},
+  @{name='kit-version';path='tests/test-kit-version.ps1';arguments=@()},
   @{name='openspec';path='tests/test-openspec.ps1';arguments=@()},
   @{name='optional-designer';path='tests/test-optional-designer.ps1';arguments=@()},
   @{name='peer-communication';path='tests/test-peer-communication.ps1';arguments=@()},

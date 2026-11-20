@@ -29,7 +29,7 @@ Choose verification from the changed inputs and applicable due gate. For metadat
 ## Before releasing
 
 1. State the intended version and why its number changes at that level.
-2. Update `VERSION`, both changelogs, and the current-release reference in both READMEs together; keep both languages synchronized even when retaining the existing version.
+2. Set the new number in the root `VERSION` file on the target branch. Write the release notes in a topmost `## [Unreleased]` section in both changelogs, then run `pwsh -NoProfile -File scripts/sync-kit-version.ps1 -ReleaseDate YYYY-MM-DD`. The command labels both current README fields, promotes both pending sections without rewriting published history, and generates the installed Kit version metadata. On branches with Task Board, it also runs the existing Board builder. Supply `-NodePath` if Node is outside `PATH`. Run the command without `-ReleaseDate` to refresh generated files when both changelogs already have the version in `VERSION`.
 3. Run the paired-document checks and package validation, plus isolated tests selected under the input/risk rule above. Report executed and reused evidence separately; do not claim absent CI, runtime or manual acceptance passed.
 4. Only on a separate direct install/update request, preview and update the local installed kit after source checks pass, following the installation and safe-deployment guides.
 5. Commit and push only when authorized and only from the verified source state. Release publication, tags and merging require their own authority; release preparation does not imply them.

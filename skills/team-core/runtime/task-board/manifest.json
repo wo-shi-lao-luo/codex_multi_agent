@@ -3,11 +3,11 @@
   "inputs": [
     {
       "path": ".gitattributes",
-      "sha256": "cf15ef876d566a57efc238d59bb55ea768d25445b91805c367817c62a72032ef"
+      "sha256": "b3a254c9ae8e73b9955eb511ba44729621c4d822c5e307cbd300b19382650a96"
     },
     {
       "path": "VERSION",
-      "sha256": "ac466878608d7cbd7c12ceadb12b9cb60ed8b94e1f9d90b2de60439b0bf27ef4"
+      "sha256": "3297f848bfd1ff4183e9c570d5d3a5c9aed02771b6dc03f49345c11eaa6e5bfd"
     },
     {
       "path": "packages/task-board/package.json",
@@ -255,7 +255,7 @@
     },
     {
       "path": "scripts/build-task-board.mjs",
-      "sha256": "0b570e19a484de6b8099115ea1fa9706a6043989154e90b831bc59dcf5455bc1"
+      "sha256": "be3c5a4b920698a8d2a060452035ed678a75b97f8242bb1ca459d0781870cba0"
     }
   ],
   "outputs": [
