@@ -57,27 +57,27 @@ For research that needs dataset profiling, statistical analysis, feature/split d
 
 | Role | Model | Reasoning effort |
 | --- | --- | --- |
-| Architect | `gpt-6.1-sol` | xhigh |
+| Architect | `gpt-6.2-sol` | xhigh |
 | Explorer | `gpt-6-luna` | medium |
 | Researcher | `gpt-6-luna` | medium |
 | Docs maintainer | `gpt-6-luna` | high |
-| Designer | `gpt-6.1-sol` | medium |
-| Data scientist | `gpt-6.1-sol` | high |
-| Frontend, Backend, Tester | `gpt-6.1-sol` | medium |
-| AI Tester | `gpt-6.1-sol` | medium |
-| Database specialist, Reviewer | `gpt-6.1-sol` | high |
+| Designer | `gpt-6.2-sol` | medium |
+| Data scientist | `gpt-6.2-sol` | high |
+| Frontend, Backend, Tester | `gpt-6.2-sol` | medium |
+| AI Tester | `gpt-6.2-sol` | medium |
+| Database specialist, Reviewer | `gpt-6.2-sol` | high |
 | AI simulation actor basic | `gpt-6-luna` | medium |
-| AI simulation actor advanced | `gpt-6.1-sol` | medium |
-| AI architect | `gpt-6.1-sol` | xhigh |
-| AI engineer | `gpt-6.1-sol` | medium |
+| AI simulation actor advanced | `gpt-6.2-sol` | medium |
+| AI architect | `gpt-6.2-sol` | xhigh |
+| AI engineer | `gpt-6.2-sol` | medium |
 | Code maintainer | `gpt-6-luna` | medium |
 | Git delivery checker | `gpt-6-luna` | high |
 
-For the Lead, select GPT-6 Astra / high in the main session. This is a recommendation, not an installed agent setting. The optional configuration fragment sets generic subagents to GPT-6.1 Sol / medium; named team roles retain their explicit profiles. Existing users who merged the old fragment must update its two `default_subagent_*` values explicitly; the installer does not merge global configuration.
+For the Lead, select GPT-6.2 Sol / medium for everyday development or GPT-6.2 Astra / high for complex architecture and cross-module debugging. Select the model in the main session. The optional configuration fragment sets generic subagents to GPT-6.2 Sol / medium; named team roles retain their explicit profiles. Existing users who merged the old fragment must update its two `default_subagent_*` values explicitly; the installer does not merge global configuration.
 
 These are workload choices, not measured quality guarantees. See the official [subagent model guidance](https://learn.chatgpt.com/docs/agent-configuration/subagents). Confirm availability in the target account/client before use.
 
-Architect uses GPT-6.1 Sol / xhigh to budget more reasoning for architecture tradeoffs; the Astra Lead checks material decisions before implementation. Higher effort is not evidence of equivalence to Astra. See the [official model guidance](https://developers.openai.com/api/docs/models/gpt-6.1-sol); evaluate omissions, rework and completion time on representative projects.
+Architect uses GPT-6.2 Sol / xhigh to budget more reasoning for architecture tradeoffs; the Astra Lead checks material decisions before implementation. Higher effort is not evidence of equivalence to Astra. See the [official model guidance](https://developers.openai.com/api/docs/models/gpt-6.2-sol); evaluate omissions, rework and completion time on representative projects.
 
 The kit does not implement automatic model fallback. Keep previous model assignments in Git history as a manual recovery reference, not a second active profile. If a model is unavailable or shows a reproducible regression, first identify the cause and confirm a replacement is available; make an explicit, scoped configuration change with matching validator updates and verification. Do not silently switch models or assume a legacy model bypasses service outages or account limits.
 

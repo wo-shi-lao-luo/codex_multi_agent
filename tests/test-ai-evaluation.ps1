@@ -149,7 +149,7 @@ try {
   # Scenario AE-03: new AI Tester model/effort drifts from the approved profile.
   # Expected: reject both substitutions; restored new and existing profiles pass.
   foreach ($mutation in @(
-    @{ before = 'model = "gpt-6.1-sol"'; after = 'model = "gpt-6-luna"' }
+    @{ before = 'model = "gpt-6.2-sol"'; after = 'model = "gpt-6-luna"' }
     @{ before = 'model_reasoning_effort = "medium"'; after = 'model_reasoning_effort = "low"' }
   )) {
     try {

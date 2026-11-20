@@ -57,27 +57,27 @@
 
 | 角色 | 模型 | 推理强度 |
 | --- | --- | --- |
-| 架构师 | `gpt-6.1-sol` | xhigh |
+| 架构师 | `gpt-6.2-sol` | xhigh |
 | 探索员 | `gpt-6-luna` | medium |
 | 信息收集 | `gpt-6-luna` | medium |
 | 文档维护者 | `gpt-6-luna` | high |
-| Designer | `gpt-6.1-sol` | medium |
-| Data scientist | `gpt-6.1-sol` | high |
-| 前端、后端、测试 | `gpt-6.1-sol` | medium |
-| AI 测试员 | `gpt-6.1-sol` | medium |
-| 数据库专家、审查员 | `gpt-6.1-sol` | high |
+| Designer | `gpt-6.2-sol` | medium |
+| Data scientist | `gpt-6.2-sol` | high |
+| 前端、后端、测试 | `gpt-6.2-sol` | medium |
+| AI 测试员 | `gpt-6.2-sol` | medium |
+| 数据库专家、审查员 | `gpt-6.2-sol` | high |
 | AI 模拟角色基础档 | `gpt-6-luna` | medium |
-| AI 模拟角色高级档 | `gpt-6.1-sol` | medium |
-| AI 架构师 | `gpt-6.1-sol` | xhigh |
-| AI 工程师 | `gpt-6.1-sol` | medium |
+| AI 模拟角色高级档 | `gpt-6.2-sol` | medium |
+| AI 架构师 | `gpt-6.2-sol` | xhigh |
+| AI 工程师 | `gpt-6.2-sol` | medium |
 | 代码维护者 | `gpt-6-luna` | medium |
 | Git 交付检查员 | `gpt-6-luna` | high |
 
-主 Lead 建议使用 GPT-6 Astra / high。这是建议，不是已安装的智能体设置。可选配置片段将通用子智能体设为 GPT-6.1 Sol / medium；具名团队角色保留各自显式配置。已经合并旧配置片段的用户需要手动更新其中两个 `default_subagent_*` 值；安装器不会合并全局配置。
+Lead 日常开发建议使用 GPT-6.2 Sol / medium，复杂架构和跨模块排障用 GPT-6.2 Astra / high。请在主会话中选择模型。可选配置片段将通用子智能体设为 GPT-6.2 Sol / medium；具名团队角色保留各自显式配置。已经合并旧配置片段的用户需要手动更新其中两个 `default_subagent_*` 值；安装器不会合并全局配置。
 
 这些模型分配是工作负载选择，不代表经过测量的质量保证。请参阅官方[子智能体模型指南](https://learn.chatgpt.com/docs/agent-configuration/subagents)，并在目标账号和客户端中确认模型是否可用。
 
-架构师使用 GPT-6.1 Sol / xhigh，为架构权衡投入更多推理；Astra Lead 会在实施前检查重要决策。推理强度更高并不代表效果等同于 Astra。请参阅[官方模型指南](https://developers.openai.com/api/docs/models/gpt-6.1-sol)，并用有代表性的项目评估遗漏、返工和完成时间。
+架构师使用 GPT-6.2 Sol / xhigh，为架构权衡投入更多推理；Astra Lead 会在实施前检查重要决策。推理强度更高并不代表效果等同于 Astra。请参阅[官方模型指南](https://developers.openai.com/api/docs/models/gpt-6.2-sol)，并用有代表性的项目评估遗漏、返工和完成时间。
 
 本工具包没有自动模型回退机制。Git 历史中的旧模型分配可作为人工恢复时的参考，但不要同时启用第二套配置。如果模型不可用或出现可复现的退化，应先查明原因并确认替代模型可用，再进行范围明确的配置修改，同时更新对应的校验器并完成验证。不要静默切换模型，也不要假定旧模型能够绕过服务中断或账号限额。
 
