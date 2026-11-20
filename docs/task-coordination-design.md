@@ -366,6 +366,24 @@ Read-only browser sessions and service control use different credentials. When c
 
 After Board activation is authorized, the Lead follows the [shared usage contract](../skills/team-core/references/task-coordination.md) to open the current chat's right-side browser panel once on supported hosts, recording the result in the existing private handoff. Later progress, subtasks or resumption do not reopen it; closing the panel does not stop work, and only an explicit request to view it again obtains a new entrypoint. A host result of `queued` establishes only queuing, not that the panel is displayed, and does not authorize switching the user's active chat. Verify the result when the user returns. Without panel support, provide a temporary link rather than adding a permanent native sidebar extension. This is Skill guidance for the Lead to use current host capabilities, not a native automatic-execution guarantee for every client.
 
+The [target-session panel verification procedure](../skills/team-core/references/task-coordination.md#target-session-panel-verification)
+requires an explicit bound main-chat recipient and separate evidence for the actual
+right-side view, expected Board with a live task snapshot, and exactly one matching
+Board tab. Prefer reusing a healthy tab or recovering its entry in place; a ticket's
+URL is not a tab identity. Queued/opened host receipts, rendered connection and
+duplicate counts remain distinct, and unavailable host observations stay unknown.
+Check at presentation or observed failure rather than polling through model rounds.
+This uses existing private handoff records and host capabilities, without a new
+background service, database schema or native sidebar implementation.
+
+An authorization failure has a visible recovery area with a **Copy recovery request**
+button and exact owning-chat instructions; clipboard failure exposes selectable
+request text. Copy success is distinct from restored access. Snapshot and shared
+SSE authorization rejection use the same stopped-sync state. Network interruption
+keeps its in-place reconnect action. Fully lost browser authority still requires
+the existing trusted caller to reopen the view; there is no native authorization
+bridge or Cookie-only recovery endpoint.
+
 Escape all task/question text and refuse to execute embedded HTML, arbitrary links, SQL or task commands. The frontend loads only scripts/assets shipped with the tool and uses an appropriate CSP. Validate Host/Origin and disable cross-origin access. The local service uses session-access credentials excluded from ordinary logs, with equivalent validation for SSE and snapshot endpoints. Loopback is not complete access control; the same OS user is still not an isolated security boundary.
 
 By default, Agents read only readiness summaries, their current package and necessary direct dependencies. Live page changes do not inject the complete Board and history into Agent context. The Board makes no model calls and does not automatically decompose tasks or expand budgets based on page uptime.

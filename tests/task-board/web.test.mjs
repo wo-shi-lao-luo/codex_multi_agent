@@ -3,6 +3,119 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { serve } from '../../packages/task-board/src/server/server.mjs';
 
+/** Run the shipped closure with controllable transport/clipboard; this checks client
+ * transitions only. Real browser and real server tests cover the separate boundaries. */
+async function recoveryClient({ snapshotStatus = 401, streamStatus = 200,
+  clipboard = 'available', networkFailure = false, delayFirstStream = false } = {}) {
+  const { readFile } = await import('node:fs/promises');
+  const vm = await import('node:vm');
+  const elements = new Map(), requests = [], copies = [];
+  let streamRequests = 0, finishFirstStream;
+  const element = () => ({ textContent: '', value: '', checked: false, hidden: true,
+    disabled: false, dataset: {}, children: [], handlers: {}, scrollLeft: 0,
+    addEventListener(type, callback) { this.handlers[type] = callback; },
+    setAttribute() {}, focus() { this.focused = true; }, select() { this.selected = true; },
+    append(...items) { this.children.push(...items); },
+    replaceChildren(...items) { this.children = items; }, querySelectorAll() { return []; } });
+  const capability = 'ab'.repeat(32), route = `/boards/${'12'.repeat(32)}/`;
+  const location = { origin: 'http://127.0.0.1:12345', pathname: route, hash: '#view=' + capability };
+  const history = { state: {}, replaceState(state, _title, url) {
+    this.state = state; location.hash = ''; assert.equal(url, route);
+  } };
+  const navigator = clipboard === 'missing' ? {} : { clipboard: { async writeText(value) {
+    if (clipboard === 'denied') throw new Error('Clipboard permission denied');
+    copies.push(value);
+  } } };
+  const context = vm.createContext({
+    window: { location, history, addEventListener() {} }, navigator,
+    document: { title: '', activeElement: null, createElement: element,
+      getElementById(id) { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); } },
+    AbortController, TextDecoder, setTimeout: () => 1, clearTimeout() {},
+    fetch: async (url, options) => {
+      requests.push({ url, headers: options.headers });
+      if (url === 'api/snapshot') {
+        if (networkFailure && requests.length === 1) throw new Error('Network interrupted');
+        return { status: snapshotStatus, ok: snapshotStatus === 200, json: async () => ({
+          schemaVersion: 1, boardId: 'fixture', generation: 'g', revision: 1,
+          eventSeq: 0, tasks: [], questions: [] }) };
+      }
+      if (delayFirstStream && streamRequests++ === 0) {
+        return new Promise(resolve => { finishFirstStream = resolve; });
+      }
+      return { status: streamStatus, ok: streamStatus === 200,
+        body: { getReader: () => ({ read: () => new Promise(() => {}) }) } };
+    },
+  });
+  vm.runInContext(await readFile('packages/task-board/web/app.js', 'utf8'), context);
+  const settle = () => new Promise(resolve => setImmediate(resolve));
+  await settle();
+  return { elements, requests, copies, capability, route, history, settle,
+    rejectOldStream() { finishFirstStream({ status: 401, ok: false }); } };
+}
+
+// A copied view without authorization must show an actionable recovery area; copying
+// its request carries only the canonical page address, never credentials or false success.
+test('RECOVERY.snapshot401OffersSafeCopyWithoutPretendingConnected', async () => {
+  const page = await recoveryClient();
+  assert.equal(page.elements.get('access-recovery')?.hidden, false);
+  assert.equal(page.elements.get('retry').hidden, true);
+  const before = page.requests.length;
+  await page.elements.get('copy-recovery-request').handlers.click();
+  assert.equal(page.copies.length, 1);
+  assert.ok(page.copies[0].includes(page.route));
+  assert.ok(!page.copies[0].includes(page.capability));
+  assert.ok(!/[?#]/.test(page.copies[0]), 'No ticket or fragment is copied');
+  assert.match(page.elements.get('recovery-status').textContent, /粘贴.*发送/);
+  assert.doesNotMatch(page.elements.get('connection').textContent, /实时连接正常/);
+  assert.equal(page.requests.length, before, 'Copy does not resume polling or request authorization');
+  assert.equal(page.history.state.taskBoardView, undefined);
+});
+
+// Stream authorization rejection must converge on the same recovery UX. Clipboard
+// denial or absence exposes selectable text and never claims that copying succeeded.
+for (const clipboard of ['denied', 'missing']) {
+  test(`RECOVERY.stream401ManualFallback.${clipboard}`, async () => {
+    const page = await recoveryClient({ snapshotStatus: 200, streamStatus: 401, clipboard });
+    assert.equal(page.elements.get('access-recovery')?.hidden, false);
+    assert.equal(page.elements.get('sync').textContent, '同步已停止 · 下方内容可能过期');
+    const before = page.requests.length;
+    await page.elements.get('copy-recovery-request').handlers.click();
+    assert.equal(page.elements.get('recovery-manual').hidden, false);
+    assert.equal(page.elements.get('recovery-request').selected, true);
+    assert.match(page.elements.get('recovery-status').textContent, /手动复制/);
+    assert.equal(page.copies.length, 0);
+    assert.equal(page.requests.length, before);
+    assert.equal(page.elements.get('retry').hidden, true);
+  });
+}
+
+// A network interruption keeps the original proof and retries in place. It must
+// reconnect rather than treating a transport error as loss of access authority.
+test('RECOVERY.networkRetryKeepsAuthorizedSamePageFlow', async () => {
+  const page = await recoveryClient({ snapshotStatus: 200, networkFailure: true });
+  assert.equal(page.elements.get('retry').hidden, false);
+  await page.elements.get('retry').handlers.click();
+  await page.settle();
+  assert.equal(page.elements.get('connection').textContent, '实时连接正常');
+  assert.equal(page.elements.get('access-recovery').hidden, true);
+  assert.equal(page.copies.length, 0);
+  assert.ok(page.requests.every(request => request.headers['X-Task-Board-View'] === page.capability));
+});
+
+// A replaced stream may finish with 401 after a newer connection is healthy.
+// Its obsolete response must not erase the current proof or show recovery UI.
+test('RECOVERY.lateOldStream401CannotStopNewConnection', async () => {
+  const page = await recoveryClient({ snapshotStatus: 200, delayFirstStream: true });
+  await page.elements.get('retry').handlers.click();
+  await page.settle();
+  assert.equal(page.elements.get('connection').textContent, '实时连接正常');
+  page.rejectOldStream();
+  await page.settle();
+  assert.equal(page.elements.get('access-recovery').hidden, true);
+  assert.equal(page.elements.get('connection').textContent, '实时连接正常');
+  assert.equal(page.history.state.taskBoardView.capability, page.capability);
+});
+
 // Legacy text/projection unit probes hoist the app closure only inside their isolated VM.
 // They do not test browser authorization; shared capability tests use the unmodified source.
 function legacyProjectionSource(source) {

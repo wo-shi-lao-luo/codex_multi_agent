@@ -20,6 +20,20 @@
     </div>
   </header>
   <main>
+    <section id="access-recovery" class="access-recovery" hidden aria-labelledby="recovery-title">
+      <h2 id="recovery-title">恢复看板访问</h2>
+      <p>这个标签页缺少访问凭据。刷新页面或复制网址不能重新授权。</p>
+      <ol>
+        <li>点击下方按钮，复制恢复请求。</li>
+        <li>回到这个看板所属的 Codex 会话，在左侧粘贴并发送。Agent 会在那个会话右侧恢复看板。</li>
+      </ol>
+      <button id="copy-recovery-request" type="button">复制恢复请求</button>
+      <p id="recovery-status" role="status" aria-live="polite"></p>
+      <div id="recovery-manual" hidden>
+        <label for="recovery-request">恢复请求（可手动复制）</label>
+        <textarea id="recovery-request" readonly rows="4" spellcheck="false"></textarea>
+      </div>
+    </section>
     <section class="summary" aria-label="全板任务概览">
       <p>就绪 <strong id="summary-ready">—</strong></p>
       <p>进行中 <strong id="summary-running">—</strong></p>

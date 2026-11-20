@@ -144,9 +144,11 @@ transition through an authenticated shared-aware activation or explicit migratio
 
 An uncredentialed shared URL returns a generic HTTP200 page, never Board names/tasks or a Board
 list. API access still requires the selected Board's capability, bound to its generation. Open
-through a fresh one-use ticket: the page captures its fragment capability in memory and clears
-the fragment; no credential is saved to browser storage. Cookie alone cannot read another Board.
-Reloading after that in-memory capability is lost requires a fresh authorized entry. Shared origin
+through a fresh one-use ticket for a new browser entry. The page clears the fragment and
+retains the capability in the current route-bound history entry, as described above; a reload
+can restore that entry. Browser history may persist, so this is not memory-only storage.
+Missing or rejected saved authority requires a fresh authorized entry. Cookie alone cannot
+read another Board. Shared origin
 is not an independent browser-origin sandbox; do not describe cookie Path as a security boundary.
 Keep CSP/static-only trusted scripts and the explicit request capability. Fresh bootstrap issuance,
 host queued, opened and actual rendered content remain separate observations. Never tell the user
@@ -336,9 +338,69 @@ For existing Board maintenance, begin with `maintenance-status` and `diagnose` f
 
 Present a board only after the Lead has selected and authorized it. Start or reuse only the service whose ownership and identity are confirmed. Keep its service identity and control token private in the existing Work record or handoff; never place the control token in chat, logs, URLs, or board records.
 
-On the first activation for the current chat, board, and generation, use `service-open` to obtain a fresh one-use browser URL, then use the available `open_in_codex` host tool to open it in the current chat's browser panel on the right. Follow the current operation help for exact input fields. Record the observed opening outcome and any confirmed tab identity in the existing private handoff as `not-attempted`, `queued`, `opened`, `link-only`, or `unknown`; do not create a separate registry. A successful `service-open` only mints a URL. A host result of `queued` means the request has not yet opened the panel; it is not evidence of an opened tab or visible rendering.
+On the first activation for the current chat, board, and generation, inspect the target chat's existing tabs when the host permits it. Reuse a confirmed healthy Board view; otherwise use `service-open` to obtain a fresh one-use browser URL, then use the available `open_in_codex` host tool with the explicit bound MAIN-session `threadId` and `placement: right`. Never rely on its default recipient when displaying another chat's Board. Follow the current operation help for exact input fields. Record the observed opening outcome and any confirmed tab identity in the existing private handoff as `not-attempted`, `queued`, `opened`, `link-only`, or `unknown`; do not create a separate registry. A successful `service-open` only mints a URL. A host result of `queued` means the request has not yet opened the panel; it is not evidence of an opened tab or visible rendering.
 
 Do not open the panel again for subtasks, progress updates, or resume after a completed or unknown first attempt. If the host reports `queued`, wait for the user to return to the chat or check the owned tab later; do not reissue the link, invoke automatic navigation, or bring the chat to the foreground unless the user explicitly asks. If the host reports an unknown outcome, inspect or confirm the owned tab before retrying. Closing the panel must not take focus back from the user or stop work. Only an explicit user request to open or reopen the board authorizes another fresh one-use URL; reuse a verified tab when the host supports it. If a one-use URL expires or ticket capacity prevents minting, do not replay it or fall back to a permanent unauthenticated URL; wait for an explicit open/reopen request before obtaining a fresh ticket. If the host tool is unavailable, provide a readable ephemeral browser link and record `link-only`. Do not force an external browser or promise a permanent native sidebar.
+
+### Target-session panel verification
+
+At an authorized opening/reopening, and before claiming success at handoff, check
+the following separately using available native panel/tab metadata and, where
+needed, a bounded actual UI observation:
+
+| Check | Evidence needed | Insufficient alone |
+| --- | --- | --- |
+| Correct session and placement | Bound main-chat identity and its actual right-side panel containing the expected Board view | The calling chat, another chat's working tab, a mutable title, or navigation acknowledgment |
+| Correct Board and connection | Expected session route and retained Board/generation where exposed, rendered current task snapshot, and the page's live connection state | A listening port, HTTP 200, minted ticket, host `opened`, or a shell/error page |
+| One matching Board tab | Inventory of the target chat's matching Board tabs, with one retained tab and its observed identity | One selected tab while other tabs were not inspected |
+
+Keep the host receipt separate from these observations. For example, `queued` may
+later become visibly connected; record the later evidence without pretending the
+original receipt was `opened`. Compare the stable session/Board route and available
+generation/service binding, not titles or whole one-use URLs: different tickets
+can open the same Board. Do not count a Board displayed in the Lead's own chat as
+success for a request to show it in another chat.
+
+Prefer selecting/reusing an existing healthy matching tab. For an authenticated
+reopen, navigate that same owned tab with the fresh authorized entry if the host
+supports it. Copying the cleaned address-bar URL into another tab does not carry
+the per-tab capability; an authorization error requires the retained-authority
+entry flow, not a permanent link or weaker authentication. If in-place recovery is
+unavailable, inspect the result of one bounded new opening before dealing with a
+confirmed stale duplicate. Close only an identified task-owned redundant Board
+tab when within the authorized presentation/cleanup scope; preserve unrelated tabs,
+user work and ambiguous matches. Never close the healthy view on a title guess.
+
+For a 401, the page provides **Copy recovery request** with explicit instructions
+to paste/send it in the owning Codex chat, plus selectable text if clipboard access
+fails. The request contains the cleaned Board route, never credentials. The Lead
+resolves and authenticates that Board's owner before reopening; a pasted route is
+not authority to adopt another Board. Copying does not restore access or resume
+synchronization. A transient network failure retains the separate **Reconnect**
+action using existing credentials in the same tab. There is no web-to-native
+authorization bridge: do not promise one-click restoration after credentials are
+lost, or introduce Cookie-only recovery to bypass the per-tab capability.
+
+After each navigation or close, obtain a fresh observation of the settled result
+before another mutation. Native accessibility state can lag the pixels: disagreement
+leaves the affected check unknown until resolved; it is not permission to repeat a
+click or close another tab using stale indexes or coordinates. A navigation tool's
+acknowledgment does not prove the user's active chat changed.
+
+Retain the expected session/Board binding, host result, confirmed tab identity,
+observed placement, connection and matching-tab count (or `unknown`), evidence
+reference and observation time in the existing private Work/handoff. Keep tokens
+and bootstrap URLs out of ordinary reports. If the host cannot inspect the target
+chat, report exactly which checks remain unverified; do not open it elsewhere and
+claim success. A pending presentation does not block an otherwise enabled Board's
+coordination or authorize another opening attempt.
+
+Use event-triggered checks at opening/reopening, an observed connection/panel
+failure, and an applicable handoff when inspection is available. Reuse still-valid
+same-tab evidence with its observation time, without claiming it is a fresh health
+check. Do not add a background watcher, screenshot/model polling, or a UI check to
+every task progress report. SSE remains responsible for ordinary live updates;
+these are caller verification rules, not a native always-on host monitor.
 
 SSE refreshes the human-readable view without agent screenshots, screen-reading, or model rounds. A closed panel does not stop the service or agents and is not cleanup authority. When the task ends, stop only the confirmed owned service as appropriate; preserve the board database and assignments. Host opening and visible rendering are conditional client capabilities, not guarantees for every Codex client.
 

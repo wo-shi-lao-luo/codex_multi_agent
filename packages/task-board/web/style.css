@@ -22,6 +22,35 @@
 body {
   margin: 0;
 }
+.access-recovery {
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
+  overflow-wrap: anywhere;
+}
+.access-recovery h2 {
+  margin: 0 0 8px;
+}
+.access-recovery p {
+  color: var(--muted);
+}
+.access-recovery ol {
+  padding-left: 24px;
+}
+.access-recovery textarea {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-height: 110px;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+  resize: vertical;
+}
 button, input, select {
   font: inherit;
   color: inherit;

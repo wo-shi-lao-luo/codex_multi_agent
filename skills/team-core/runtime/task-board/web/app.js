@@ -22,6 +22,7 @@ const ui = Object.fromEntries([
   'attention-only', 'clear', 'retry', 'empty', 'board', 'detail', 'detail-content',
   'close-detail', 'board-name', 'summary-ready', 'summary-running', 'summary-attention',
   'filtered-count', 'session-scope-note',
+  'access-recovery', 'copy-recovery-request', 'recovery-request', 'recovery-manual', 'recovery-status',
 ].map(id => [id, document.getElementById(id)]));
 const lanes = [
   ['planned', '计划'], ['ready', '就绪'], ['running', '进行'],
@@ -400,6 +401,44 @@ function connection(message, retry = false) {
   ui.connection.textContent = message;
   ui.retry.hidden = !retry;
 }
+/** Authorization cannot be reminted by this read-only page. Offer a token-free
+ * request to its owning chat, preserving stale content without claiming recovery. */
+function requireAccessRecovery() {
+  forgetView();
+  state.stopped = true;
+  state.request++;
+  state.stream?.close();
+  state.stream = null;
+  state.controller?.abort();
+  clearTimeout(state.timer);
+  clearTimeout(state.refreshTimer);
+  connection('访问已失效 · 已停止同步');
+  ui.sync.textContent = state.snapshot ? '同步已停止 · 下方内容可能过期' : '尚未同步';
+  ui['access-recovery'].hidden = false;
+  const address = `${window.location.origin ?? ''}${window.location.pathname}`;
+  ui['recovery-request'].value = '请通过保留的授权重新打开这个任务看板，显示在它所属会话的右侧。'
+    + '优先复用已有标签页，并核验对应会话、实时连接和重复标签。\n看板页面：' + address;
+  if (!state.snapshot) ui.empty.textContent = '暂时无法读取任务，请按上方步骤恢复访问。';
+}
+
+/** Clipboard access is optional. Neither copying nor manual selection grants
+ * access, restarts synchronization, navigates, or creates another browser tab. */
+async function copyRecoveryRequest() {
+  const button = ui['copy-recovery-request'];
+  if (button.disabled) return;
+  button.disabled = true;
+  try {
+    await navigator.clipboard.writeText(ui['recovery-request'].value);
+    ui['recovery-status'].textContent = '已复制。请在看板所属会话的左侧粘贴并发送；发送前，看板仍未恢复。';
+  } catch {
+    ui['recovery-manual'].hidden = false;
+    ui['recovery-request'].focus();
+    ui['recovery-request'].select();
+    ui['recovery-status'].textContent = '无法自动复制。请手动复制下方文字，再到看板所属会话粘贴并发送。';
+  } finally {
+    button.disabled = false;
+  }
+}
 /** Close SSE before retrying; fresh snapshots avoid native EventSource's unbounded retry loop. */
 function recover() {
   if (state.stopped) return;
@@ -453,7 +492,8 @@ async function subscribeShared(cursor) {
   try {
     const response = await fetch(`api/events?after=${encodeURIComponent(cursor)}`, {
       headers: viewHeaders(), credentials: 'same-origin', signal: controller.signal, cache: 'no-store' });
-    if (response.status === 401) { forgetView(); state.stopped = true; connection('访问凭据已失效 · 请让本会话重新打开看板'); return; }
+    if (state.stream !== stream || controller.signal.aborted) return;
+    if (response.status === 401) { requireAccessRecovery(); return; }
     if (!response.ok || !response.body) throw Error('Stream unavailable');
     state.attempt = 0; connection('实时连接正常');
     const reader = response.body.getReader(), decoder = new TextDecoder();
@@ -491,13 +531,7 @@ async function refresh(full = true) {
       cache: 'no-store', signal: controller.signal });
     if (request !== state.request) return;
     if (response.status === 401) {
-      forgetView();
-      state.stopped = true;
-      state.stream?.close();
-      clearTimeout(state.timer);
-      clearTimeout(state.refreshTimer);
-      connection('访问凭据已失效 · 请通过授权入口重新打开', false);
-      if (!state.snapshot) ui.empty.textContent = '无法读取任务：访问凭据已失效。';
+      requireAccessRecovery();
       return;
     }
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -545,6 +579,7 @@ ui.retry.addEventListener('click', () => {
   state.attempt = 0;
   refresh(true);
 });
+ui['copy-recovery-request'].addEventListener('click', copyRecoveryRequest);
 window.addEventListener('offline', recover);
 window.addEventListener('online', () => { if (!state.stopped) refresh(true); });
 refresh();

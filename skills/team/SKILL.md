@@ -25,6 +25,8 @@ At execution start, resume, or a transition from discussion to execution, call t
 
 Follow its [complete request preparation](../team-core/references/task-coordination.md#preparing-a-complete-request) sequence: resolve native identity, prepare or recover the private request, activate with `-RequestPath`, and inspect the actual state. Correctable missing fields must not become a standing degradation or disappear into a backlog without a user-facing handoff.
 
+For Board opening or reopening, apply [target-session panel verification](../team-core/references/task-coordination.md#target-session-panel-verification): explicitly target the bound main chat, inspect its actual right-side view and connection, and check for duplicate Board tabs. Host acknowledgment alone does not establish these outcomes; retain unavailable observations as unknown.
+
 ## Output contract
 
 For each new instruction during ongoing work, apply [task synchronization and truthful executor focus](../team-core/references/task-coordination.md#new-instruction-synchronization-checkpoint). Before creating or continuing a child, apply [delegation necessity](../team-core/references/role-routing.md#delegation-necessity-checkpoint); use the Lead for one serial workstream and record the reason for independent or parallel exceptions.

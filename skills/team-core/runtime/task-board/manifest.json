@@ -243,15 +243,15 @@
     },
     {
       "path": "packages/task-board/web/app.js",
-      "sha256": "8f5c1e38f9d1a57dc8cfc36ab8d0b86d4cdf212a3b64979f926315bd1e99c981"
+      "sha256": "85676e5515d0f264bfff1a51b3af8c18588afccecbc8b005c45fcb384ccc46d8"
     },
     {
       "path": "packages/task-board/web/index.html",
-      "sha256": "eab7dcdff30dc1f7e9ada05f19896f4d91cce3173a5d741c39675154e21f138a"
+      "sha256": "7cee69aff8e1ea1609735c30d0befcd0d31c80f9bf3ee4d64928348b62dfa0c5"
     },
     {
       "path": "packages/task-board/web/style.css",
-      "sha256": "32d27994984e8e662e52cdc2315fe995d4c9fc42107e715781fd93d19b211ac0"
+      "sha256": "bac5a16746553103e3544469de9156ac93e269918a340e729791280bc0540a7a"
     },
     {
       "path": "scripts/build-task-board.mjs",
@@ -497,15 +497,15 @@
     },
     {
       "path": "web/app.js",
-      "sha256": "8f5c1e38f9d1a57dc8cfc36ab8d0b86d4cdf212a3b64979f926315bd1e99c981"
+      "sha256": "85676e5515d0f264bfff1a51b3af8c18588afccecbc8b005c45fcb384ccc46d8"
     },
     {
       "path": "web/index.html",
-      "sha256": "eab7dcdff30dc1f7e9ada05f19896f4d91cce3173a5d741c39675154e21f138a"
+      "sha256": "7cee69aff8e1ea1609735c30d0befcd0d31c80f9bf3ee4d64928348b62dfa0c5"
     },
     {
       "path": "web/style.css",
-      "sha256": "32d27994984e8e662e52cdc2315fe995d4c9fc42107e715781fd93d19b211ac0"
+      "sha256": "bac5a16746553103e3544469de9156ac93e269918a340e729791280bc0540a7a"
     }
   ],
   "buildTool": {
