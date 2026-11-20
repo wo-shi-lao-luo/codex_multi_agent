@@ -1,6 +1,6 @@
 # Validate package contracts in a disposable copy; no real installation is modified.
 [CmdletBinding()]
-param([switch]$DesignExplorationOnly)
+param([switch]$DesignExplorationOnly, [switch]$KitVersionOnly)
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'helpers/platform.ps1')
@@ -18,13 +18,16 @@ function Assert-Condition {
 
 function Invoke-CopiedValidator {
   # Return success as a Boolean while preserving the caller's error/exit state.
+  param([switch]$ShowFailure)
   $previousErrorActionPreference = $ErrorActionPreference
   $previousLastExitCode = $global:LASTEXITCODE
   try {
     $ErrorActionPreference = 'Continue'
     $global:LASTEXITCODE = 0
-    & $validator 2>&1 | Out-Null
-    return ($global:LASTEXITCODE -eq 0)
+    $output = & $validator 2>&1
+    $passed = $global:LASTEXITCODE -eq 0
+    if ($ShowFailure -and -not $passed) { $output | Out-Host }
+    return $passed
   } finally {
     $ErrorActionPreference = $previousErrorActionPreference
     $global:LASTEXITCODE = $previousLastExitCode
@@ -38,29 +41,47 @@ try {
   foreach ($item in 'agents', 'skills', 'scripts', 'VERSION', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md') {
     Copy-Item -LiteralPath (Join-Path $root $item) -Destination $testRoot -Recurse -Force -ErrorAction Stop
   }
-  # Fixture completeness: current release links the versionable formatter guide.
+  $linkedFiles = @('docs/formatter-tool.md')
+  # Board-enabled branches validate the Board inputs and the local setup references.
+  if (Test-Path -LiteralPath (Join-Path $root 'scripts/build-task-board.mjs') -PathType Leaf) {
+    $packages = New-Item -ItemType Directory -Path (Join-Path $testRoot 'packages')
+    Copy-Item -LiteralPath (Join-Path $root 'packages/task-board') `
+      -Destination $packages.FullName -Recurse -Force
+    Copy-Item -LiteralPath (Join-Path $root '.gitattributes') -Destination $testRoot -Force
+    $linkedFiles += @(
+      'docs/setup.md'
+      'docs/platform-support.md'
+      'docs/safe-deployment.md'
+      '.github/workflows/platform-tests-hosted.yml'
+    )
+  }
+  # Fixture completeness: release and Skill links retain their repository targets.
   # Expected: copied source paths resolve without fabricated files or relaxed validation.
-  foreach ($relative in @('docs/formatter-tool.md')) {
+  foreach ($relative in $linkedFiles) {
     $destination = Join-Path $testRoot $relative
     [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination)) | Out-Null
     Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $destination
   }
 
   # Scenario: an intact package. Expected: validation succeeds before mutations.
-  Assert-Condition (Invoke-CopiedValidator) 'Baseline validation failed in an isolated package copy.'
+  Assert-Condition (Invoke-CopiedValidator -ShowFailure) 'Baseline validation failed in an isolated package copy.'
 
-  # Scenario: a release leaves any emitted provenance stamp behind.
-  # Expected: packaging rejects it and accepts an exact source restoration.
-  foreach ($producer in @('documentation.ps1','project-rules.ps1','format-code.ps1','ai-simulation.ps1')) {
-    $relative="skills/team-core/scripts/$producer"
-    $path=Join-Path $testRoot $relative
-    $text=Get-Content -LiteralPath $path -Raw
-    $stale=[regex]::Replace($text, "(\bkitVersion\s*=\s*')\d+\.\d+\.\d+(')", '${1}999.0.0${2}')
-    Assert-Condition ($stale -cne $text) "Missing provenance fixture in $producer."
-    [IO.File]::WriteAllText($path,$stale,[Text.UTF8Encoding]::new($false))
-    Assert-Condition (-not (Invoke-CopiedValidator)) "Validator accepted stale provenance in $producer."
-    Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $path -Force
-    Assert-Condition (Invoke-CopiedValidator) "Validator failed after restoring $producer provenance."
+  # Scenario: generated provenance is missing or from a different release.
+  # Expected: the package validator rejects each state and accepts the restored stamp.
+  $relativeStamp = 'skills/team-core/runtime/kit-version.txt'
+  $stamp = Join-Path $testRoot $relativeStamp
+  $sourceStamp = Join-Path $root $relativeStamp
+  Remove-Item -LiteralPath $stamp
+  Assert-Condition (-not (Invoke-CopiedValidator)) 'Validator accepted missing version metadata.'
+  $version = [IO.File]::ReadAllText($sourceStamp).Trim()
+  $staleVersion = if ($version -ceq '0.0.0') { '0.0.1' } else { '0.0.0' }
+  [IO.File]::WriteAllText($stamp, "$staleVersion`n", [Text.UTF8Encoding]::new($false))
+  Assert-Condition (-not (Invoke-CopiedValidator)) 'Validator accepted stale version metadata.'
+  Copy-Item -LiteralPath $sourceStamp -Destination $stamp -Force
+  Assert-Condition (Invoke-CopiedValidator) 'Validator failed after restoring version metadata.'
+  if ($KitVersionOnly) {
+    Write-Output 'Kit version package guard tests passed.'
+    return
   }
 
   # DE-01: a copied package without the required shared design reference is incomplete.

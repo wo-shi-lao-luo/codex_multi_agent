@@ -75,7 +75,7 @@ Architect uses GPT-6.2 Sol / xhigh to budget more reasoning for architecture tra
 
 The kit does not implement automatic model fallback. Keep previous model assignments in Git history as a manual recovery reference, not a second active profile. If a model is unavailable or shows a reproducible regression, first identify the cause and confirm a replacement is available; make an explicit, scoped configuration change with matching validator updates and verification. Do not silently switch models or assume a legacy model bypasses service outages or account limits.
 
-Version `1.1.1` upgrades the 12 Sol roles to GPT-6.2 Sol and updates the recommended default for generic subagents. See the [changelog](CHANGELOG.md) for the full preview release history. For a source installation, the source commit and package digest in the receipt identify the installed content.
+This preview release upgrades the 12 Sol roles to GPT-6.2 Sol and updates the recommended default for generic subagents. See the [changelog](CHANGELOG.md) for the full preview release history. For a source installation, the source commit and package digest in the receipt identify the installed content.
 
 When a commit, push, pull request, merge, release, or installation source decision is in scope, `$team-delivery-check` assesses the operation's exact Git scope against project policy and current evidence. It can activate when that delivery intent is clear; ordinary edits and code review alone do not activate it. The collector is read-only, and its mechanical `ready-for-review` result is not semantic approval or permission to perform the Git action. See the [Git delivery contract](skills/team-core/references/git-delivery.md).
 
