@@ -2,6 +2,12 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.1.1] - 2026-11-20
+
+### Changed
+
+- Upgrade 12 Sol agent profiles and the recommended generic subagent model to GPT-6.2 Sol, retaining existing reasoning efforts and Luna profiles.
+
 ## [1.1.0] - 2026-11-09
 
 ### Changed

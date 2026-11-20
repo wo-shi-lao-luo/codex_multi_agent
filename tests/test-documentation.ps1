@@ -57,18 +57,22 @@ try {
   $baselineLegacy=Get-Content "$sandbox/docs/legacy/old.md" -Raw
   # Scenario: an existing policy2 adoption has extra document paths and a published review.
   # Expected: policy3 marks it stale, then fresh assessment upgrades without losing configuration/history.
-  New-Item -ItemType Directory -Path "$sandbox/notes","$sandbox/runtime" | Out-Null
+  $legacyCore = Join-Path $sandbox 'legacy-kit'
+  New-Item -ItemType Directory -Path "$sandbox/notes", "$legacyCore/scripts", "$legacyCore/runtime" |
+    Out-Null
   Set-Content "$sandbox/notes/extra.md" '# Extra inspected login notes'
   $currentScript=$script
-  $legacyScript=Join-Path $sandbox 'runtime/documentation.ps1'
+  $legacyScript=Join-Path $legacyCore 'scripts/documentation.ps1'
   $legacySource=(Get-Content -LiteralPath $currentScript -Raw).Replace(
     '$policyVersion = 3', '$policyVersion = 2'
   )
   Set-Content -LiteralPath $legacyScript -Value $legacySource -Encoding utf8
   Copy-Item -LiteralPath (Join-Path (Split-Path $currentScript) 'generated-artifacts.ps1') `
-    -Destination "$sandbox/runtime/generated-artifacts.ps1"
+    -Destination "$legacyCore/scripts/generated-artifacts.ps1"
   Copy-Item -LiteralPath (Join-Path (Split-Path $currentScript) 'platform-filesystem.ps1') `
-    -Destination "$sandbox/runtime/platform-filesystem.ps1"
+    -Destination "$legacyCore/scripts/platform-filesystem.ps1"
+  Copy-Item -LiteralPath (Join-Path $repo 'skills/team-core/runtime/kit-version.txt') `
+    -Destination "$legacyCore/runtime/kit-version.txt"
   $script=$legacyScript
   & $script -Action Initialize -ProjectRoot $sandbox -AdditionalPaths 'notes' | Out-Null
   $initialState=Get-Content "$sandbox/docs/governance/documentation.json" -Raw | ConvertFrom-Json

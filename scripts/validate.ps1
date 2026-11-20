@@ -43,18 +43,11 @@ if (-not (Test-Path -LiteralPath $versionPath)) {
   $failures.Add('VERSION must use semantic version format, for example 0.1.0')
 }
 
-# Installed runtime scripts cannot rely on the source checkout's VERSION file.
-# Check their embedded provenance during packaging so every release updates it.
-foreach ($producer in @('documentation.ps1','project-rules.ps1','format-code.ps1','ai-simulation.ps1')) {
-  $producerPath=Join-Path $root "skills/team-core/scripts/$producer"
-  if (-not (Test-Path -LiteralPath $producerPath -PathType Leaf)) {
-    $failures.Add("Missing kit-version producer: $producer")
-    continue
-  }
-  $stamps=[regex]::Matches((Get-Content -LiteralPath $producerPath -Raw), "\bkitVersion\s*=\s*'(?<version>\d+\.\d+\.\d+)'")
-  if ($stamps.Count -ne 1 -or $stamps[0].Groups['version'].Value -cne $kitVersion) {
-    $failures.Add("Runtime kitVersion must match VERSION in $producer")
-  }
+# Installed scripts share one generated stamp, included in deployment hashes.
+$stamp = Join-Path $root 'skills/team-core/runtime/kit-version.txt'
+if (-not (Test-Path -LiteralPath $stamp -PathType Leaf) -or
+    [IO.File]::ReadAllText($stamp) -cne ($kitVersion + [char]10)) {
+  $failures.Add('Packaged kit version must match VERSION. Run scripts/sync-kit-version.ps1.')
 }
 
 $changelogPath = Join-Path $root 'CHANGELOG.md'
