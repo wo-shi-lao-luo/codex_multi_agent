@@ -57,6 +57,15 @@ try {
   }
   New-Item -ItemType Directory "$new/skills/team-core/scripts" | Out-Null
   Set-Content "$new/skills/team-core/scripts/ai-simulation.ps1" '# Synthetic new-version helper'
+  # A current source must carry matching version metadata. The legacy fixture above remains installable.
+  New-Item -ItemType Directory "$new/scripts", "$new/skills/team-core/runtime" | Out-Null
+  Set-Content "$new/scripts/sync-kit-version.ps1" '# Synthetic version synchronizer marker'
+  $stamp = "$new/skills/team-core/runtime/kit-version.txt"
+  Assert-Fails { & $manager -Action Deploy -SourceRoot $new @arguments -WhatIf } 'PACKAGE: Packaged kit version'
+  Set-Content $stamp '0.11.0'
+  Assert-Fails { & $manager -Action Deploy -SourceRoot $new @arguments -WhatIf } 'PACKAGE: Packaged kit version'
+  Assert-True (-not (Test-Path $fakeCodex) -and -not (Test-Path $fakeAgents)) 'Version rejection changed homes.'
+  Set-Content $stamp '1.0.0'
   # CR-04: the readability release adds a role, an implicitly invokable Skill and core reference.
   # Expected: deploy includes these owned assets; downgrade and stable restore remove all of them.
   Set-Content "$new/agents/team-code-maintainer.toml" 'name = "team-code-maintainer"'

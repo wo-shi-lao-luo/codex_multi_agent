@@ -98,6 +98,7 @@ function build(root, check) {
   for (const [file, bytes] of outputs) {
     const destination = path.join(target, file);
     plain(destination);
+    if (fs.existsSync(destination) && fs.readFileSync(destination).equals(bytes)) continue;
     fs.mkdirSync(path.dirname(destination), { recursive: true });
     fs.writeFileSync(destination, bytes);
   }

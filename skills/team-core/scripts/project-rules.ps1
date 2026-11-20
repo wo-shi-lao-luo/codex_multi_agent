@@ -13,6 +13,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
+$kitVersion = Get-TeamKitVersion
 
 # Preserve volume roots while normalizing ordinary directory paths. Root may be
 # absolute; all inspected paths below it must be strictly repository-relative.
@@ -126,7 +127,7 @@ if ($total -gt $MaxBytes) { $warnings.Add('Selected source bytes exceed MaxBytes
 # Source-byte sum is a diagnostic, not Codex's exact assembled prompt accounting.
 # No global settings are read: fallback names and limit are caller-supplied evidence.
 [ordered]@{
-  schemaVersion=1; kitVersion='2.0.7'; workingDirectory=$working
+  schemaVersion=1; kitVersion=$kitVersion; workingDirectory=$working
   fallbackNames=@($FallbackNames); maxBytes=$MaxBytes; directories=@($directories)
   candidates=@($candidates); selectedPaths=@($selected); dependencyPaths=@($dependencies)
   totalSelectedBytes=$total; exceedsMaxBytes=($total -gt $MaxBytes)

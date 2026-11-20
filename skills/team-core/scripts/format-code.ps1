@@ -15,6 +15,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
+$kitVersion = Get-TeamKitVersion
 $rows = [Collections.Generic.List[hashtable]]::new()
 $contexts = [Collections.Generic.List[hashtable]]::new()
 $snapshots = if ($IsWindows) { @{} } else { New-TeamOrdinalMap }
@@ -664,7 +665,7 @@ $errors = @($rows | Where-Object status -eq 'error').Count
 $changed = @($rows | Where-Object changed).Count
 $applied = @($rows | Where-Object status -eq 'applied').Count
 @{
-  schemaVersion = 1; kitVersion = '2.0.7'; action = $Action; results = $rows.ToArray()
+  schemaVersion = 1; kitVersion = $kitVersion; action = $Action; results = $rows.ToArray()
   summary = @{ total = $rows.Count; changed = $changed; applied = $applied; blocked = $blocked; errors = $errors }
   limitations = @(
     'metadata-selection-not-semantic-authority', 'trusted-process-not-os-sandbox',

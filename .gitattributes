@@ -1,5 +1,6 @@
 /.gitattributes text=auto eol=lf
 /VERSION text=auto eol=lf
+/skills/team-core/runtime/kit-version.txt text eol=lf
 /LICENSE text=auto eol=lf
 /LICENSE.txt text=auto eol=lf
 /LICENSE.md text=auto eol=lf

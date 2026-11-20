@@ -3,6 +3,20 @@
 # against another process replacing files after an inspection.
 #requires -Version 7.0
 
+# Read provenance from this copy of the installed Kit, regardless of the target project.
+function Get-TeamKitVersion {
+  $file = Join-Path $PSScriptRoot '../runtime/kit-version.txt'
+  Assert-TeamPlainPath $file
+  if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+    throw 'KIT_VERSION: Missing packaged version metadata.'
+  }
+  $version = [IO.File]::ReadAllText($file).Trim()
+  if ($version -cnotmatch '\A[0-9]+\.[0-9]+\.[0-9]+\z') {
+    throw 'KIT_VERSION: Invalid packaged version metadata.'
+  }
+  return $version
+}
+
 function Get-TeamPathComparison {
   if ($IsWindows) { return [StringComparison]::OrdinalIgnoreCase }
   return [StringComparison]::Ordinal

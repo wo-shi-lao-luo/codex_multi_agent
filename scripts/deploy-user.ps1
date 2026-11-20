@@ -334,6 +334,17 @@ function Read-Package([string]$Root, $Provenance) {
   Test-TaskBoardPackage $Root
   $version = (Get-Content -LiteralPath (Join-Path $Root 'VERSION') -Raw).Trim()
   if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'PACKAGE: Invalid VERSION.' }
+  # The synchronization script identifies sources that require a packaged stamp.
+  # Older snapshots have neither file and remain eligible for rollback.
+  $sync = Join-Path $Root 'scripts/sync-kit-version.ps1'
+  $stamp = Join-Path $Root 'skills/team-core/runtime/kit-version.txt'
+  if ((Test-Path -LiteralPath $sync) -or (Test-Path -LiteralPath $stamp)) {
+    Assert-PlainPath $stamp
+    if (-not (Test-Path -LiteralPath $stamp -PathType Leaf) -or
+        [IO.File]::ReadAllText($stamp).Trim() -cne $version) {
+      throw 'PACKAGE: Packaged kit version does not match VERSION.'
+    }
+  }
   $files = @(); $directories = @()
   foreach ($area in @('agents','skills')) {
     if (-not (Test-Path -LiteralPath (Join-Path $Root $area) -PathType Container)) { throw "PACKAGE: Missing $area" }
