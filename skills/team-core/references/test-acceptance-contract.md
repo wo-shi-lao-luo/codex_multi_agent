@@ -65,6 +65,12 @@ Use a manual-to-automated mapping in the existing Automated test and E2E plan: m
 
 If a manual scenario cannot be fully automated because of subjective visual/usability judgment, safety, external ownership or missing environment, **keep it in the E2E plan** with the blocked/manual-only observation, reason, substitute evidence and remaining risk. Ask the user before accepting an automation exception; pending or accepted exceptions are not executed/passing E2E coverage. Never claim achieved E2E coverage is a superset while such gaps remain. Automated results cannot replace the user's manual acceptance.
 
+### Agent preflight before human validation
+
+For each planned human acceptance case in the current scope, plan an Agent-run preflight using its mapped E2E scenario. Specify who runs it, the real entrypoint, preconditions, expected observations, and the handoff evidence. At the due stage or feature checkpoint and before handing the case to the user, run the observable path under equivalent conditions, including the planned happy and edge cases. If the user will act through the browser, exercise the browser and observe the relevant UI state and business outcome with a browser test or a bounded Agent walkthrough. Unit, integration, and API checks complement this preflight by covering rules at their own boundaries.
+
+Record the build/revision, relevant environment and fixture, case ID, observed outcome, and evidence for each run. For live, stubbed, replayed, or human-only steps, state the actual boundary. Route evidenced in-scope defects for repair and rerun affected paths before presenting them as ready. For an inaccessible or distinctly human judgment step, record the exact gap, reason, and partial evidence, and apply the existing exception rule before claiming readiness. Give the user setup, expected results, and remaining judgments. Keep human acceptance pending until supported by user evidence or explicit deferral.
+
 ## QA inputs and user-perspective verification
 
 Anchor QA to the task's goal, scope and non-goals; the approved source of expected behavior; the source/build, relevant diff and baseline; environment, accounts and fixtures (including mock versus real boundaries); and authority for resources and actions. Reuse existing authoritative project records rather than requiring a fixed PRD or a new report set. If expected-behavior authority is missing or conflicting, ask the Lead to resolve it with the user; observed implementation is evidence, not an oracle. Missing context blocks only the judgments that depend on it.

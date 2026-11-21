@@ -7,6 +7,8 @@ description: Run a bounded, evidence-backed Codex development workflow for a fea
 
 Apply [new-instruction synchronization and executor focus](../team-core/references/task-coordination.md#new-instruction-synchronization-checkpoint) throughout execution, and [delegation necessity](../team-core/references/role-routing.md#delegation-necessity-checkpoint) before each child spawn/resumed assignment. Serial Lead ownership is the default; actual independent parallel work and required independent gates need explicit owners and rationale.
 
+For direct development requests as well as routed work, resolve or reuse the [task document selection](../team-task-docs/SKILL.md#select-the-document-path) before starting execution. If the user opts in, draft and review through Team plan first. Reuse an approved set without a second review gate.
+
 At authorized execution start or resume, complete the [unified Board activation entry](../team-core/references/task-coordination.md#unified-activation-entry) with an actual enabled/exempt/pending decision; help/runtime probes alone are insufficient. Preserve the task's existing risk tier, ownership and exemptions.
 
 Use its [complete request preparation](../team-core/references/task-coordination.md#preparing-a-complete-request) sequence before dispatch. Resolve available request fields and prepare/recover private credentials; process success or an internal pending note is not successful activation. Report genuine unresolved blockers to the user without fabricating identity or resetting retained state.
@@ -94,6 +96,8 @@ Read and apply the [code comment contract](../team-core/references/code-comments
 Read and apply the [code readability contract](../team-core/references/code-readability.md) in full alongside project conventions. Route standalone formatting requests through `$team-code-maintain`; a post-freeze formatting transfer must finish before the already planned final tests and review.
 
 Create a Verification record from actual checks. Record commands and outcomes, inspected behavior, and checks that could not run. For QA, summarize relevant coverage gaps, findings and retest state, UX decisions, and risks in the existing packet or record; follow the [canonical QA inputs and user-perspective verification guidance](../team-core/references/test-acceptance-contract.md#qa-inputs-and-user-perspective-verification). Do not close the task until acceptance checks have evidence or the user-facing remaining risk is explicit.
+
+When the change used the task document set or affects a durable project claim, [reconcile the affected docs at handoff](../team-task-docs/SKILL.md#reconcile-at-implementation-handoff). Keep actual verification and pending human decisions in their existing records.
 
 Reconcile planned roles against actual spawn arguments and returned handles under role routing. Distinguish source/tool profiles from confirmed runtime identity and leave unreported model data unknown.
 
