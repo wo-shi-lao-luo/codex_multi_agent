@@ -97,6 +97,8 @@ Read and apply the [code readability contract](../team-core/references/code-read
 
 Create a Verification record from actual checks. Record commands and outcomes, inspected behavior, and checks that could not run. For QA, summarize relevant coverage gaps, findings and retest state, UX decisions, and risks in the existing packet or record; follow the [canonical QA inputs and user-perspective verification guidance](../team-core/references/test-acceptance-contract.md#qa-inputs-and-user-perspective-verification). Do not close the task until acceptance checks have evidence or the user-facing remaining risk is explicit.
 
+Apply the [readiness check](../team-core/references/test-acceptance-contract.md#readiness-for-human-acceptance) before handing off as ready for human acceptance. Reconcile required automated and Agent preflight cases against the final revision in the existing packet or concise light-path record.
+
 When the change used the task document set or affects a durable project claim, [reconcile the affected docs at handoff](../team-task-docs/SKILL.md#reconcile-at-implementation-handoff). Keep actual verification and pending human decisions in their existing records.
 
 Reconcile planned roles against actual spawn arguments and returned handles under role routing. Distinguish source/tool profiles from confirmed runtime identity and leave unreported model data unknown.

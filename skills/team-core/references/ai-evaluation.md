@@ -20,6 +20,17 @@ When changing instruction/reference selection or context assembly, assert that t
 
 Record the tested product model/Agent/Workflow and relevant prompt, context, tool, contract and environment revisions when known. Keep these distinct from the evaluation judge model and the Codex testing Agent's model. Source configuration is not proof of what ran; unavailable identities, usage or cost remain `unknown`.
 
+### Cover affected AI boundaries
+
+Plan applicable cases for each materially changed AI surface. Use the approved product expectations for both positive and negative assertions:
+
+- **Inputs and context:** typical and ambiguous intent, missing or conflicting data, reference selection and isolation across turns or sessions.
+- **Outputs and action decisions:** useful result, omission or refusal where appropriate, malformed or partial output, and inappropriate or missing tool calls when tool authority matters. When wording can select an action, compare similar inputs with different intent, such as requesting, negating or canceling the same action. Assert what actually runs and what remains unchanged.
+- **Orchestration and business handling:** relevant tool or provider failures, cancellation, retries and late or duplicate events. For stateful flows, exercise material turn sequences such as revising, attempting an action before approval, receiving an unrelated message, and resuming. Verify both the current outcome and preservation of prior decisions, feedback and receipts where applicable. Exercise state, permissions and side effects with deterministic API/contract tests or controlled replay where that gives reliable evidence.
+- **Model behavior and real integration:** run bounded, representative behavioral evaluations for changed prompts/models and a real integrated check for affected wiring. Separate mock/replay evidence from actual runtime or model observations. Use the existing environment, authorization and budget limits.
+
+Check the changed surfaces at risk-appropriate depth. For example, a successful model response can test content quality while a replayed late event tests whether the host preserves a cancelled state. Map each independent assertion to its own evidence before calling the scenario ready.
+
 ## Use layered oracles
 
 Select the least costly reliable assertion for each risk:

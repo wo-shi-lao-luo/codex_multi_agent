@@ -10,7 +10,15 @@ Record the requirements source, baseline, build under test, environment, account
 
 ## Coverage and execution
 
-Map each behavior to the lowest adequate automated boundary and its assertion. Assess unit, integration, contract/API, E2E, regression, manual, and risk-specific layers under the [test and acceptance contract](../../team-core/references/test-acceptance-contract.md). Use the existing TDD track for each material behavior. For each due check, identify the command or entrypoint, fixture, expected outcome, timing, and evidence. Schedule expensive flows at a usable acceptance checkpoint. For AI products, distinguish deterministic application tests, replay, AI behavior evaluation, and live integrated evidence.
+Use [risk-based case derivation](../../team-core/references/test-acceptance-contract.md#derive-cases-from-the-changed-behavior) to build the mapping from changed behavior and its affected consumers. Include automated-only cases where a business rule, integration or AI behavior matters even without a matching manual step. Use the existing coverage and TDD sections when a canonical packet applies.
+
+| Behavior and source | Case ID and conditions | Expected result and relevant side effects | Test layer, runner and fixture | Due checkpoint and evidence |
+| --- | --- | --- | --- | --- |
+| <Requirement, rule, state or affected consumer> | <Normal, boundary, failure or recovery case> | <Observable result and effects that must occur or be prevented> | <Lowest adequate test, test ID and command or entrypoint> | <When due, actual result or evidence gap> |
+
+Assess unit, integration, contract/API, E2E, regression, manual and applicable risk-specific layers. Schedule expensive flows at a usable acceptance checkpoint. For AI products, apply the [AI coverage dimensions](../../team-core/references/ai-evaluation.md#cover-affected-ai-boundaries), showing which cases exercise application code, replay, model behavior evaluation or live integration.
+
+Track independently observable variants inside a case group. For affected user journeys, name the normal start or navigation path, the actual handoff build and fixture, and which starting states or transitions need separate results. For a goal-based walkthrough, give the first screen or context, the user's objective and outcome checkpoints, leaving the route for the tester to choose.
 
 | Manual case ID | Agent-first E2E path and key assertions | Other automated checks | Human checks and expected result | Actual preflight evidence or gap |
 | --- | --- | --- | --- | --- |
@@ -20,4 +28,4 @@ Map each behavior to the lowest adequate automated boundary and its assertion. A
 
 Use the [Agent preflight rule](../../team-core/references/test-acceptance-contract.md#agent-preflight-before-human-validation) before handing the test to the user. For an actual browser interaction, preflight passes through the browser and checks the outcome, using a capable script or an Agent interaction. Keep distinctly human judgments explicit. Give the user practical setup, recommended steps and edge cases, the preflight result, and any blocked or manual-only check. Record human results only from the user's evidence or explicit deferral.
 
-Check that each planned manual case has a traceable E2E case and that the planned and actual results are distinguishable. Keep one set of acceptance results. Promote reusable verification procedures to the existing test guide at handoff.
+Apply the [readiness check](../../team-core/references/test-acceptance-contract.md#readiness-for-human-acceptance) to the final implementation and all required cases due at this checkpoint, including automated-only cases. Give the user the completed preflight results and any unresolved gaps. Keep one set of acceptance results. Promote reusable verification procedures to the existing test guide at handoff.
