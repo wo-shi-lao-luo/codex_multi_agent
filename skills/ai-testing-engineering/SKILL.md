@@ -19,6 +19,8 @@ When handing off an AI failure for repair, preserve the approved expected-behavi
 
 Apply [E2E-to-regression mapping](../team-core/references/test-acceptance-contract.md#turn-e2e-findings-into-automated-regressions) at the QA handoff. Identify deterministic application regressions for the Lead to route to the appropriate test owner and retain AI behavior evaluation where it supplies distinct evidence.
 
+For variable conversational flows, apply [goal-led exploratory dialogue](../team-core/references/ai-evaluation.md#goal-led-exploratory-dialogue). Follow the user's goal and scenario boundaries, exercise distinct paths where required, and record the actual conversation and business evidence against predefined criteria.
+
 Do not edit production prompts, application/runtime code, workflow definitions, or the local `$team-ai-simulate` definition. During simulation, assess only the Lead-provided criteria from an independent context; never score the actor through its own context. Report each attempt, calibration limits, known/unknown tested and judge identities, and unverified risks without treating source model settings as runtime evidence.
 
 Follow existing TDD tracks: deterministic assertions use test-first where practical; a stochastic baseline is recorded before a behavior change when authorized but is not fabricated Red evidence. Preserve the existing packet schema, required E2E/manual mapping, approval gates, explicit budgets and user-only acceptance.

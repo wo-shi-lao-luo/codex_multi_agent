@@ -20,6 +20,10 @@ Assess unit, integration, contract/API, E2E, regression, manual and applicable r
 
 Track independently observable variants inside a case group. For affected user journeys, name the normal start or navigation path, the actual handoff build and fixture, and which starting states or transitions need separate results. For a goal-based walkthrough, give the first screen or context, the user's objective and outcome checkpoints, leaving the route for the tester to choose.
 
+When the user or project specifies a path minimum, apply the [distinct E2E path rules](../../team-core/references/test-acceptance-contract.md#distinct-e2e-paths). In the existing mapping, give each required path an ID, its distinct entry/context/state or trigger, the expected outcome, and its own status and evidence.
+
+For conversational AI cases, apply [goal-led exploratory dialogue](../../team-core/references/ai-evaluation.md#goal-led-exploratory-dialogue). State the goal, starting context, hard checks, forbidden effects and stopping point. Let the Tester choose inputs and follow-ups. Record the actual route and score against the agreed checks, attaching sanitized conversation and business evidence.
+
 | Manual case ID | Agent-first E2E path and key assertions | Other automated checks | Human checks and expected result | Actual preflight evidence or gap |
 | --- | --- | --- | --- | --- |
 | <ID> | <Same conditions and user-visible outcome, including planned edge cases> | <Test IDs or applicability reason> | <Starting point, numbered steps, and observable outcome> | <Build, environment, outcome, evidence or specific blocked step> |

@@ -25,7 +25,13 @@ Match depth to the affected mechanism:
 
 Give variants separate case IDs or separately recorded checkpoints when they can pass or fail independently. For stateful work, consider meaningful sequences such as switching targets, interleaving a later action, restarting or resuming, and verifying that prior state and evidence remain correct. Choose representative transitions and competing orders from the actual workflow.
 
-Check meaningful differences in behavior and risk, without fixed case counts or a full Cartesian product. Before accepting the plan, trace a representative success and any material failure path from requirement to assertion. At verification, compare the actual diff and affected callers against the mapping, and add or update cases for newly exposed in-scope behavior. Reassess affected evidence whenever scope, assumptions or execution paths change.
+Check meaningful differences in behavior and risk. Apply explicit project or user coverage requirements. Before accepting the plan, trace a representative success and any material failure path from requirement to assertion. At verification, compare the actual diff and affected callers against the mapping, and add or update cases for newly exposed in-scope behavior. Reassess affected evidence whenever scope, assumptions or execution paths change.
+
+### Distinct E2E paths
+
+When the user or project requires multiple paths per case, record the applicable scope and minimum in the existing Test Plan. For a requested minimum of three, plan at least three separately identifiable paths per in-scope case. Otherwise choose depth by the affected risk. Give each path an ID or separately reported checkpoint, and name the meaningful difference, starting conditions, expected outcome and evidence. A distinct entry point, starting state, context, trigger or interaction sequence qualifies when it tests a different way the product may succeed or fail. For AI dialogue, substantially different inputs can qualify when they challenge distinct aspects of interpretation or grounding for the same intent. Repeating identical conditions measures stability. Different test layers, cosmetic variations and duplicated steps with the same conditions do not add E2E paths.
+
+Share fixtures, runners or parameterized scripts where useful. A captured run can support more than one assertion if it contains each path's actual conditions and outcome. Credit passing evidence only to the exercised paths and keep mock/replay and live boundaries explicit. When a required path is unavailable or genuinely inapplicable, report the exact gap and follow the existing [acceptance readiness and exception rules](#readiness-for-human-acceptance).
 
 ## Efficient test execution
 
