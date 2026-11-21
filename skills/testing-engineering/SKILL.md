@@ -35,6 +35,8 @@ Do not use to impose a generic coverage target, create tests solely to increase 
 
 Use the task's approved expected-behavior source as the QA oracle; ask the Lead to resolve missing or conflicting authority rather than treating implementation as truth. Assigned cases are a minimum: make bounded observations of relevant adjacent user-facing behavior, not a full-app audit. Apply the canonical [QA input, finding and handoff guidance](../team-core/references/test-acceptance-contract.md#qa-inputs-and-user-perspective-verification); observations do not grant repair authority or expand scope.
 
+Apply [E2E-to-regression mapping](../team-core/references/test-acceptance-contract.md#turn-e2e-findings-into-automated-regressions) when handing off or verifying a confirmed E2E defect.
+
 For UI/UX verification, use [task-driven evaluation](../team-core/references/ui-design-and-evaluation.md)
 to select meaningful transitions and counterexamples. Observe discoverability,
 object/scope, actual effects, final feedback and a workable next step; interleave
