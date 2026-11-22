@@ -61,10 +61,14 @@ function Get-InstalledPath {
 
 try {
   New-Item -ItemType Directory -Path $testRoot -ErrorAction Stop | Out-Null
+  & (Join-Path $PSScriptRoot 'test-team-guidance.ps1')
   & $installer -CodexHome $codexHome -AgentsHome $agentsHome @runtimeArguments
 
   $receiptPath = Join-Path $agentsHome 'codex-multi-agent\\install-receipt.json'
   Assert-Condition (Test-Path -LiteralPath $receiptPath) 'Initial installation did not create a receipt.'
+  # TG-01: the ordinary installer does not create global guidance.
+  $guidancePath = Join-Path $codexHome 'AGENTS.md'
+  Assert-Condition (-not (Test-Path -LiteralPath $guidancePath)) 'Default installation changed global instructions.'
 
   $packageFiles = Get-PackageFileMap
   # DE-01: the shared exploration reference is distributed with existing Team Skills.
@@ -108,12 +112,21 @@ try {
     Assert-Condition ($receiptEntry[0].sha256 -eq $installedHash) "Installation receipt hash is incorrect for $packageRelativePath."
   }
 
+  # TG-02: explicit consent is forwarded through the update wrapper.
+  # Preview leaves the entire fixture intact; update adds the rule after verification.
+  [IO.File]::WriteAllText($guidancePath, "# Existing instructions`n")
+  $originalGuidanceHash = (Get-FileHash -LiteralPath $guidancePath).Hash
   $treeBeforeWhatIf = Get-TreeFingerprint -Path $testRoot
-  & $updater -CodexHome $codexHome -AgentsHome $agentsHome @runtimeArguments -WhatIf | Out-Null
+  $preview = & $updater -CodexHome $codexHome -AgentsHome $agentsHome @runtimeArguments -EnableTeamGuidance -WhatIf | Out-String | ConvertFrom-Json
+  Assert-Condition ($preview.teamGuidance.action -ceq 'append' -and $preview.teamGuidance.path -ceq $guidancePath) 'Update preview omitted the requested Team guidance.'
   $treeAfterWhatIf = Get-TreeFingerprint -Path $testRoot
   Assert-Condition ($treeBeforeWhatIf -eq $treeAfterWhatIf) 'Update -WhatIf changed files in the isolated installation.'
 
-  & $updater -CodexHome $codexHome -AgentsHome $agentsHome @runtimeArguments
+  & $updater -CodexHome $codexHome -AgentsHome $agentsHome @runtimeArguments -EnableTeamGuidance
+  $guidanceText = [IO.File]::ReadAllText($guidancePath)
+  $guidanceBackups = @(Get-ChildItem -LiteralPath $codexHome -Filter 'AGENTS.md.team-guidance-*' -File)
+  Assert-Condition ($guidanceText.StartsWith("# Existing instructions`n") -and $guidanceText.Contains('$team')) 'Update did not preserve and extend global guidance.'
+  Assert-Condition ($guidanceBackups.Count -eq 1 -and (Get-FileHash -LiteralPath $guidanceBackups[0].FullName).Hash -ceq $originalGuidanceHash) 'Update did not preserve the original guidance backup.'
   $receiptAfterManagedUpdate = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json -ErrorAction Stop
   Assert-Condition (@($receiptAfterManagedUpdate.files).Count -eq $packageFiles.Count) 'Managed update did not preserve a complete installation receipt.'
 

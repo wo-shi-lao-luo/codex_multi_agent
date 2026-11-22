@@ -9,7 +9,7 @@ Before the first repair proposal, including an ordinary small fix, and before pr
 State only the decision-relevant summary:
 
 1. The approved expected behavior, the failure class, and the observed deviation.
-2. The responsible causal layer and the evidence for the mechanism or a testable hypothesis. Keep observations, inference, confidence, and unknowns distinct.
+2. The responsible causal layer and the evidence for the mechanism or a testable hypothesis. For a proposed code change, identify the intended file or module responsibility under [file responsibilities and placement](file-ownership.md#file-responsibilities-and-placement), including when the repair moves to another layer. Keep observations, inference, confidence, and unknowns distinct.
 3. The conditions where the proposed fix applies and a meaningful boundary where behavior should differ. Identify a relevant incidental input transformation whose meaning should be preserved; state a genuine counterexample when a requirement or mechanism supplies one. Keep semantic-changing variables separate from incidental variation.
 4. The smallest adequate verification for the risk: check the original failure and add equivalent, negative/boundary, or adjacent-behavior cases when they distinguish the mechanism or protect affected behavior. State important unverified cases and remaining uncertainty.
 

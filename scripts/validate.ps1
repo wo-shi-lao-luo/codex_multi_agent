@@ -833,6 +833,13 @@ if (-not (Test-Path -LiteralPath $stageVerification)) {
   }
 }
 
+# The authoring templates ship together. Workflow route tests check their entrypoints.
+foreach ($relative in @('SKILL.md','assets/development-plan.md','assets/system-design.md','assets/test-plan.md')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $root "skills/team-task-docs/$relative") -PathType Leaf)) {
+    $failures.Add("Missing task planning resource: $relative")
+  }
+}
+
 $feedbackRuntime = Join-Path $root 'skills/team-core/scripts/feedback-runtime.ps1'
 # Guard optional integration distribution and discoverable routing; runtime tests check behavior.
 foreach ($relative in @('references/spec-lifecycle.md','references/openspec-integration.md','scripts/openspec-adapter.ps1','scripts/openspec-common.ps1','scripts/spec-traceability.ps1','templates/openspec/config.yaml')) {

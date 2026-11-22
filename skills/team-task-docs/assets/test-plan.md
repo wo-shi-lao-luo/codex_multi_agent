@@ -12,9 +12,11 @@ Record the requirements source, baseline, build under test, environment, account
 
 Use [risk-based case derivation](../../team-core/references/test-acceptance-contract.md#derive-cases-from-the-changed-behavior) to build the mapping from changed behavior and its affected consumers. Include automated-only cases where a business rule, integration or AI behavior matters even without a matching manual step. Use the existing coverage and TDD sections when a canonical packet applies.
 
-| Behavior and source | Case ID and conditions | Expected result and relevant side effects | Test layer, runner and fixture | Due checkpoint and evidence |
+| Behavior and source | Case ID and conditions | Expected result and relevant side effects | Test layer, entrypoint, fixture and required capabilities | Earliest executable checkpoint, due checkpoint and evidence |
 | --- | --- | --- | --- | --- |
-| <Requirement, rule, state or affected consumer> | <Normal, boundary, failure or recovery case> | <Observable result and effects that must occur or be prevented> | <Lowest adequate test, test ID and command or entrypoint> | <When due, actual result or evidence gap> |
+| <Requirement, rule, state or affected consumer> | <Normal, boundary, failure or recovery case> | <Observable result and effects that must occur or be prevented> | <Lowest adequate test, test ID, command or entrypoint, and capability source> | <Required work or baseline, earliest possible, deadline, actual result or gap> |
+
+For material checks, use the [timing backcheck](../SKILL.md#backcheck-the-document-set) against the Plan's dependency order. Separate the independently executable assertions when a case group spans stages. Link a critical feasibility probe before any decision or work relies on it, with an owner, representative input, observable result and blocked or independent work if it cannot run. A later handoff test may retest that premise.
 
 Assess unit, integration, contract/API, E2E, regression, manual and applicable risk-specific layers. Schedule expensive flows at a usable acceptance checkpoint. For AI products, apply the [AI coverage dimensions](../../team-core/references/ai-evaluation.md#cover-affected-ai-boundaries), showing which cases exercise application code, replay, model behavior evaluation or live integration.
 

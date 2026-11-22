@@ -65,4 +65,18 @@ Assert-Contains 'skills/team-core/references/ui-quality.md' '](ui-design-and-eva
 $uiMethodPath = Join-Path $root 'skills/team-core/references/ui-design-and-evaluation.md'
 if (-not (Test-Path -LiteralPath $uiMethodPath -PathType Leaf)) { throw 'ASSERTION_FAILED: Missing packaged UI design and diagnosis method' }
 
+# Scenario: the selected document set is prepared, reviewed, or adopted at a later
+# execution checkpoint. Each entry must reach the corresponding packaged procedure.
+foreach ($route in @(
+  @{ path='skills/team-plan/SKILL.md'; anchor='draft-and-review' },
+  @{ path='skills/team-review/SKILL.md'; anchor='backcheck-the-document-set' },
+  @{ path='skills/team-dev/SKILL.md'; anchor='receive-the-document-set' }
+)) {
+  $link = "](../team-task-docs/SKILL.md#$($route.anchor))"
+  Assert-Contains $route.path $link 'Task-document procedure must be reachable from the workflow'
+}
+Assert-Contains 'skills/team-task-docs/SKILL.md' '](#backcheck-the-document-set)' 'Drafting must invoke the shared backcheck'
+Assert-Contains 'skills/team-task-docs/SKILL.md' '## Backcheck the document set' 'The backcheck anchor must resolve'
+Assert-Contains 'skills/team-task-docs/SKILL.md' '## Receive the document set' 'The receiver anchor must resolve'
+
 Write-Host 'PASS: review context source contracts (model behavior not tested)'

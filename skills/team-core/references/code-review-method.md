@@ -90,7 +90,7 @@ obligations; choose the smallest adequate adjustment. Apply existing
 
 | Surface | Review questions |
 | --- | --- |
-| Placement/responsibility | Does this belong to its domain/module? Are responsibilities scattered or combined so local changes require unrelated edits? Can callers find the authoritative implementation? |
+| Placement/responsibility | Apply [file responsibilities and placement](file-ownership.md#file-responsibilities-and-placement) to material additions in the actual diff. Does the receiving file or module own this behavior? Can maintainers find its authoritative implementation? Does the diff add an unrelated concern through a field, branch, dependency, or default? |
 | Layering/dependencies | Are public/private boundaries preserved? Does foundational code import its consumers, leak internal state, introduce cycles or hidden side effects? |
 | Duplicate implementations | Does suitable project capability exist? Should these rules evolve together? Can one copy miss a fix? Check semantic differences before deduplication. |
 | Utilities/base/shared code | Is shared behavior cohesive and stable? Moving business policy into `utils` does not make it generic. Check consumer contracts, error semantics, state, ownership and change blast radius. |

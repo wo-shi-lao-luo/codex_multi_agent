@@ -74,6 +74,8 @@ For these migrations and other delegated work with meaningful multi-phase effort
 
 ## 3. Contract
 
+For implementation, confirm [file responsibilities and placement](file-ownership.md#file-responsibilities-and-placement) before editing or assigning a writer. Carry the relevant locations and cross-module handoffs in the existing Work contract when needed.
+
 In `$team-plan` and `$team-dev`, apply [risk-proportional design exploration](design-exploration.md) before assigning work or implementation: decide whether a light check is sufficient or material risk/uncertainty requires fuller exploration. Use the Lead-owned context, role and return-path limits there; task size alone never decides design depth. A full exploration does not add an approval gate for already accepted decisions or replace existing approval authority.
 
 Apply [documentation governance](documentation-governance.md). Eligible light work reads relevant docs, PRDs and instructions and rechecks evidence affected by its edits; it does not require a full inventory or governance runtime scan. Other work assesses task-specific sufficiency before implementation, adopts unchecked existing projects, classifies changed docs and rechecks stale evidence. Respect active applicable PRDs, preserve optional document categories, and ask the user before resolving substantive ambiguity. Lead owns readiness; only explicitly independent authorized work proceeds under a partial review. Carry confirmed constraints through readiness, design, child context, actual wiring/fallback, tests, review and handoff using [approved constraint continuity](approved-constraints.md); small changes and debugging still preserve applicable constraints. When a project uses source-linked Agent guidance, follow [Agent documentation](agent-documentation.md) without turning an Inspect delta into an automatic whole-project stop. Read-only consultation and review report findings; they do not update the source map or document set without a separate bounded write assignment.
@@ -117,6 +119,8 @@ For code changes, apply the [code comment contract](code-comments.md) and the [c
 For documentation changes, apply the assigned document purpose while editing. Inspect relevant connected documents and repair clear, evidenced defects that are within the assignment; send cross-owner or ambiguous findings back through the Contract/decision path instead of silently expanding scope.
 
 ## 5. Verify
+
+Have the writer check [placement in the actual diff](file-ownership.md#file-responsibilities-and-placement) before handoff. Use the existing review when independent review is due.
 
 Include the code comment and readability contracts' writer self-checks and, when review is assigned, semantic review of comments and readability. Record inspected scope and outcome; automated checks alone do not establish documentation correctness or semantic equivalence.
 

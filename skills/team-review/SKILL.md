@@ -1,6 +1,6 @@
 ---
 name: team-review
-description: Review a branch, diff, pull request, or change set with independent, evidence-backed Codex coverage. Use explicitly as $team-review when a change needs structured review rather than implementation.
+description: Review a branch, diff, pull request, change set, or supplied task planning documents with evidence-backed Codex coverage. Use $team-review for structured read-only review.
 ---
 
 # Team review
@@ -9,12 +9,14 @@ When reviewing development readiness or document alignment, read [documentation 
 
 Trace applicable confirmed constraints across actual entrypoints/wiring and focused evidence with [approved constraint continuity](../team-core/references/approved-constraints.md). If the project maintains source-linked Agent guidance, use [Agent documentation](../team-core/references/agent-documentation.md) to assess relevant changes; Inspect results are not approval and aggregate deltas do not automatically block unrelated work. Reviews are read-only: report a bounded document/map gap rather than editing it. Preserve current outcome, invalidated evidence and pending acceptance through [outcome-based handoffs](../team-core/references/agent-handoffs.md).
 
+For a readiness or alignment review of a supplied draft or adopted task document set, including authoritative equivalents, apply the [shared document backcheck](../team-task-docs/SKILL.md#backcheck-the-document-set) to the actual revisions. Report the missing prerequisite, recovery outcome or unavailable artifact and its affected scope. Follow the receiving check there when transfer readiness is in scope. Keep this review read-only.
+
 Act as the Lead. Read the shared [execution contract](../team-core/references/execution-contract.md) in full. This workflow owns **Discover → Verify → Handoff** and reviews existing work; do not edit code unless the user explicitly starts a follow-up implementation task.
 
 
 ## When to activate
 
-Use for a branch, diff, pull request, staged change, or specified change set that needs independent review coverage.
+Use for a branch, diff, pull request, staged change, or specified change set that needs independent review coverage. A supplied task-document set is also a reviewable scope, even without a Git diff. If a member of that set is inaccessible, report the evidence gap and review what is available.
 
 When Team is explicitly invoked or task-matched to engineering work, shared [workflow routing](../team-core/references/workflow-routing.md) may select this review mode when the user requests assessment of a reviewable scope. Do not require a separate `$team-review` command. This does not authorize edits or delivery actions.
 
