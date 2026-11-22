@@ -4,7 +4,8 @@ Use the project language. Present the smallest set of views needed to understand
 
 ## Problem, baseline and constraints
 
-- State the expected behavior and evidence for the current path. Identify the affected modules, external integrations, and responsibilities. Label observed behavior, confirmed requirements, proposed changes, and unknowns.
+- Open with a concrete business or operational example in plain language. Identify the actor, what they start with, what currently gets in their way, and the result that makes this design necessary. Describe the key input or object and its change in terms the reader can recognize. Carry that example into the relevant runtime walkthrough.
+- Cite evidence for the current path. Identify the affected modules, external integrations, and responsibilities. Label observed behavior, confirmed requirements, proposed changes, and unknowns.
 - State quality or compatibility constraints in observable terms where they change the design.
 
 ## Proposed system and key flows

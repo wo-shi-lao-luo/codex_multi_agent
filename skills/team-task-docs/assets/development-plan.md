@@ -4,7 +4,7 @@ Use the project language. Keep existing task IDs and links. Replace prompts with
 
 ## Outcome and scope
 
-- State the desired user or operational result and the problem that makes it necessary.
+- Open with a short plain-language description of who needs the change, what they are doing in a concrete situation, what is difficult or missing today, and what they can do or observe after delivery. For internal work, name the operator, maintainer, or consumer and its affected operation. Relate the work items below to that result.
 - Link the authoritative requirement, confirmed constraints, System Design, and Test Plan or stage packets. Name explicit exclusions and scope/budget limits that affect the plan.
 - Identify the inspected baseline and any decision that must be resolved before dependent work begins.
 

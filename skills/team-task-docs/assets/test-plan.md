@@ -6,6 +6,8 @@ Kit links in this template are authoring references. In the resulting project do
 
 ## Stage context and scenarios
 
+Open with a short plain-language acceptance scenario. Name who is doing what, where they start and what problem the change should solve. Say what they need to complete and what result they must be able to see or read back for that outcome to count as success. For internal work, state the operator or consumer's successful action and observable signal. Use that outcome to select the case IDs below.
+
 Record the requirements source, baseline, build under test, environment, accounts or fixtures, test data, permitted effects, cleanup, scope, and assumptions. Define stable case IDs with preconditions, an observable action and result, and relevant happy, edge and failure paths. For exploratory QA, state a business goal and checkpoints and leave room for the tester to try relevant paths.
 
 ## Coverage and execution
