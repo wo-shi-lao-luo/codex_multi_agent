@@ -9,8 +9,10 @@ Use the project language. Present the smallest set of views needed to understand
 
 ## Proposed system and key flows
 
-- Show the changed module or service boundaries, ownership, placement, and what existing code or platform capabilities the solution reuses. Show a diagram only where it makes the flow easier to inspect.
-- Walk a representative request or user action through the real entry point, interface and state changes to its observable result. Add the material failure, cancellation, retry, or recovery path. Identify who owns effects and failure handling.
+- Show the changed module or service boundaries, ownership, placement, and what existing code or platform capabilities the solution reuses.
+- Walk one concrete, representative input through the real entry point to its observable result. Give the relevant starting records, state, and versions. At each material handoff, identify who acts, what data or evidence they read, what they decide, and what they pass to the next participant.
+- Default to one runtime diagram for a flow involving material cross-component handoffs, persistent writes, asynchronous work, or AI tool calls. Use the project's diagram notation or Mermaid. Use a sequence diagram when order matters, a numbered flow for data transformation or routing, or a state diagram when transitions are the central decision. Label arrows with the request, data, or event and its relevant state or version. Use the same example in the diagram and any explanatory notes. A simple local read can show its entry, read, and result in a few lines.
+- For a write, identify who authorizes and validates it, where it commits, what signal allows the UI or caller to report success, and what can be read back on reopening or reloading. For complex writes and workflows, trace a material failure, concurrency, cancellation, retry, or recovery branch that changes the outcome. Show who handles it, what state remains, and what the user or caller sees. Link these outcomes to the corresponding acceptance case IDs.
 - Record affected interface semantics, data and migration behavior, security and approval boundaries, compatibility and rollback as applicable. Link precise contracts, code locations, and corresponding acceptance case IDs.
 
 ## Choices and evidence
