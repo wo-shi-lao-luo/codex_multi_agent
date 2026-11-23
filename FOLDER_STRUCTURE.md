@@ -45,6 +45,7 @@ The toolkit source is the current editable master. `scripts/setup.sh` and `scrip
 - `skills/team-doc-check/` — documentation readiness/adoption entrypoint; distributed Skill source, not repository discovery configuration.
 - `skills/team-project-rules/` — entrypoint for reviewing, drafting and maintaining target-project `AGENTS.md` files.
 - `skills/team-core/references/documentation-governance.md` — task-scoped sufficiency, topic-scoped document authority, semantic consolidation and conflict handling, ambiguity and legacy contract with runtime schema.
+- `skills/team-core/references/isolated-worktrees.md` — conditional managed-worktree binding, frozen local handoff, Lead-owned integration, recovery and cleanup for parallel production writers.
 - `skills/team-core/references/external-research.md` — bounded source quality, citation and same-task peer research handoff contract.
 - skills/team-core/references/peer-communication.md — initial Lead-granted peer messaging scope, shared budgets, escalation and role-specific boundaries.
 - `skills/team-core/references/approved-constraints.md`, `agent-documentation.md`, and `agent-handoffs.md` — constraint continuity, conditional source-linked Agent guidance with read-only Inspect, and outcome-based work handoffs.

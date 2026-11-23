@@ -47,6 +47,14 @@ Read the [code comment](../team-core/references/code-comments.md) and [code read
 
 Implement the assigned complete page/flow within its client boundary. For a standalone small fix, use the [small-task test rule](../team-core/references/test-acceptance-contract.md#tier-selection-reuse-and-resource-limits); include real rendered/integration evidence when the symptom requires it. Verify function at the narrowest meaningful layer, while component tests never replace required rendered-page inspection. Fix observed issues and reinspect the result.
 
+For a changed user flow, apply the relevant
+[task-transition checks](../team-core/references/ui-design-and-evaluation.md#inspect-by-doing-the-work):
+follow object/version and input state through actions, switches, feedback and
+recovery. Inspect final rendered error meaning after wrappers, not just the service
+response. Exercise important keyboard/focus and control-reachability transitions at
+declared sizes; record extra sizes separately. Do not turn a selector failure,
+isolated score or unverified standard exception into a product defect.
+
 Create a Verification record with checks performed, results, evidence, and any unavailable browser or device coverage. Do not call an interaction complete solely because it renders in one state.
 
 ## Return paths

@@ -2,6 +2,27 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [Unreleased]
+
+### Added
+
+- Offer a Development Plan, System Design, and Test Plan when user review would help. Cross-check capabilities and dependencies, recovery scenarios, technical limits, and the recipient's access to the current documents.
+- Add on-demand isolated worktrees for parallel writers, with a pinned base, frozen handoff, and Lead-owned integration.
+- Add a shared review method for internal changes and external pull requests. Check correctness, maintainability, reuse, retired code, evidence, and findings that require a human decision.
+- Add `-EnableTeamGuidance` as an explicit install or update option for the selected Codex home.
+
+### Changed
+
+- Default to Lead execution for one serial workstream while retaining required independent checks and justified parallel assignments.
+- Strengthen system design walkthroughs, critical-premise evidence, and goal-led E2E coverage of complete user journeys.
+- Improve UI design and evaluation guidance for coherent flows, responsive behavior, accessibility, and recovery from errors.
+- Strengthen AI repair regression checks and first-attempt evaluation of realistic user scenarios.
+
+### Fixed
+
+- Pin the selected installation source before deployment and publish files through a private scratch area and native same-device rename. Keep recovery scoped to the pending transaction.
+- Serialize feedback updates across sessions and exclude private working records from package Markdown link checks.
+
 ## [1.1.1] - 2026-11-20
 
 ### Changed

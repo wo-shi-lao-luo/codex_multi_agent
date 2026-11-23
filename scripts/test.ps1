@@ -28,6 +28,7 @@ $checks = @(
   @{name='ai-evaluation';path='tests/test-ai-evaluation.ps1';arguments=@()},
   @{name='ai-simulation';path='tests/test-ai-simulation.ps1';arguments=@()},
   @{name='architecture-migration';path='tests/test-architecture-migration.ps1';arguments=@()},
+  @{name='atomic-publisher';path='tests/test-atomic-publisher.ps1';arguments=@()},
   @{name='bilingual-docs';path='tests/test-bilingual-docs.ps1';arguments=@()},
   @{name='code-readability';path='tests/test-code-readability.ps1';arguments=@()},
   @{name='data-science';path='tests/test-data-science.ps1';arguments=@()},
@@ -35,10 +36,12 @@ $checks = @(
   @{name='design-exploration';path='tests/test-design-exploration.ps1';arguments=@()},
   @{name='documentation';path='tests/test-documentation.ps1';arguments=@()},
   @{name='feedback-runtime';path='tests/test-feedback-runtime.ps1';arguments=@()},
+  @{name='feedback-concurrency';path='tests/test-feedback-concurrency.ps1';arguments=@()},
   @{name='formatter-tool';path='tests/test-formatter-tool.ps1';arguments=@()},
   @{name='generated-artifacts';path='tests/test-generated-artifacts.ps1';arguments=@()},
   @{name='git-delivery';path='tests/test-git-delivery.ps1';arguments=@()},
   @{name='install-user';path='tests/test-install-user.ps1';arguments=@()},
+  @{name='install-source-contract';path='tests/test-install-source-contract.ps1';arguments=@()},
   @{name='kit-version';path='tests/test-kit-version.ps1';arguments=@()},
   @{name='openspec';path='tests/test-openspec.ps1';arguments=@()},
   @{name='optional-designer';path='tests/test-optional-designer.ps1';arguments=@()},
@@ -46,10 +49,13 @@ $checks = @(
   @{name='project-blueprint';path='tests/test-project-blueprint.ps1';arguments=@()},
   @{name='project-rules';path='tests/test-project-rules.ps1';arguments=@()},
   @{name='researcher';path='tests/test-researcher.ps1';arguments=@()},
+  @{name='review-context';path='tests/test-review-context.ps1';arguments=@()},
   @{name='stage-verification';path='tests/test-stage-verification.ps1';arguments=@()},
+  @{name='team-guidance';path='tests/test-team-guidance.ps1';arguments=@()},
   @{name='team-entry';path='tests/test-team-entry.ps1';arguments=@()},
   @{name='test-support';path='tests/test-test-support.ps1';arguments=@()},
   @{name='validate-package';path='tests/test-validate.ps1';arguments=@()},
+  @{name='validation-links';path='tests/test-validation-links.ps1';arguments=@()},
   @{name='web-engineering';path='tests/test-web-engineering.ps1';arguments=@()},
   @{name='portability';path='tests/test-portability.ps1';arguments=@()}
 )
@@ -65,7 +71,7 @@ if (-not $shell -or -not (Test-Path -LiteralPath $shell -PathType Leaf)) { throw
 Write-Host ("Platform: {0}; OS architecture: {1}; process architecture: {2}" -f [Runtime.InteropServices.RuntimeInformation]::OSDescription,[Runtime.InteropServices.RuntimeInformation]::OSArchitecture,[Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)
 Write-Host ("Runtime: PowerShell {0}; {1}" -f $PSVersionTable.PSVersion,[Runtime.InteropServices.RuntimeInformation]::FrameworkDescription)
 foreach ($prerequisite in @(
-  @{name='git';suites=@('deployment','ai-development-guidance','ai-simulation','generated-artifacts','git-delivery','formatter-tool','documentation','openspec','optional-designer','portability');argument='--version'},
+  @{name='git';suites=@('deployment','ai-development-guidance','ai-simulation','generated-artifacts','git-delivery','formatter-tool','documentation','openspec','optional-designer','validation-links','portability');argument='--version'},
   @{name='node';suites=@('openspec','formatter-tool');argument='--version'}
 )) {
   $dependentChecks=@($checks.name | Where-Object { $_ -in $prerequisite.suites })

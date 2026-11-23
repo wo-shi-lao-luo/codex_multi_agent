@@ -7,7 +7,7 @@ if [ "${1-}" = "--help" ] || [ "${1-}" = "-h" ]; then
 Usage: sh scripts/setup.sh [--pwsh PATH] [PowerShell options]
 Defaults to -Action Doctor. Actions: Doctor, Install, Verify.
 Options: -CodexPath PATH -CodexHome PATH -AgentsHome PATH -Json
-         -WhatIf -Force -TimeoutSeconds 120
+         -WhatIf -Force -EnableTeamGuidance -TimeoutSeconds 120
 Examples:
   sh scripts/setup.sh
   sh scripts/setup.sh --pwsh /path/to/pwsh -Action Install -WhatIf

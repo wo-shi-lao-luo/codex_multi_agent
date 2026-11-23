@@ -2,7 +2,7 @@
 
 ## Scope and safety contract
 
-PowerShell 7 is required. `scripts/install-user.ps1` validates current source and calls `scripts/deploy-user.ps1`; `scripts/update-user.ps1` retains its existing entrypoint. The same manager handles installation, upgrade, downgrade and snapshot restoration. It never runs an old version's installer or validator, downloads packages, rewrites Git history, changes the worktree, or changes global Codex configuration.
+PowerShell 7 is required. `scripts/install-user.ps1` and `scripts/update-user.ps1` preview, deploy, and verify the selected Kit payload using the offline `scripts/deploy-user.ps1` transaction manager. They do not run a selected version’s scripts, change its checkout, or rewrite Git history. Adding Team guidance in the selected Codex home requires explicit opt-in.
 
 Windows, macOS and Linux use the same manager. From a regular shell, prefix the commands below with `pwsh -NoProfile -File`; inside PowerShell they may be invoked directly. Directory deployment can run without Git, while `-GitRef` needs a locally available Git executable. See [platform support](platform-support.md) for prerequisites, filesystem rules and the distinction between implemented support and recorded verification. Verified macOS `/tmp` and `/var` aliases are normalized at selected roots; other linked roots and linked descendants remain rejected.
 
@@ -67,7 +67,31 @@ Packages default to runtime data schema 1. Future packages changing that contrac
 
 The manager performs source/ownership checks, obtains an exclusive file lock, stages the target, saves a complete before-image, writes `pending.json`, applies all selected units, verifies the exact result, then atomically replaces the receipt and clears pending state. Metadata replacement is atomic within its directory; multi-directory payload replacement is recoverable, not globally atomic.
 
-Failures during application trigger restoration of all selected units and the exact original receipt. If restoration fails or the process terminates, pending state blocks subsequent writes. Status can inspect the situation. Recover resumes restoration from the before-image:
+Full installation pins a separate source contract digest between preview and payload deployment. It includes the Kit version, file hashes, exact directories
+(including empty directories), and runtime data schema.
+Changed mutable sources are rejected before the payload transaction writes homes.
+Historical receipt and snapshot `packageDigest` values retain their file-only meaning.
+
+Each payload file is copied first into a private `codex-kit-publish-<snapshot-id>`
+directory under its destination home, then renamed into its active path. A process
+exit during copying leaves partial bytes outside agent/Skill discovery; an active
+path contains complete target bytes or is absent during replacement. Recovery
+cleans the transaction scratch after restoring and verifying the before-image.
+The pending snapshot ID determines the only scratch directories eligible for cleanup.
+Publication uses native rename (`MoveFileExW` with `REPLACE_EXISTING` and without
+`COPY_ALLOWED` on Windows; `rename` on Linux/macOS), rather than a .NET move
+that can fall back to copying between devices. Cross-device mount layouts fail
+the transaction and trigger recovery rather than direct copying.
+Recovery can also fail at that mount boundary; pending state and the before-image
+remain available for inspection and manual repair rather than publishing partial bytes.
+Native bindings on platforms other than the tested host and cross-device interruption behavior
+require platform verification. It does not promise
+power-loss durability, atomic replacement of a whole Skill, or protection against
+concurrent external writers. Stop external writers before deployment and recovery.
+
+Failures during application trigger restoration of all selected units and the exact original receipt. If restoration fails or the process terminates, pending state blocks subsequent writes. Status can inspect the situation. `Recover` resumes restoration from the before-image only while pending state exists.
+
+After committing the payload, a full install or update verifies the installed receipt. A failure at that point reports `filesCommitted: true` and `installationComplete: false`. Inspect `Status` and restore a verified snapshot or repair the installation.
 
 ```powershell
 ./scripts/deploy-user.ps1 -Action Status

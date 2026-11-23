@@ -1,10 +1,18 @@
 # Coordinate isolated Codex prerequisite/discovery checks and explicitly requested
 # installation into selected homes. Report results without exposing client output;
-# this entrypoint never installs optional enhancements or changes host policy.
+# user-level Team guidance requires an explicit installation opt-in.
+<#
+.SYNOPSIS
+Check Kit readiness, install the Kit, or verify the installed Kit.
+.PARAMETER TimeoutSeconds
+Deadline for ordinary client and diagnostic probes. An explicitly requested full Install
+waits for its finite trusted file transaction without a universal deadline. Installer output collection retains a separate deadline.
+#>
 #requires -Version 7.0
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
   [ValidateSet('Doctor','Install','Verify')][string]$Action = 'Doctor',
+  [switch]$EnableTeamGuidance,
   [string]$CodexPath,
   [string]$CodexHome = (Join-Path $HOME '.codex'),
   [string]$AgentsHome = (Join-Path $HOME '.agents'),
@@ -246,6 +254,8 @@ function Test-SetupDiscovery($Context, $Skills, [string[]]$Names) {
   return @{checked=$true;passed=($matched -eq $Names.Count);expectedCount=$Names.Count;matchedCount=$matched;mode='isolated-project-root'}
 }
 
+# Timeout zero is reserved for the explicitly requested full installer, whose finite
+# filesystem transaction must not be interrupted. Other child operations remain bounded.
 function Invoke-SetupManager([string]$ScriptPath, [string[]]$Arguments, [int]$Timeout) {
   $info=[Diagnostics.ProcessStartInfo]::new()
   $info.FileName=(Get-Process -Id $PID).Path
@@ -258,11 +268,13 @@ function Invoke-SetupManager([string]$ScriptPath, [string[]]$Arguments, [int]$Ti
     if (-not $process.Start()) { throw 'installer_start_failed' }
     $stdout=$process.StandardOutput.ReadToEndAsync()
     $stderr=$process.StandardError.BaseStream.CopyToAsync([IO.Stream]::Null)
-    if (-not $process.WaitForExit($Timeout*1000)) { throw 'installer_timeout' }
+    if ($Timeout -eq 0) { $process.WaitForExit() }
+    elseif (-not $process.WaitForExit($Timeout*1000)) { throw 'installer_timeout' }
     if ($process.ExitCode -ne 0) { throw 'installer_failed' }
     # A child retaining the pipe must not turn a finished manager into an
     # unbounded wait. Its output is still never exposed as raw diagnostics.
-    if (-not $stdout.Wait($Timeout*1000)) { throw 'installer_timeout' }
+    $pipeTimeout = if ($Timeout -eq 0) { 120 } else { $Timeout }
+    if (-not $stdout.Wait($pipeTimeout*1000)) { throw 'installer_timeout' }
     return $stdout.GetAwaiter().GetResult()
   } finally {
     try { if ($process.Id) { Stop-SetupProcess $process } } finally { $process.Dispose() }
@@ -279,7 +291,11 @@ function Get-SetupPreview([string]$Output, [string]$CodexHome, [string]$AgentsHo
       if ($operation.operation -notin @('install','replace','remove') -or $operation.unit -cnotmatch '^(agents/[a-z0-9][a-z0-9-]*\.toml|skills/[a-z0-9][a-z0-9-]*)$') { throw 'installer_preview_invalid' }
       $counts[$operation.operation]++
     }
-    return @{codexHome=$CodexHome;agentsHome=$AgentsHome;unitCount=@($parsed.operations).Count;operations=$counts}
+    $plan = @{codexHome=$CodexHome;agentsHome=$AgentsHome;unitCount=@($parsed.operations).Count;operations=$counts}
+    if ($parsed.teamGuidance.action -cin @('append','create','already-enabled')) {
+      $plan.teamGuidance = $parsed.teamGuidance.action
+    }
+    return $plan
   }
   throw 'installer_preview_invalid'
 }
@@ -291,7 +307,7 @@ function Get-SetupPreview([string]$Output, [string]$CodexHome, [string]$AgentsHo
 # errors; completed cleanup is required before success-only installation advice.
 function Invoke-SetupMain {
   [CmdletBinding()]
-  param([string]$Action='Doctor',[string]$CodexPath,[string]$CodexHome,[string]$AgentsHome,[int]$TimeoutSeconds=120,[bool]$Preview=$false,[bool]$Force=$false)
+  param([string]$Action='Doctor',[string]$CodexPath,[string]$CodexHome,[string]$AgentsHome,[int]$TimeoutSeconds=120,[bool]$Preview=$false,[bool]$Force=$false,[bool]$EnableTeamGuidance=$false)
   $report=[ordered]@{schemaVersion=1;action=$Action;success=$false;status='not_ready';platform=@{os='unsupported';architecture=[Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()};prerequisites=@{powershell=($PSVersionTable.PSVersion.Major -ge 7);codex=$false;sandbox=$false;protocol=$false};installation=@{attempted=$false;verified=$false;preview=$Preview};discovery=@{checked=$false;passed=$false;expectedCount=0;matchedCount=0;mode='isolated-project-root'};cleanup=@{processesStopped=$true;scratchRemoved=$true;processScope='tracked-client-processes'};errors=@();guidance=@()}
   $context=$null
   try {
@@ -332,10 +348,14 @@ function Invoke-SetupMain {
     } else {
       if ($Action -eq 'Install') {
         $arguments=@('-CodexHome',$CodexHome,'-AgentsHome',$AgentsHome)
+        if ($EnableTeamGuidance) { $arguments += '-EnableTeamGuidance' }
         if ($Force) { $arguments+='-Force' }
         if ($Preview) { $arguments+='-WhatIf' } else { $report.installation.attempted=$true }
-        $installOutput=Invoke-SetupManager (Join-Path $script:SetupRoot 'scripts/install-user.ps1') $arguments $TimeoutSeconds
+        # Only actual full installation opts out of a universal filesystem deadline.
+        $installTimeout = if ($Preview) { $TimeoutSeconds } else { 0 }
+        $installOutput=Invoke-SetupManager (Join-Path $script:SetupRoot 'scripts/install-user.ps1') $arguments $installTimeout
         if ($Preview) { $report.installation.plan=Get-SetupPreview $installOutput $CodexHome $AgentsHome }
+        elseif ($EnableTeamGuidance) { $report.installation.teamGuidance='enabled' }
       }
       if ($Preview) { $report.status='what_if'; $report.success=$true }
       else {
@@ -398,7 +418,7 @@ if ($Action -eq 'Install' -and -not $preview) {
   # Preserve standard confirmation semantics while keeping -Json stdout clean.
   if (-not $PSCmdlet.ShouldProcess('the selected Codex and Agents homes','Install and verify the kit')) { $preview=$true }
 }
-$result=Invoke-SetupMain -Action $Action -CodexPath $CodexPath -CodexHome $CodexHome -AgentsHome $AgentsHome -TimeoutSeconds $TimeoutSeconds -Preview $preview -Force ([bool]$Force)
+$result=Invoke-SetupMain -Action $Action -CodexPath $CodexPath -CodexHome $CodexHome -AgentsHome $AgentsHome -TimeoutSeconds $TimeoutSeconds -Preview $preview -Force ([bool]$Force) -EnableTeamGuidance ([bool]$EnableTeamGuidance)
 if ($Json) { $result | ConvertTo-Json -Depth 10 }
 else {
   Write-Output "Setup $Action`: $($result.status)"
@@ -408,7 +428,9 @@ else {
     Write-Output "Preview: $($plan.unitCount) managed units; install=$($plan.operations.install), replace=$($plan.operations.replace), remove=$($plan.operations.remove)"
     Write-Output "Codex home: $($plan.codexHome)"
     Write-Output "Agents home: $($plan.agentsHome)"
+    if ($plan.teamGuidance) { Write-Output "Team routing guidance preview: $($plan.teamGuidance) in the selected Codex home's AGENTS.md" }
   }
+  if ($result.installation.teamGuidance) { Write-Output 'Team routing guidance is enabled in the selected Codex home.' }
   if ($result.discovery.checked) { Write-Output "Selected installation Skills: $($result.discovery.matchedCount)/$($result.discovery.expectedCount)" }
   foreach ($message in @($result.errors)+@($result.guidance)) { Write-Output $message }
 }

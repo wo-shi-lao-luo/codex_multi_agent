@@ -5,7 +5,7 @@ description: Independently review a change set for correctness, security, mainta
 
 # Code review
 
-Use this Skill for focused review work. Read the shared [execution contract](../team-core/references/execution-contract.md), [execution templates](../team-core/references/execution-templates.md), and applicable [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md) in full; findings must be evidence-backed and actionable.
+Use this Skill for focused review work. Read the shared [execution contract](../team-core/references/execution-contract.md) and applicable review guidance. For changed code or test evidence, read the relevant sections of [execution templates](../team-core/references/execution-templates.md) and the [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md). For prose-only documentation, review factual meaning and links; treat changes to executable Skill/workflow/configuration instructions as harness behavior and inspect affected wiring and material verification obligations. Findings must be evidence-backed and actionable.
 
 Trace approved constraints through actual caller/wiring/fallback and focused tests with [approved constraint continuity](../team-core/references/approved-constraints.md). If a source-linked Agent guide exists, assess relevant evidence using [Agent documentation](../team-core/references/agent-documentation.md) without treating fresh hashes as approval. This Skill is read-only; document gaps are findings for the authorized owner. Preserve outcome identity and pending acceptance in handoff under [outcome-based handoffs](../team-core/references/agent-handoffs.md).
 
@@ -22,7 +22,9 @@ Do not use without an inspectable scope. Do not turn a review into a style rewri
 
 ## Establish scope and risk coverage
 
-For visible UI changes, apply the [UI delivery contract](../team-core/references/ui-quality.md). Inspect available final-page evidence against the UI brief, not only the component diff. Record which routes, viewports and states were inspected; code-only evidence cannot establish visual quality. Do not relabel agent inspection as user approval.
+Read the [shared code-review method](../team-core/references/code-review-method.md) for the applicable internal or external-PR mode. Follow its evidence procedure, structure/reuse/lifecycle checks, separate certainty/impact/disposition, human-decision handoff and snapshot freshness rules. Keep risk-proportional scope and this Skill's read-only boundary; its evaluation section is conditional on authorized review-quality evaluation.
+
+For reviews covering visible UI changes, apply the [UI delivery contract](../team-core/references/ui-quality.md). Inspect available final-page evidence against the UI brief, not only the component diff. Record which routes, viewports and states were inspected; code-only evidence cannot establish visual quality. Do not relabel agent inspection as user approval.
 
 1. Record the baseline, changed files, intended behavior, and relevant tests or verification already run.
 2. Read the diff and enough surrounding code to trace changed inputs, outputs, error handling, authorization, data effects, concurrency, compatibility, and observable behavior.
@@ -38,9 +40,9 @@ For an enabled OpenSpec project, apply the [spec lifecycle](../team-core/referen
 
 For application AI behavior changes, also apply the [AI evaluation contract](../team-core/references/ai-evaluation.md) when reviewing cases, judges and evidence; do not treat model-generated quality scores as proof without the required calibration and hard-gate checks. Follow [ai-engineering](../ai-engineering/SKILL.md) for applicable design guidance. Trace approved design through the authoritative prompt/workflow source and actual runtime selection, context assembly, invocation and tool-result path to focused evidence. File presence or a linked Codex Skill does not prove target-runtime availability; distinguish design/instruction, assembly, tool/runtime, model and evaluator gaps.
 
-Apply the [code comment contract](../team-core/references/code-comments.md): check layered documentation minimums and every in-scope test's scenario/expected-result explanation against behavior and assertions. Missing mandatory explanations are contract-compliance gaps, not stylistic preferences. Record scope, outcome, exemptions and gaps; rank misleading explanations by concrete impact.
+When changed code, comments, or tests are in scope, apply the relevant [code comment contract](../team-core/references/code-comments.md) sections: check layered documentation minimums and every in-scope test's scenario/expected-result explanation against behavior and assertions. Missing mandatory explanations are contract-compliance gaps, not stylistic preferences. Record scope, outcome, exemptions and gaps; rank misleading explanations by concrete impact.
 
-Apply the [code readability contract](../team-core/references/code-readability.md) for assigned code. Judge layout against the project's existing formatter/configuration and concrete readability needs; do not turn review into a style rewrite. A formatting-only pass must preserve behavior and existing test explanations.
+When reviewing changed code layout, apply the relevant [code readability contract](../team-core/references/code-readability.md) sections. Judge layout against the project's existing formatter/configuration and concrete readability needs; do not turn review into a style rewrite. A formatting-only pass must preserve behavior and existing test explanations.
 
 Prioritize incorrect assumptions, broken error handling, authorization gaps, unsafe data changes, concurrency issues, compatibility breaks, and missing verification. A material finding includes:
 
@@ -59,9 +61,12 @@ For a standalone small fix, use the [small-task test rule](../team-core/referenc
 
 - No usable diff or baseline → request the review scope.
 - A material issue is confirmed → return it to the owning implementation contract for a focused fix and re-verification.
+- Track each material finding to a disposition in the existing issue/Work/Review record: accountable owner, applicable source revision, accepted fix or evidenced reason for rejection/deferral, changed scope, original-symptom/affected-regression results, and whether independent rereview is required and complete. A proposed fix, author acknowledgment or passing unrelated check does not close a finding. A disputed requirement returns to the authorized decision owner; a deferred finding retains its dependent-work restriction and next checkpoint.
 - When returning a confirmed issue for repair, preserve its existing identity and cumulative history under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md); review does not reset or replenish an attempt budget.
 - A specialized risk is outside review coverage → name the gap and recommend the smallest expanded review.
 
 ## Output contract
 
 Report findings ranked by impact, followed by scope inspected, checks performed, evidence, and uncovered risks. If no material issue is found, state the coverage achieved rather than manufacturing stylistic feedback.
+
+At follow-up or final handoff, reconcile material findings against the current submitted scope and evidence. Retain prior review for unchanged inputs, and apply affected-scope rereview when a fix changes material behavior, contracts, authorization or assumptions, or when an independent gate remains due. Record the actual independent conclusion; unavailable/failed review remains a gap and Lead/author self-check is labeled non-independent. The Lead may continue independently authorized parts but cannot self-certify a required independent gate. Keep resolved, rejected, deferred and still-open dispositions explicit without creating a new tracker, status schema or mandatory extra Reviewer for low-risk work.

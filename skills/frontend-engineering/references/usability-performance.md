@@ -8,6 +8,13 @@ For the affected flow, check that controls communicate their purpose and state; 
 
 For an affected form or dialog, useful focused cases may include preserving entered values after a recoverable error, preventing accidental duplicate submission while an action is pending, and moving/restoring focus appropriately when a dialog opens or closes. Select only cases relevant to the changed behavior.
 
+For a material flow or diagnosis, select a representative task chain with
+[task-driven evaluation](../../team-core/references/ui-design-and-evaluation.md).
+Check final consequences across switches and recovery, not only component states.
+Apply accessibility criteria with their actual definitions and exceptions; an
+exploratory narrow viewport, sub-44px control or selector mismatch is not by itself
+a conformance finding.
+
 Do not turn this into a full accessibility audit for an unrelated small change. Expand when the changed control, user group, product requirement, or observed defect makes a broader check necessary. Keep user acceptance distinct from agent inspection.
 
 ## Performance
