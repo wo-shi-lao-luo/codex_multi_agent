@@ -113,8 +113,12 @@ Writer hands off approved intent/constraints, change summary, exact snapshot, ch
 with actual outcomes, gaps and retained compatibility/debt. Reviewer independently
 compares implementation to authority and affected consumers. Check whether tests
 encode approved behavior or merely mirror implementation, change expectations to fit
-it, or bypass real integration with mocks. Lead routes findings to the owner; author
-repairs, affected checks rerun and due rereview occurs without resetting issue history.
+it, or bypass real integration with mocks. Where a
+[user-goal walkthrough](test-acceptance-contract.md#user-goal-walkthroughs) is due,
+inspect its user brief and first-attempt evidence, including any coaching. Compare
+affected-path results and material assertions with approved outcomes. The Lead
+routes findings to the owner. After repair, rerun affected checks and conduct any
+due rereview while preserving issue history.
 
 Respect the existing risk tier: a scoped Lead/author backcheck remains non-independent.
 When independent review is due on an enabled Board, declare

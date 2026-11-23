@@ -22,11 +22,13 @@ For material checks, use the [timing backcheck](../SKILL.md#backcheck-the-docume
 
 Assess unit, integration, contract/API, E2E, regression, manual and applicable risk-specific layers. Schedule expensive flows at a usable acceptance checkpoint. For AI products, apply the [AI coverage dimensions](../../team-core/references/ai-evaluation.md#cover-affected-ai-boundaries), showing which cases exercise application code, replay, model behavior evaluation or live integration.
 
-Track independently observable variants inside a case group. For affected user journeys, name the normal start or navigation path, the actual handoff build and fixture, and which starting states or transitions need separate results. For a goal-based walkthrough, give the first screen or context, the user's objective and outcome checkpoints, leaving the route for the tester to choose.
+Track independently observable variants inside a case group. For affected user journeys, map the normal entry through the visible result and any relevant continuation or readback. Name the handoff build and fixture, the adjacent paths or states that can change the result, and the existing behavior or data to preserve.
+
+For a [user-goal walkthrough](../../team-core/references/test-acceptance-contract.md#user-goal-walkthroughs), put the user role and prior knowledge, ordinary entry and starting state, and business goal in a brief the acting Agent can receive on its own. Keep route-specific checks and the expected result with the evaluator. In the existing case evidence, record the first attempt, any confusion or help received, the actual outcome, and affected-path results. The human verification steps remain available for the separate user handoff.
 
 When the user or project specifies a path minimum, apply the [distinct E2E path rules](../../team-core/references/test-acceptance-contract.md#distinct-e2e-paths). In the existing mapping, give each required path an ID, its distinct entry/context/state or trigger, the expected outcome, and its own status and evidence.
 
-For conversational AI cases, apply [goal-led exploratory dialogue](../../team-core/references/ai-evaluation.md#goal-led-exploratory-dialogue). State the goal, starting context, hard checks, forbidden effects and stopping point. Let the Tester choose inputs and follow-ups. Record the actual route and score against the agreed checks, attaching sanitized conversation and business evidence.
+For conversational AI cases, apply [goal-led exploratory dialogue](../../team-core/references/ai-evaluation.md#goal-led-exploratory-dialogue). State the goal, starting context, hard checks, forbidden effects and stopping point. In a user-goal walkthrough, the acting Agent chooses its own inputs and follow-ups, and the Tester keeps the rubric for evaluation. In other AI evaluations, let the Tester choose dialogue variations. Record the actual route and score against the agreed checks, attaching sanitized conversation and business evidence.
 
 | Manual case ID | Agent-first E2E path and key assertions | Other automated checks | Human checks and expected result | Actual preflight evidence or gap |
 | --- | --- | --- | --- | --- |
