@@ -1,0 +1,24 @@
+name: Master version
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Check version and release notes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Compare the candidate with the master base
+        shell: pwsh
+        env:
+          KIT_MASTER_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: ./scripts/validate-docs.ps1 -ProjectRoot . -MasterBaseRef $env:KIT_MASTER_BASE_SHA
