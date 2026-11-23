@@ -1,6 +1,6 @@
 ---
 name: team-review
-description: Review a branch, diff, pull request, or change set with independent, evidence-backed Codex coverage. Use explicitly as $team-review when a change needs structured review rather than implementation.
+description: Review a branch, diff, pull request, change set, or supplied task planning documents with evidence-backed Codex coverage. Use $team-review for structured read-only review.
 ---
 
 # Team review
@@ -9,12 +9,14 @@ When reviewing development readiness or document alignment, read [documentation 
 
 Trace applicable confirmed constraints across actual entrypoints/wiring and focused evidence with [approved constraint continuity](../team-core/references/approved-constraints.md). If the project maintains source-linked Agent guidance, use [Agent documentation](../team-core/references/agent-documentation.md) to assess relevant changes; Inspect results are not approval and aggregate deltas do not automatically block unrelated work. Reviews are read-only: report a bounded document/map gap rather than editing it. Preserve current outcome, invalidated evidence and pending acceptance through [outcome-based handoffs](../team-core/references/agent-handoffs.md).
 
+For a readiness or alignment review of a supplied draft or adopted task document set, including authoritative equivalents, apply the [shared document backcheck](../team-task-docs/SKILL.md#backcheck-the-document-set) to the actual revisions. Report the missing prerequisite, recovery outcome or unavailable artifact and its affected scope. Follow the receiving check there when transfer readiness is in scope. Keep this review read-only.
+
 Act as the Lead. Read the shared [execution contract](../team-core/references/execution-contract.md) in full. This workflow owns **Discover → Verify → Handoff** and reviews existing work; do not edit code unless the user explicitly starts a follow-up implementation task.
 
 
 ## When to activate
 
-Use for a branch, diff, pull request, staged change, or specified change set that needs independent review coverage.
+Use for a branch, diff, pull request, staged change, or specified change set that needs independent review coverage. A supplied task-document set is also a reviewable scope, even without a Git diff. If a member of that set is inaccessible, report the evidence gap and review what is available.
 
 When Team is explicitly invoked or task-matched to engineering work, shared [workflow routing](../team-core/references/workflow-routing.md) may select this review mode when the user requests assessment of a reviewable scope. Do not require a separate `$team-review` command. This does not authorize edits or delivery actions.
 
@@ -28,11 +30,13 @@ delivery readiness, or authorize a Git action.
 
 ## Establish coverage
 
+Use the [shared code-review method](../team-core/references/code-review-method.md) for internal review or external PR assistance. For PRs, pin base/head, provide a change/impact map, inspect issue/discussion/CI evidence, and preserve contributor-code trust boundaries. Separate must-fix, human-decision and optional items; drafts are not permission to post, approve, modify or merge. On updates reconcile only affected evidence. Consult review-quality evaluation only when that evaluation is authorized.
+
 Read [role routing](../team-core/references/role-routing.md) in full before delegation. Check exact needed role selectors against the active catalog, preserve unavailable-role/identity limits, and reconcile call evidence; a task label or authored ledger is not independent proof. Include the actual roster, including failures/retries or explicit none, using the handoff format.
 
 For a project with `openspec/team-integration.json`, read and apply the [spec lifecycle](../team-core/references/spec-lifecycle.md) in full. Check links, changed/removed behavior, stale evidence and actual assertions; inspect CloseCheck without archiving or changing acceptance. Do not enable an absent integration.
 
-For UI changes, read the [UI delivery contract](../team-core/references/ui-quality.md) in full. Compare the assembled page with its brief/rendered evidence; separate functional and visual conclusions and report missing inspection as uncovered, not passed.
+For reviews that include visible UI changes, read the [UI delivery contract](../team-core/references/ui-quality.md) in full. Compare the assembled page with its brief/rendered evidence; separate functional and visual conclusions and report missing inspection as uncovered, not passed.
 
 When the review includes an AI workflow or simulation, read the [AI simulation contract](../team-core/references/ai-simulation.md) in full and use `ai-engineering` when relevant. Check context, model identity, mock/real boundaries and prototype-versus-production claims.
 
@@ -40,9 +44,9 @@ When reviewing application AI behavior or its evaluation evidence, also read the
 
 The `team-reviewer` remains the independent review owner. Request `team-ai-architect` only when a material AI-specific design question needs a bounded read-only assessment; involve `team-architect` for overall software-architecture boundaries and let the Lead coordinate cross-boundary findings.
 
-Read and apply the [code comment contract](../team-core/references/code-comments.md) in full. Compare required layered comments and per-test explanations with behavior/assertions; report missing obligations as contract gaps, not stylistic preferences.
+When the reviewed diff includes code, comments, or tests, read and apply the relevant [code comment contract](../team-core/references/code-comments.md) sections. Compare required layered comments and per-test explanations with behavior/assertions; report missing obligations as contract gaps, not stylistic preferences.
 
-Read and apply the [code readability contract](../team-core/references/code-readability.md) in full when reviewing layout; follow project conventions and report concrete issues, not taste. Formatting alone does not authorize behavior changes.
+When reviewing changed code layout, read and apply the relevant [code readability contract](../team-core/references/code-readability.md) sections; follow project conventions and report concrete issues, not taste. Formatting alone does not authorize behavior changes.
 
 When returning a confirmed finding for implementation, link it to the owning issue and its existing repair history under the [repair and diagnosis loop guard](../team-core/references/repair-loop-guard.md), and require the [repair decision check](../team-core/references/repair-loop-guard.md#repair-decision-check) before the first or materially changed proposal. Review the evidence and applicability rather than relying on a self-declared general-fix label; a review finding does not create a fresh retry budget. When the reviewed diff already contains a repair, inspect its actual branch, mechanism, applicability, relevant variant/boundary evidence, and any required bounded workaround approval—not only the next proposal.
 
@@ -50,7 +54,7 @@ When a Blueprint governs the project, read the [Project Blueprint contract](../t
 
 For a material migration, also use the conditional [architecture and contract migration guide](../team-core/references/architecture-migration.md) to review old-rule-to-target traceability, affected consumers and owners, compatibility/state transitions, invalidated evidence, and separate component/product/verification completion claims.
 
-Read [execution templates](../team-core/references/execution-templates.md) and [TDD protocol](../team-core/references/tdd-protocol.md) in full when creating review coverage and assessing test traceability. Read the [handoff format](../team-core/references/handoff-format.md) in full before final handoff; read [feedback recording](../team-core/references/feedback-recording.md) in full only after that handoff is prepared.
+When creating review coverage, consult only the relevant [execution templates](../team-core/references/execution-templates.md) sections needed for the reviewed scope. Read the [TDD protocol](../team-core/references/tdd-protocol.md) sections only when changed behavior or test evidence is in scope; retain all material test, acceptance and independent-review gates. Read the [handoff format](../team-core/references/handoff-format.md) in full before final handoff; read [feedback recording](../team-core/references/feedback-recording.md) in full only after that handoff is prepared.
 
 1. Record the exact review scope, baseline, and stated intent. Inspect the actual diff and enough surrounding code to understand behavior.
 2. Build a Review coverage record. Choose independent read-only roles only where they add distinct coverage: `team-reviewer` for correctness and maintainability, the role-selected Tester (`team-tester` or `team-ai-tester`) for verification gaps within its scope, `team-database-specialist` for material data changes, and `team-explorer` for unfamiliar areas.
@@ -58,7 +62,7 @@ Read [execution templates](../team-core/references/execution-templates.md) and [
 4. Audit behavior-to-test traceability where a stage packet exists: test-first rows need Red/Green/refactor evidence; non-test-first rows need a concrete reason and alternative evidence. Treat unsupported exceptions and material regression gaps as verification findings.
 5. De-duplicate findings. A finding needs impact, evidence, a precise file reference, and a concrete failure mode or missing verification.
 
-Read the [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md) and [TDD protocol](../team-core/references/tdd-protocol.md) in full. Compare manual cases—including user additions—to actual E2E conditions, checkpoints/results and applicable other-layer assertions; report unmapped cases, stale passes, lower-layer-only substitutes and unapproved exceptions. For small changes, apply the [small-task rule](../team-core/references/test-acceptance-contract.md#tier-selection-reuse-and-resource-limits): verify a practical reproduction, affected regression and due handoff without demanding a full suite absent risk or a required gate. Also check real API/integration boundaries, representative browser journeys, reused-result provenance, complete artifacts and status distinctions. Plans and summaries alone are not execution or user acceptance. Review recommends updates without editing tests or historical packets.
+For changed behavior or test evidence, read the relevant [Test & Acceptance Contract](../team-core/references/test-acceptance-contract.md) and [TDD protocol](../team-core/references/tdd-protocol.md) sections. For prose-only documentation changes, review factual meaning and links; when documentation changes executable Skill, workflow, or configuration instructions, review those instructions and affected harness wiring as executable behavior and retain material review/test gates. Compare manual cases—including user additions—to actual E2E conditions, checkpoints/results and applicable other-layer assertions; report unmapped cases, stale passes, lower-layer-only substitutes and unapproved exceptions. For small changes, apply the [small-task rule](../team-core/references/test-acceptance-contract.md#tier-selection-reuse-and-resource-limits): verify a practical reproduction, affected regression and due handoff without demanding a full suite absent risk or a required gate. Also check real API/integration boundaries, representative browser journeys, reused-result provenance, complete artifacts and status distinctions. Plans and summaries alone are not execution or user acceptance. Review recommends updates without editing tests or historical packets.
 
 Review whether relevant fast checks, first-usable-chain smoke, and costly acceptance checkpoints were scheduled at the right readiness points; deferred work has an owner and concrete flush trigger; known failures block dependent progress; and no stage was accepted or passed beyond a due checkpoint without evidence or explicit user exception. Do not treat an iteration handoff with pending stage evidence as stage acceptance.
 

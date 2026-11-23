@@ -9,7 +9,7 @@ Before the first repair proposal, including an ordinary small fix, and before pr
 State only the decision-relevant summary:
 
 1. The approved expected behavior, the failure class, and the observed deviation.
-2. The responsible causal layer and the evidence for the mechanism or a testable hypothesis. Keep observations, inference, confidence, and unknowns distinct.
+2. The responsible causal layer and the evidence for the mechanism or a testable hypothesis. For a proposed code change, identify the intended file or module responsibility under [file responsibilities and placement](file-ownership.md#file-responsibilities-and-placement), including when the repair moves to another layer. Keep observations, inference, confidence, and unknowns distinct.
 3. The conditions where the proposed fix applies and a meaningful boundary where behavior should differ. Identify a relevant incidental input transformation whose meaning should be preserved; state a genuine counterexample when a requirement or mechanism supplies one. Keep semantic-changing variables separate from incidental variation.
 4. The smallest adequate verification for the risk: check the original failure and add equivalent, negative/boundary, or adjacent-behavior cases when they distinguish the mechanism or protect affected behavior. State important unverified cases and remaining uncertainty.
 
@@ -22,6 +22,14 @@ When evidence shows that a test or evaluator is wrong, its assigned owner may co
 Any case-specific bypass, temporary mask, or other workaround that deliberately leaves the same failure class unresolved requires explicit, bounded user approval before implementation, even when the root cause is known. An existing explicit approval for that exact scope is sufficient; do not ask again. State the exact scope, tradeoff, unhandled failures, risk, and replacement/removal condition. General repair authority, urgency, or silence does not approve it. A behavior condition required by an approved contract or mechanism is a general fix within that applicability, not a case-only workaround. Pause only the work that depends on this decision.
 
 Carry the concise decision summary through assignments and handoffs. This check does not require private chain-of-thought, a fixed number of alternatives or examples, proof for every possible input, a broad refactor, a full suite for every small fix, or an additional design-approval gate for an evidence-based general repair. It does not grant repair authority during read-only debug, reset issue history, or change the persistent repair/debug budgets below.
+
+### AI execution path and platform capabilities
+
+For an application AI failure, trace the affected path from the approved behavior through application orchestration, the actual adapter/runtime invocation and its inputs, and the handling of returned events, tool results, or state. Check the first boundary where observed behavior diverges. Use the existing trace, a focused test, or a small authorized probe to distinguish a responsibility or wiring defect from model behavior or an evaluator error. A known local cause with direct evidence needs only that bounded check. Involve the applicable architect when responsibility or a shared contract remains materially uncertain or needs redesign.
+
+When the failure plausibly depends on a framework, SDK, or App Server capability, check the existing project integration and the applicable upstream version before the first dependent repair proposal, even if no repair has failed yet. Check version-matched official docs, upstream source/tests, or verified local evidence for the capability and its limits. Confirm the actual project path and use the smallest discriminating check needed for applicability. Prefer a supported native capability that satisfies approved execution, compatibility, and business constraints. Keep project-owned business rules in the application. Record the relevant version, evidence, and fit or gap in the existing decision summary. Follow the [reuse and third-party guidance](reuse-and-third-party.md) and the research safeguards below. Apply existing authorization and migration rules to dependency upgrades, runtime changes, or architecture migrations.
+
+Select prompt or context changes when evidence implicates instructions, selection, assembly, or interpretation. For example, if a cancelled run's late completion still updates the document, inspect cancellation propagation and the application's write guard before changing model instructions. A platform cancellation capability and a rule preventing stale writes can address separate parts of that failure.
 
 ## Identify and preserve an issue
 

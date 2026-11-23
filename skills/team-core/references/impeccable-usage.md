@@ -37,6 +37,12 @@ In the existing work or stage record, state what actually happened: the Skill ve
 
 Keep rendered inspection, functional checks, and user acceptance separate. A detector result, package validator, recommendation, or uninspected screenshot does not prove that a page is attractive, usable, or accepted. Report visual status and the inspected page, viewport, and state in the existing task record when that inspection is part of the assignment.
 
+Use [task-driven evaluation](ui-design-and-evaluation.md) for the Kit's scoped
+evidence method. Reusing provider principles is not completion of its named
+command or required assessments. A command's report may contain scores; keep
+those separate from project acceptance and verify any technical thresholds against
+the applicable standard, level, state and exceptions.
+
 ## Source and attribution
 
 This adapted guide is based on the Impeccable Skill and selected web references at [revision 6af45ac9a5eb8792f033d3242f52e99812fd91fa](https://github.com/pbakaus/impeccable/tree/6af45ac9a5eb8792f033d3242f52e99812fd91fa). The adapted source paths are .agents/skills/impeccable/SKILL.md, .agents/skills/impeccable/reference/shape.md, .agents/skills/impeccable/reference/routing.md, and .agents/skills/impeccable/reference/distill.md. This file has been modified for the Kit's task routing, authorization, ownership, and evidence contracts. Copyright 2025 Paul Bakaus. See [the accompanying Apache-2.0 license](licenses/impeccable-LICENSE.txt) and [attribution notice](licenses/impeccable-NOTICE.md). The upstream Skill, runtime, and native-platform references are not bundled.

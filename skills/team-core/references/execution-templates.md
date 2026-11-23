@@ -15,6 +15,9 @@ Applicable standards and conditional checks:
 Acceptance checks:
 Open questions:
 Brief start declaration: named roles/ownership and planned checks
+New-instruction delta: new outcome / same outcome / priority / status-only / pause; affected work and current ownership:
+Actual executor focus, waiting order or evidenced parallel operations; delegation necessity and independent gates:
+Delegated work/check identifiers, related input revision, actual executor and confirmed assignment:
 ```
 
 ## Work contract
@@ -28,8 +31,9 @@ Constraint continuity (when applicable: authority/revision, conditions/exception
 Outcome continuity (same outcome/reopen/independent child/successor, existing record/history, pending acceptance and next owner; see [outcome-based handoffs](agent-handoffs.md) when due):
 Design outcome/readiness and affected blocked versus independent work (when full exploration applies):
 Planned roles and active tool catalog availability evidence:
-Named implementation owner; Tester packet/test ownership; Reviewer when material:
-Lead-only authority/approved exception evidence, if applicable:
+Lead serial responsibility or named parallel owner; independent Tester only when a distinct gate requires it; Reviewer when material:
+Checkout plan when parallel writers need isolation (optional): exact worktree path/branch per writer, pinned common base, shared-contract owners, separated resources, integration target/owner. See [isolated worktree guidance](isolated-worktrees.md); omit for shared-checkout or read-only work.
+Serial Lead execution (when used) and self-check evidence; preserve separately required independent gates:
 Source versus active tool profile expectations and unavailable-role user decisions:
 Blueprint applicability and evidence:
 Blueprint path/revision and module IDs (when applicable):
@@ -61,6 +65,7 @@ Attach to the Work contract and reuse its references across stages; no separate 
 ```text
 Audience and primary user task:
 Page/flow and stage scope within the product:
+Task object/state -> action -> expected visible consequence and recovery (when interaction changes; see ui-design-and-evaluation.md):
 Content and action priorities:
 Visual baseline, existing pages/components/styles and reference paths:
 Page/flow owner and authorized page/shared-style files:
@@ -110,6 +115,8 @@ Host-reported role identity: confirmed value | unknown (not reported)
 Source profile expectation; active tool definition; resolved model/effort: confirmed value | unknown
 Final known status; deviations and user-approved alternative evidence:
 Final user-facing actual roster: every created/used child for this task, or explicit none
+Check identifiers, actual executor and observed verification state:
+Related-task closeout: completed facts, remaining acceptance owner/trigger, stopped-write/process evidence, Release/read-back result and unresolved allocations:
 ```
 
 ## Debug hypothesis ledger
@@ -130,11 +137,17 @@ Ordinary repair extension gate (if applicable): evidence supports a materially n
 
 ```text
 Review scope:
+Review mode and frozen input: internal | external PR | non-independent backcheck; base/head or dirty/untracked manifest; intent/constraints; current-source comparison
 Coverage: correctness | tests | data | unfamiliar area
+System/maintenance coverage: callers, contracts, placement/layering, shared versus independent semantics, inheritance, generated copies, old-code disposition; concrete impact and exclusions
 Comment review (code changes): scope, layered minimums, per-test scenario/expected results, semantic/assertion consistency, exemptions and gaps
 Readability review (code changes): target formatter/conventions, concrete layout concerns, meaningful literals preserved, style preferences excluded, outcome and gaps
 UI review (when applicable): brief/baseline, integrated-page evidence, visual status and unobserved states
 Evidence inspected:
 Findings: impact, file reference, evidence
+Disposition and human decision: finding ID, certainty, trigger/path, mitigations, must-fix | human-decision | optional, decision owner/question/options/consequences, affected gate and permitted independent work
+Internal gate evidence when due: reviewed source snapshot, distinct observed checker, and recorded result; label Lead self-check as non-independent
+PR assistance: change/impact map, issue/discussion/CI, contributor-code execution limits, draft versus authorized external action, updated-commit reconciliation
+Material finding closure (reuse existing issue/Work IDs): owner; applicable source revision; fixed/rejected/deferred/open disposition and authority/reason; changed scope; original-symptom and affected-regression evidence; required independent rereview and actual result/gap; remaining dependency restriction and next checkpoint
 Uncovered risk:
 ```

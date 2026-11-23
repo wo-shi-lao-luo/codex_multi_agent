@@ -4,13 +4,15 @@ This guide installs the Codex Multi-Agent Kit for the user account on the machin
 
 ## Before you start
 
-- Use PowerShell 7 and Git. The deployment manager requires Git even when the source is a working-tree directory. Do not install missing tools automatically. The installer scripts are run from the Kit source checkout; an already-installed Kit is not required.
+- Use PowerShell 7. A local directory or working-tree source can be deployed without Git; Git is required for `-GitRef`, and source commit provenance is recorded when available. Do not install missing tools automatically. The installer scripts are run from the Kit source checkout; an already-installed Kit is not required.
 - Run the commands on the machine and under the user account where the agents and Skills should be installed. A repository open on another computer or a remote Codex executor does not install files on your local computer.
 - If the user provides only the repository URL, first inspect its README and installation guide through an available repository or browser view. If those sources cannot be read, obtain the repository before acting; do not install from snippets. Then use the local executor on the target machine. A remote or cloud executor cannot write to the user's local Codex homes.
 - If no local checkout is available, ask the user to confirm a safe, new, empty clone destination before acquiring the source. Never clone over or replace a non-empty directory. After checkout, read the selected revision's local `AGENTS.md` and `docs/codex-install.md` before running any commands. If the destination or source is uncertain, stop and resolve it first.
 - Select the exact checkout you intend to use. Do not assume that the default branch is the newest or a stable release. The repository `VERSION` file identifies the package version, not a guarantee that a branch or commit is stable.
 - If the checkout is a Git repository, inspect the selected commit and whether the working tree has local changes. Do not deploy an unexpected or unreviewed checkout. An install from a working tree can include its local edits.
 - The manager does not fetch a ref or switch your checkout. For an exact Git-ref deployment, follow the separate procedure in [safe deployment](safe-deployment.md).
+
+Full installation and update accept `-SourceRoot` and `-GitRef`. A selected Git ref is resolved once. The installer pins the selected source contract and rejects a changed source before writing the Kit payload. Use `-WhatIf` to preview the operation. For a preview branch with its own runtime requirements, run its installer from that branch. The installer here verifies the Kit payload against its receipt.
 
 Check the PowerShell version and the source you selected:
 
@@ -36,7 +38,7 @@ git rev-parse HEAD
 git status --short
 ```
 
-Run the Git commands from the selected repository. If the selected source is not a Git checkout, the manager may report no commit identity; do not invent one. If Git is unavailable, the source, version, ref, or local changes are unexpected, stop and resolve that before deployment.
+Run the Git commands from the selected repository when it is a Git checkout. A local directory or working-tree deployment can proceed without Git; when Git metadata is unavailable, commit/ref provenance is simply unavailable. Git is required to select `-GitRef`; if that requested ref cannot be resolved and verified, stop before deployment.
 
 ## Preview and install
 
@@ -68,7 +70,7 @@ For an existing installation, first inspect its status and integrity, then previ
 .\scripts\update-user.ps1 -WhatIf
 ```
 
-Review the preview's planned add, replace, and remove operations, the default or explicitly selected target homes, and the manager's confirmation message. The preview does not report the source version or Git provenance: compare the selected source's `VERSION`, commit (when available), and dirty state separately before deployment. `Verify` checks the installed payload against its receipt; a successful check of an older installation does not prove that the selected checkout has been installed. After deployment, compare the receipt provenance reported by `Status` with the source you selected.
+Review the preview's planned add, replace, and remove operations, target homes, source provenance, package digest, and confirmation message. Compare the reported source commit/provenance with the intended checkout, and compare its `VERSION` separately because the package version is not a commit identity. `Verify` checks the installed payload against its receipt; a successful check of an older installation does not prove that the selected checkout has been installed. After deployment, compare the receipt provenance reported by `Status` with the source you selected.
 
 Run the matching command without `-WhatIf` only when the user has explicitly requested installation or update and the preview matches the intended source and target. If source validation, preview, or verification reports a failure or unexpected result, stop and resolve it before continuing; do not treat a failed check as a pass:
 
@@ -82,18 +84,34 @@ After a successful actual installation or update, the Kit displays a brief optio
 
 Do not add `-Force` to get past a conflict. Stop, inspect the named destination and ownership, and choose a documented recovery path. `-Force` backs up and replaces the selected managed unit; it is a separate, consequential choice. Do not run recovery or pruning automatically. See [safe deployment](safe-deployment.md) for conflict resolution, backup retention, interruption recovery, and rollback.
 
-The manager installs receipt-owned agents and complete Skill directories in the current user's Codex homes (by default `~/.codex/agents` and `~/.agents/skills`). If you use custom homes, pass the same explicit home options to status, verification, preview, and deployment commands; see [safe deployment](safe-deployment.md). It does not merge or rewrite global Codex configuration, install tools or dependencies, or change the source checkout. Configuration fragments in `config/` are optional and must be handled separately by the user.
+The deployment manager installs receipt-owned agents and complete Skill directories in the current user's Codex homes (by default `~/.codex/agents` and `~/.agents/skills`). Neither flow changes global `PATH`, installs global npm packages, merges or rewrites global Codex configuration, or changes the source checkout. If you use custom homes, pass the same explicit home options to status, verification, preview, and deployment commands; see [safe deployment](safe-deployment.md). Configuration fragments in `config/` are optional and must be handled separately by the user.
+
+### Optional Team routing for all repositories
+
+If you want Codex to start engineering tasks through Team by default, explicitly opt in with `-EnableTeamGuidance` on install or update. Preview the selected Codex home first and run the same command without `-WhatIf` after you accept the change.
+
+```powershell
+.\scripts\install-user.ps1 -EnableTeamGuidance -WhatIf
+# For an existing installation:
+.\scripts\update-user.ps1 -EnableTeamGuidance -WhatIf
+```
+
+The option appends one marked section to the selected Codex home's `AGENTS.md` and backs up its original bytes. A missing file is created. Repeating the option recognizes the same section and preserves later edits. A nonempty `AGENTS.override.md`, an edited managed section, or an unsafe path requires separate review. Omitting the option leaves the global instructions alone.
+
+To enable just this preference for an already-installed Kit, run `.\scripts\enable-team-guidance.ps1 -WhatIf`, then run it again without `-WhatIf`. Pass the same `-CodexHome` and `-AgentsHome` when you use custom homes. The instruction covers engineering tasks, keeps small tasks on the light path, and respects explicit user choices. To turn it off, remove the section between its begin and end markers while keeping the rest of the file. Kit rollback handles the managed payload separately.
+
+Verify in a fresh Codex chat with a normal engineering request that omits the Skill name. Check that the agent reads the Team entry and selects the appropriate workflow before acting. The file provides startup guidance, and actual execution is verified separately.
 
 ## Check discovery and report
 
-After deployment, check the installed receipt and payload:
+After deployment, verify the installed payload against its receipt and compare its source provenance and version with the selected checkout.
 
 ```powershell
 .\scripts\deploy-user.ps1 -Action Status
 .\scripts\deploy-user.ps1 -Action Verify
 ```
 
-If either command reports a failure or an unexpected result, stop and resolve it before treating the installation as complete. Compare the reported version and source provenance with the checkout you selected. Keep the receipt private: status output and backup metadata can contain local paths or other machine-specific details.
+If verification fails after files were committed, inspect the status and follow [safe deployment](safe-deployment.md). Keep receipts private because they can contain local paths.
 
 Open a fresh Codex conversation or restart the client if a newly installed Skill does not appear. Files on disk do not prove that the active client loaded a Skill or agent. See OpenAI's [Skills discovery guidance](https://learn.chatgpt.com/docs/build-skills) and [subagent guidance](https://learn.chatgpt.com/docs/agent-configuration/subagents) for their current discovery behavior. A packaged agent name or model assignment is not proof that the target account has that role or model available. If you want to check a named role or model, check availability in the target account/client separately; this optional check does not require the Kit to be installed first.
 
