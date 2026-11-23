@@ -133,7 +133,45 @@ test('SHARED.restartRehydratesAndPreservesPort', async t => {
   const c = await attachSharedService(f.boards[1], { home: f.home }); assert.equal(c.processId, b.processId);
 });
 
-test('SHARED.managerIsolationStartupAndRuntimeMismatch', async t => {
+// An older Hub can leave a running registry entry after exiting. Once its listener and
+// process are gone, startup should retain the registered Boards and their port.
+test('SHARED.restartsDeadIncompatibleRuntime', async t => {
+  const f = fixture(t);
+  const first = await attachSharedService(f.boards[0], { home: f.home });
+  await attachSharedService(f.boards[1], { home: f.home });
+  const previous = readRuntime(f.home, 'instance.json');
+  const descriptors = readRuntime(f.home, 'boards.json');
+  process.kill(first.processId, 'SIGTERM');
+  await exited(first.processId);
+  const fingerprint = '0'.repeat(64);
+  // An array that coerces to a digest cannot provide evidence of a previous runtime.
+  const malformed = { ...previous, fingerprint: [fingerprint] };
+  writeRuntime(f.home, 'instance.json', malformed);
+  await assert.rejects(attachSharedService(f.boards[0], { home: f.home }),
+    { code: 'SHARED_RUNTIME_MISMATCH' });
+  assert.deepEqual(readRuntime(f.home, 'instance.json'), malformed);
+  assert.deepEqual(readRuntime(f.home, 'boards.json'), descriptors);
+
+  writeRuntime(f.home, 'instance.json', { ...previous, fingerprint });
+  const replacement = await attachSharedService(f.boards[0], { home: f.home });
+  assert.equal(replacement.service.port, previous.port);
+  assert.notEqual(replacement.service.hubId, previous.hubId);
+  assert.notEqual(replacement.processId, previous.processId);
+  assert.equal(readRuntime(f.home, 'instance.json').fingerprint, sharedFingerprint());
+  assert.deepEqual(readRuntime(f.home, 'boards.json'), descriptors);
+
+  const second = await attachSharedService(f.boards[1], { home: f.home });
+  assert.equal(second.service.hubId, replacement.service.hubId);
+  const headers = await bootstrap(second.service);
+  const snapshot = await fetch(second.service.url + second.service.routeBase + 'api/snapshot', {
+    headers,
+  });
+  assert.equal(snapshot.status, 200);
+  assert.equal((await snapshot.json()).boardId, second.service.boardId);
+});
+
+// The manager rejects invalid credentials and leaves a pending startup intent intact.
+test('SHARED.managerIsolationAndUncertainStartup', async t => {
   const f = fixture(t), first = await attachSharedService(f.boards[0], { home: f.home });
   const instance = readRuntime(f.home, 'instance.json'), authority = readRuntime(f.home, 'authority.json');
   const denied = await fetch(first.service.url + '/_hub/attach', { method: 'POST', body: JSON.stringify(f.boards[1]) });
@@ -148,10 +186,93 @@ test('SHARED.managerIsolationStartupAndRuntimeMismatch', async t => {
   try {
     fs.writeFileSync(file, JSON.stringify({ ...instance, state: 'starting' }));
     await assert.rejects(attachSharedService(f.boards[1], { home: f.home }), { code: 'SHARED_START_OUTCOME_UNKNOWN' });
-    fs.writeFileSync(file, JSON.stringify({ ...instance, fingerprint: '0'.repeat(64) }));
-    await assert.rejects(attachSharedService(f.boards[1], { home: f.home }), { code: 'SHARED_RUNTIME_MISMATCH' });
   } finally { fs.writeFileSync(file, bytes); }
   assert.equal((await serviceStatus({ ...first.service, serviceControlToken: f.boards[0].serviceControlToken })).status, 'running');
+});
+
+// A real older Hub still serving its retained Board must stay running without any new attachment.
+test('SHARED.preservesLiveIncompatibleRuntime', async t => {
+  const f = fixture(t);
+  const first = await attachSharedService(f.boards[0], { home: f.home });
+  const previous = readRuntime(f.home, 'instance.json');
+  const authority = readRuntime(f.home, 'authority.json');
+  process.kill(first.processId, 'SIGTERM');
+  await exited(first.processId);
+
+  const fingerprint = '0'.repeat(64);
+  const older = await startSharedServer({
+    home: f.home, managerToken: authority.token, fingerprint, port: previous.port,
+  });
+  f.useServer(older);
+  const file = path.join(f.home, 'instance.json');
+  try {
+    const { protocol, hubId, port, url } = older;
+    const instance = { protocol, hubId, port, url, fingerprint,
+      state: 'running', processId: process.pid };
+    writeRuntime(f.home, 'instance.json', instance);
+    const bytes = fs.readFileSync(file);
+    const descriptors = fs.readFileSync(path.join(f.home, 'boards.json'));
+    await assert.rejects(attachSharedService(f.boards[1], { home: f.home }),
+      { code: 'SHARED_RUNTIME_MISMATCH' });
+    assert.deepEqual(fs.readFileSync(file), bytes);
+    assert.deepEqual(fs.readFileSync(path.join(f.home, 'boards.json')), descriptors);
+    const status = await hubRequest(instance, authority.token, 'status');
+    assert.equal(status.fingerprint, fingerprint);
+    assert.equal(status.status, 'running');
+    const existing = await hubRequest(instance, authority.token, 'attach', f.boards[0]);
+    const headers = await bootstrap(existing);
+    const snapshot = await fetch(existing.url + existing.routeBase + 'api/snapshot', { headers });
+    assert.equal(snapshot.status, 200);
+    assert.equal((await snapshot.json()).boardId, first.service.boardId);
+  } finally {
+    // The in-process fixture owns this listener, so no recorded PID belongs to a detached runner.
+    fs.rmSync(file, { force: true });
+  }
+});
+
+// A foreign listener took the obsolete Hub's port. Recovery should check occupancy without
+// sending any bytes, reject the replacement and preserve both instance and Board records.
+test('SHARED.probesObsoleteOccupiedPortWithoutSendingData', async t => {
+  const f = fixture(t);
+  const first = await attachSharedService(f.boards[0], { home: f.home });
+  const previous = readRuntime(f.home, 'instance.json');
+  process.kill(first.processId, 'SIGTERM');
+  await exited(first.processId);
+  writeRuntime(f.home, 'instance.json', { ...previous, fingerprint: '0'.repeat(64) });
+  const instancePath = path.join(f.home, 'instance.json');
+  const registryPath = path.join(f.home, 'boards.json');
+  const instance = fs.readFileSync(instancePath);
+  const descriptors = fs.readFileSync(registryPath);
+
+  let connections = 0;
+  let receivedBytes = 0;
+  const owner = net.createServer(socket => {
+    connections++;
+    socket.on('data', chunk => {
+      receivedBytes += chunk.length;
+      // Reply only if a caller mistakenly sends data, so that path fails without waiting.
+      socket.end('HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+    });
+  });
+  await new Promise((resolve, reject) => {
+    owner.once('error', reject);
+    owner.listen(previous.port, '127.0.0.1', resolve);
+  });
+  let errorCode;
+  try {
+    await assert.rejects(attachSharedService(f.boards[1], { home: f.home }), error => {
+      errorCode = error.code;
+      return true;
+    });
+    assert.equal(owner.listening, true);
+  } finally {
+    await new Promise(resolve => owner.close(resolve));
+  }
+  assert.equal(connections, 1);
+  assert.equal(receivedBytes, 0, 'Occupancy probe must send no HTTP request or credentials');
+  assert.equal(errorCode, 'SHARED_RUNTIME_MISMATCH');
+  assert.deepEqual(fs.readFileSync(instancePath), instance);
+  assert.deepEqual(fs.readFileSync(registryPath), descriptors);
 });
 
 test('SHARED.concurrentStartupIsBoundedAndDoesNotDuplicateRunners', async t => {

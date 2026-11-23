@@ -19,7 +19,7 @@
     },
     {
       "path": "packages/task-board/src/activation/orchestrator.mjs",
-      "sha256": "f4efb81ec2de6d20f13a082cbe16c7e10ef170a147f5e4d611412eea1d937d54"
+      "sha256": "f6d0afbaccd51b1fae2df97f5237001bc1bfe0e89334443f37b22e8ea80c9cfc"
     },
     {
       "path": "packages/task-board/src/activation/prepare.mjs",
@@ -47,7 +47,7 @@
     },
     {
       "path": "packages/task-board/src/activation/shared-service.mjs",
-      "sha256": "036451cae4ab5e1385e9499323cfd61fc8ebd2ab2910c2ae6fa670ffef20c5cb"
+      "sha256": "de789c3208680521fb62f00e4cf9a279b72b2c92eff1d630eeada6ad7899d6de"
     },
     {
       "path": "packages/task-board/src/activation/transport.mjs",
@@ -55,7 +55,7 @@
     },
     {
       "path": "packages/task-board/src/cli/activation.mjs",
-      "sha256": "2bf3fad3cd15bd11f9ae75ffa9ff5e74664110b7e3c473b221a84df5f0e9e8fa"
+      "sha256": "e314ce11844bbf6ed42147d777f9d866ad2c1d947b7d492ee42ebc58d98af658"
     },
     {
       "path": "packages/task-board/src/cli/cli.mjs",
@@ -273,7 +273,7 @@
     },
     {
       "path": "src/activation/orchestrator.mjs",
-      "sha256": "f4efb81ec2de6d20f13a082cbe16c7e10ef170a147f5e4d611412eea1d937d54"
+      "sha256": "f6d0afbaccd51b1fae2df97f5237001bc1bfe0e89334443f37b22e8ea80c9cfc"
     },
     {
       "path": "src/activation/prepare.mjs",
@@ -301,7 +301,7 @@
     },
     {
       "path": "src/activation/shared-service.mjs",
-      "sha256": "036451cae4ab5e1385e9499323cfd61fc8ebd2ab2910c2ae6fa670ffef20c5cb"
+      "sha256": "de789c3208680521fb62f00e4cf9a279b72b2c92eff1d630eeada6ad7899d6de"
     },
     {
       "path": "src/activation/transport.mjs",
@@ -309,7 +309,7 @@
     },
     {
       "path": "src/cli/activation.mjs",
-      "sha256": "2bf3fad3cd15bd11f9ae75ffa9ff5e74664110b7e3c473b221a84df5f0e9e8fa"
+      "sha256": "e314ce11844bbf6ed42147d777f9d866ad2c1d947b7d492ee42ebc58d98af658"
     },
     {
       "path": "src/cli/cli.mjs",

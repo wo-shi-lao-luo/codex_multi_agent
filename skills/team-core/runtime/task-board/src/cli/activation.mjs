@@ -14,6 +14,8 @@ try {
       actions: ['activate', 'resume', 'recover-service', 'reopen-service', 'migrate-service', 'record-open-result', 'prepare-request', 'prepare-next-task'],
       nextTask: 'prepare-next-task or nextTask on an activate request explicitly selects approved new work with retained Board credentials; wrapper -TaskPath supplies the public spec.',
       presentationOnly: { action:'reopen-service', requiredFields:['servicePresentation.expectedServiceId','servicePresentation.evidenceRefs'], result:'presentation-only; taskExecution:not-resumed' },
+      scopeConflict: { state: 'enabled', activationScope: 'presentation-only',
+        taskExecution: 'not-resumed', reasonCode: 'SCOPE_CONFLICT' },
       sharedService: { default: true, perBoardRoute: '/boards/<sessionKey>/',
         serviceMigration: { expectedServiceId: 'retained legacy service ID', evidenceRefs: ['authorized migration'],
           confirmedStopped: 'required only if the legacy endpoint is already refused' } },
@@ -37,7 +39,7 @@ try {
       presentationOutcomes: ['queued', 'opened', 'link-only', 'unknown'],
       notes: 'Tokens remain caller-held and must be reused. recover-service authenticates an existing Board '
         + 'without a task, claimToken or executionApproved; normal activate/resume retain execution fields. '
-        + 'Service-only recovery never authorizes task execution. First activation or verified service '
+        + 'Service-only recovery and scope-conflict display never authorize task execution. First activation or verified service '
         + 'recovery (explicit or automatic) may return the replacement service first URL. '
         + 'Automatic recovery requires exact refusal and an OS-confirmed absent retained runner PID. '
         + 'Record the observed host outcome separately; healthy resume never reopens the panel.' })}\n`);

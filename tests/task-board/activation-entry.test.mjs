@@ -43,15 +43,16 @@ async function fixture(t) {
     await rm(root, { recursive: true, force: true });
   });
   function run(patch = {}, nodeArgs = []) {
+    const input = { ...request, ...patch };
     const child = spawnSync(process.execPath, [...nodeArgs, entry, '--project-root', root, '--stdin'], {
-      input: JSON.stringify({ ...request, ...patch }), encoding: 'utf8', timeout: 20000,
+      input: JSON.stringify(input), encoding: 'utf8', timeout: 20000,
       env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(root), CODEX_BOARD_SERVICE_HOME: join(root, 'hub') },
     });
     assert.equal(child.error, undefined, 'Activation must return without waiting for its detached service');
     const result = JSON.parse(child.stdout);
     assert.equal(child.status, result.result?.state === 'activation-pending' ? 2 : 0, child.stdout + child.stderr);
     if (result.result?.service) service = result.result.service;
-    for (const token of [request.leadToken, request.claimToken, request.serviceControlToken]) {
+    for (const token of [input.leadToken, input.claimToken, input.serviceControlToken]) {
       assert.ok(!child.stdout.includes(token), 'Public response must not expose caller credentials');
     }
     return result;
@@ -94,6 +95,144 @@ test('ACTIVATION.resumeReusesTaskServiceAndFirstOpen', async t => {
     leadToken: f.request.leadToken }, { sessionKey: f.sessionKey });
   assert.equal(view.reply.result.tasks.length, 1);
   assert.equal(view.reply.result.assignments.length, 1);
+});
+
+const sharedWriteScope = { read: [], write: ['shared.txt'] };
+
+async function boardCall(f, operation, input = {}) {
+  const response = await invoke(f.root, f.board, operation, {
+    actorId: f.request.actorId, leadToken: f.request.leadToken, ...input,
+  }, { sessionKey: f.sessionKey });
+  assert.equal(response.code, 0, JSON.stringify(response.reply));
+  return response.reply;
+}
+
+// Redeem the real first entry ticket and reuse the same authenticated read-only session.
+async function browserSnapshotReader(activation) {
+  const { service, presentation } = activation;
+  assert.ok(presentation.url, 'First presentation must offer a temporary entry URL');
+  const bootstrap = await fetch(presentation.url, { redirect: 'manual' });
+  assert.equal(bootstrap.status, 303);
+  const cookie = bootstrap.headers.get('set-cookie')?.split(';')[0];
+  const fragment = new URL(bootstrap.headers.get('location'), service.url).hash;
+  const view = /^#view=([a-f0-9]{64})$/.exec(fragment)?.[1];
+  assert.ok(cookie && view, 'Entry must establish a read-only browser session');
+  await bootstrap.text();
+  return async () => {
+    const response = await fetch(new URL('api/snapshot', service.url + service.routeBase), {
+      headers: { Cookie: cookie, 'X-Task-Board-View': view },
+    });
+    assert.equal(response.status, 200);
+    return response.json();
+  };
+}
+
+// A new overlapping task should appear blocked in the existing Board. Only a safe release may
+// let it run, and neither conflict nor retry should issue another first-open ticket.
+test('ACTIVATION.scopeConflictReusesServiceAndResumesAfterSafeRelease', async t => {
+  const f = await fixture(t);
+  const firstTask = { ...f.request.task, scope: sharedWriteScope };
+  const first = f.run({ task: firstTask }).result;
+  assert.equal(first.state, 'enabled', JSON.stringify(first));
+  const readBrowserSnapshot = await browserSnapshotReader(first);
+  const before = (await boardCall(f, 'inspect')).result;
+  assert.equal(before.assignments.length, 1);
+  assert.ok(before.reservations.some(row => row.active));
+
+  const newTask = { ...firstTask, id: 'work-two', title: 'Overlapping work' };
+  const request = { task: newTask, claimToken: secret() };
+  const blocked = f.run(request).result;
+  assert.equal(blocked.state, 'enabled', JSON.stringify(blocked));
+  assert.equal(blocked.activationScope, 'presentation-only');
+  assert.equal(blocked.taskExecution, 'not-resumed');
+  assert.equal(blocked.reasonCode, 'SCOPE_CONFLICT');
+  assert.equal(blocked.taskId, newTask.id);
+  assert.equal(blocked.service.serviceId, first.service.serviceId);
+  assert.equal(blocked.presentation.url, undefined);
+
+  const snapshot = await readBrowserSnapshot();
+  const visibleTask = snapshot.tasks.find(task => task.id === newTask.id);
+  assert.equal(visibleTask?.state, 'open');
+  assert.equal(visibleTask.readiness, 'blocked');
+  assert.match(visibleTask.readinessReason, /overlap current reservations/i);
+  const during = (await boardCall(f, 'inspect')).result;
+  assert.deepEqual(during.assignments, before.assignments);
+  assert.deepEqual(during.reservations, before.reservations);
+
+  const owner = (await boardCall(f, 'show', { taskId: firstTask.id })).result.task;
+  await boardCall(f, 'release', {
+    operationId: 'safe-release-first-task', generation: first.generation, taskId: owner.id,
+    taskRevision: owner.taskRevision, writesStopped: true, processStopped: true,
+  });
+  const resumed = f.run({ ...request, action: 'resume' }).result;
+  assert.equal(resumed.state, 'enabled', JSON.stringify(resumed));
+  assert.equal(resumed.taskId, newTask.id);
+  assert.equal(resumed.service.serviceId, first.service.serviceId);
+  assert.equal(resumed.presentation.url, undefined);
+  const after = (await boardCall(f, 'inspect')).result;
+  assert.deepEqual(after.assignments.filter(row => row.active).map(row => row.taskId), [
+    newTask.id,
+  ]);
+  assert.equal((await readBrowserSnapshot()).tasks.find(task => task.id === newTask.id)?.state,
+    'running');
+});
+
+// A Board can retain a live reservation before a service exists. The first blocked activation
+// should make that Board readable and supply a one-time entry opportunity.
+test('ACTIVATION.scopeConflictStartsFirstService', async t => {
+  const f = await fixture(t);
+  const initialized = await boardCall(f, 'initialize', { sessionProfile: f.request.sessionProfile });
+  const seed = (operation, input) => boardCall(f, operation, {
+    generation: initialized.generation, operationId: `prior-work-${operation}`, ...input,
+  });
+  await seed('register', { worker: {
+    id: f.request.actorId, mode: 'lead-inline', role: 'lead', capabilities: ['write'],
+  } });
+  const priorTask = { ...f.request.task, id: 'prior-work', scope: sharedWriteScope,
+    eligibleRoles: ['lead'], allowLeadInline: true };
+  await seed('add', { task: priorTask });
+  const approved = await seed('approve', { taskId: priorTask.id, taskRevision: 1 });
+  const { approvalRevision, taskRevision } = approved.result.task;
+  await seed('grant', {
+    workerId: f.request.actorId, taskId: priorTask.id, approvalRevision, executionMode: 'lead-inline',
+  });
+  await seed('lead-inline-assign', {
+    taskId: priorTask.id, taskRevision, approvalRevision, claimToken: secret(),
+  });
+
+  // Model the durable initialization checkpoint before a service launch; seed the owner above
+  // through real CLI transitions so the overlap and ownership checks use persisted reservations.
+  await writeFile(join(f.root, f.board, 'activation.json'), JSON.stringify({
+    version: 1, root: f.root, sessionKey: f.sessionKey, actorId: f.request.actorId,
+    generation: initialized.generation, boardId: initialized.boardId, initializeIntent: 'known',
+    tasks: {}, presentation: { status: 'not-attempted' },
+  }));
+  const before = (await boardCall(f, 'inspect')).result;
+  assert.equal(before.assignments.length, 1);
+  assert.ok(before.reservations.some(row => row.active));
+
+  const task = { ...f.request.task, scope: sharedWriteScope };
+  const first = f.run({ task }).result;
+  assert.equal(first.state, 'enabled', JSON.stringify(first));
+  assert.equal(first.activationScope, 'presentation-only');
+  assert.equal(first.taskExecution, 'not-resumed');
+  assert.equal(first.reasonCode, 'SCOPE_CONFLICT');
+  assert.equal(first.taskId, task.id);
+  assert.equal(first.boardId, initialized.boardId);
+  const readBrowserSnapshot = await browserSnapshotReader(first);
+  const snapshot = await readBrowserSnapshot();
+  assert.equal(snapshot.boardId, initialized.boardId);
+  const visibleTask = snapshot.tasks.find(item => item.id === task.id);
+  assert.equal(visibleTask?.state, 'open');
+  assert.equal(visibleTask.readiness, 'blocked');
+  const replay = f.run({ task, action: 'resume' }).result;
+  assert.equal(replay.state, 'enabled', JSON.stringify(replay));
+  assert.equal(replay.reasonCode, 'SCOPE_CONFLICT');
+  assert.equal(replay.service.serviceId, first.service.serviceId);
+  assert.equal(replay.presentation.url, undefined);
+  const after = (await boardCall(f, 'inspect')).result;
+  assert.deepEqual(after.assignments, before.assignments);
+  assert.deepEqual(after.reservations, before.reservations);
 });
 
 test('ACTIVATION.invalidIdentityDoesNotCreateBoard', async t => {

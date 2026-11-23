@@ -24,6 +24,8 @@ const canonical = value => Array.isArray(value) ? value.map(canonical)
 const digest = value => createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
 const ordered = values => values.map(canonical).sort((a, b) =>
   JSON.stringify(a).localeCompare(JSON.stringify(b)));
+const scopeConflictNextStep = 'Inspect the active reservation. Confirm the old owner stopped '
+  + 'before releasing it, or wait for the owner before retrying the same task.';
 
 /** Match the complete effective Add contract, including separately persisted relation rows. */
 function effectiveContract(task, workspaces) {
@@ -92,6 +94,7 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
   let release;
   let selected;
   let retainedService;
+  let scopeConflict = false;
   try {
     const issues = requestIssues(request);
     if (issues.missingFields.length || issues.invalidFields.length) return invalidRequest(issues);
@@ -374,9 +377,15 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
       await mutate('grant', { workerId: request.actorId, taskId: task.id,
         approvalRevision: shown.task.approvalRevision, executionMode: 'lead-inline',
         approvedResponsibilities: task.responsibilities ?? [] }, 'grant');
-      await mutate('lead-inline-assign', { taskId: task.id, taskRevision: shown.task.taskRevision,
-        approvalRevision: shown.task.approvalRevision, claimToken: request.claimToken }, 'assign');
-      shown = (await call('show', { taskId: task.id })).result;
+      try {
+        await mutate('lead-inline-assign', { taskId: task.id, taskRevision: shown.task.taskRevision,
+          approvalRevision: shown.task.approvalRevision, claimToken: request.claimToken }, 'assign');
+      } catch (error) {
+        // The claim transaction rolled back. The authenticated Board can still show the conflict.
+        if (error.code !== 'SCOPE_CONFLICT') throw error;
+        scopeConflict = true;
+      }
+      if (!scopeConflict) shown = (await call('show', { taskId: task.id })).result;
     }
     if (shown.assignment && shown.assignment.workerId !== request.actorId) fail('EXECUTOR_CONFLICT');
     const retainedTask = journal.tasks[task.id];
@@ -404,8 +413,8 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
         expectedLabelRevision: labels.labelRevision, projectName: profile.projectName,
         sessionName: profile.sessionName });
     }
-    // All task validation and transitions precede automatic repair: a rejected task must
-    // not consume a replacement service's first presentation ticket.
+    // Validate task authority before service work. A resource-blocked claim can use the same
+    // authenticated display lifecycle while its task remains open and unassigned.
     let firstUrl;
     if (journal.serviceIntent && !journal.service) fail('SERVICE_OUTCOME_UNKNOWN');
     if (journal.service && journal.service.serviceMode !== 'shared-v1' && serviceMode === 'shared') {
@@ -458,6 +467,8 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
     }
     return { state: 'enabled', ...selected, taskId: task.id, boardId: observed.boardId,
       generation: observed.generation, service: journal.service,
+      ...(scopeConflict ? { activationScope: 'presentation-only', taskExecution: 'not-resumed',
+        reasonCode: 'SCOPE_CONFLICT', nextStep: scopeConflictNextStep } : {}),
       identityBinding: request.leadPrincipal || worker?.executorKey ? 'observed' : 'unknown',
       presentation: { ...journal.presentation, ...(firstUrl ? { url: firstUrl } : {}) } };
   } catch (error) {
@@ -483,6 +494,7 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
     return { state: 'activation-pending', taskExecution:'not-resumed', ...selected,
       ...(retainedService ? { service: retainedService } : {}),
       reasonCode: error.code ?? 'ACTIVATION_STATE_INVALID',
+      ...(scopeConflict ? { taskBlockReasonCode: 'SCOPE_CONFLICT' } : {}),
       ...(['EACCES', 'EPERM', 'ECONNREFUSED', 'ETIMEDOUT'].includes(transportCode)
         ? { transportCode } : {}),
       nextStep };
