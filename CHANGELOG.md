@@ -2,7 +2,7 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
-## [Unreleased]
+## [1.2.0] - 2026-11-23
 
 ### Added
 
@@ -22,6 +22,7 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 - Pin the selected installation source before deployment and publish files through a private scratch area and native same-device rename. Keep recovery scoped to the pending transaction.
 - Serialize feedback updates across sessions and exclude private working records from package Markdown link checks.
+- Check pull requests to `master` for a higher version, dated changelog entries, and a matching packaged version stamp.
 
 ## [1.1.1] - 2026-11-20
 

@@ -17,8 +17,10 @@ function Assert-Condition {
 }
 function Invoke-Validation {
   # Run the public CLI in a separate process, returning its real exit status.
-  param([string]$Project)
-  $output = & $shell -NoProfile -File $validator -ProjectRoot $Project 2>&1
+  param([string]$Project, [string]$MasterBaseRef)
+  $arguments = @('-NoProfile', '-File', $validator, '-ProjectRoot', $Project)
+  if ($MasterBaseRef) { $arguments += @('-MasterBaseRef', $MasterBaseRef) }
+  $output = & $shell @arguments 2>&1
   return [pscustomobject]@{ Passed = ($LASTEXITCODE -eq 0); Output = ($output -join "`n") }
 }
 function Reset-Fixture {
@@ -95,6 +97,40 @@ try {
   Reset-Fixture -IncludeUnreleased
   $pendingBaseline = Invoke-Validation $testRoot
   Assert-Condition $pendingBaseline.Passed "Equivalent Unreleased fixture rejected: $($pendingBaseline.Output)"
+  # The same pending candidate must fail against the actual master base commit.
+  & git -C $testRoot init -q --template=
+  Assert-Condition ($LASTEXITCODE -eq 0) 'Cannot initialize the isolated master version fixture.'
+  & git -C $testRoot add -- VERSION
+  Assert-Condition ($LASTEXITCODE -eq 0) 'Cannot stage the base version fixture.'
+  $hooksPath = Join-Path $testRoot 'empty-hooks'
+  New-Item -ItemType Directory -Path $hooksPath | Out-Null
+  & git -C $testRoot -c "core.hooksPath=$hooksPath" -c user.name=Fixture -c user.email=fixture@example.test -c commit.gpgsign=false commit -q -m 'Master version fixture'
+  Assert-Condition ($LASTEXITCODE -eq 0) 'Cannot commit the base version fixture.'
+  $stamp = Join-Path $testRoot 'skills/team-core/runtime/kit-version.txt'
+  New-Item -ItemType Directory -Path (Split-Path -Parent $stamp) -Force | Out-Null
+  Set-Content -LiteralPath $stamp -Value '0.9.3'
+  $old = Invoke-Validation $testRoot 'HEAD'
+  Assert-Condition (-not $old.Passed -and $old.Output -match 'VERSION 0\.9\.3 must be newer' -and $old.Output -match 'still has changes under Unreleased') "Master check accepted incomplete version preparation: $($old.Output)"
+  # Version comparison is numeric and the real synchronizer prepares all four public documents and the stamp.
+  Set-Content -LiteralPath (Join-Path $testRoot 'VERSION') -Value '0.10.0'
+  & $shell -NoProfile -File (Join-Path $root 'scripts/sync-kit-version.ps1') -ProjectRoot $testRoot -ReleaseDate '2026-10-03'
+  Assert-Condition ($LASTEXITCODE -eq 0) 'Could not prepare the newer master fixture.'
+  $new = Invoke-Validation $testRoot 'HEAD'
+  Assert-Condition $new.Passed "Synchronized newer master candidate rejected: $($new.Output)"
+  $missingBase = Invoke-Validation $testRoot 'missing-master-fixture'
+  Assert-Condition (-not $missingBase.Passed -and $missingBase.Output -match 'Cannot resolve the master base commit') 'Missing master base did not fail closed.'
+  Set-Content -LiteralPath $stamp -Value '0.9.3'
+  $staleStamp = Invoke-Validation $testRoot 'HEAD'
+  Assert-Condition (-not $staleStamp.Passed -and $staleStamp.Output -match 'Packaged Kit version must match VERSION') 'Master check accepted a stale packaged version.'
+  Set-Content -LiteralPath $stamp -Value '0.10.0'
+  foreach ($file in 'CHANGELOG.md', 'CHANGELOG.zh-CN.md') {
+    $path = Join-Path $testRoot $file
+    $text = Get-Content -LiteralPath $path -Raw
+    Set-Content -LiteralPath $path -Value $text.Replace('## [0.10.0]', "## [Unreleased]$([char]0x00a0)`n- Pending item.`n`n## [0.10.0]")
+  }
+  Assert-Condition (Invoke-Validation $testRoot).Passed 'A valid pending heading must remain usable in ordinary validation.'
+  $pendingMaster = Invoke-Validation $testRoot 'HEAD'
+  Assert-Condition (-not $pendingMaster.Passed -and $pendingMaster.Output -match 'still has changes under Unreleased') 'Master check accepted a pending heading with trailing whitespace.'
   # Scenario: the rebased preview branches independently published 0.10.1.
   # Expected: retain exactly the two historical dates; reject other collisions.
   foreach ($case in @('historical pair','same date','different date','third entry','ordinary duplicate')) {

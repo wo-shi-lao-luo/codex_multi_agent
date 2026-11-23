@@ -71,7 +71,7 @@ if (-not $shell -or -not (Test-Path -LiteralPath $shell -PathType Leaf)) { throw
 Write-Host ("Platform: {0}; OS architecture: {1}; process architecture: {2}" -f [Runtime.InteropServices.RuntimeInformation]::OSDescription,[Runtime.InteropServices.RuntimeInformation]::OSArchitecture,[Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)
 Write-Host ("Runtime: PowerShell {0}; {1}" -f $PSVersionTable.PSVersion,[Runtime.InteropServices.RuntimeInformation]::FrameworkDescription)
 foreach ($prerequisite in @(
-  @{name='git';suites=@('deployment','ai-development-guidance','ai-simulation','generated-artifacts','git-delivery','formatter-tool','documentation','openspec','optional-designer','validation-links','portability');argument='--version'},
+  @{name='git';suites=@('bilingual-docs','deployment','ai-development-guidance','ai-simulation','generated-artifacts','git-delivery','formatter-tool','documentation','openspec','optional-designer','validation-links','portability');argument='--version'},
   @{name='node';suites=@('openspec','formatter-tool');argument='--version'}
 )) {
   $dependentChecks=@($checks.name | Where-Object { $_ -in $prerequisite.suites })
