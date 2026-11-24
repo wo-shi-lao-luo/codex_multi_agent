@@ -60,6 +60,12 @@ These integrations are not prerequisites for the Kit. Installing or updating the
 
 The Kit does not download or install Impeccable or enable its hooks. It is not a setup prerequisite. The reminder is informational; a link or file on disk does not prove the active client loaded the capability. Follow the adapter when a relevant task encounters a known installation that the active role cannot access. OpenSpec does not generate an installation reminder, and projects without an opt-in marker continue using the normal Kit workflow.
 
+## Optional local Team feedback
+
+Use `$team Enable local feedback capture` for your installation. It is disabled by default. When enabled, Team records a redacted summary when you explicitly identify a problem with current or directly related completed Team work. The default location is `~/.agents/codex-multi-agent/feedback/user-events/`, shared by Team projects on that installation. Capture requires the Team workflow and does not monitor chats in the background.
+
+Use `$team Review recent feedback` or `$team Disable local feedback capture`. Disabling preserves prior records for review. Promoting a finding requires your approval. See the [feedback recording contract](../skills/team-core/references/feedback-recording.md#capture-explicit-user-feedback).
+
 ## Additional setup options
 
 The shell wrapper accepts an explicit PowerShell executable before forwarding the remaining arguments:

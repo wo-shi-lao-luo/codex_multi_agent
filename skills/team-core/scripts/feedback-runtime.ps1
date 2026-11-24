@@ -1,21 +1,30 @@
-# Serialize the shared feedback store across sessions; file replacement alone
-# cannot protect read-modify-write counts or user-confirmed candidate states.
+# Store workflow runs, user feedback and candidate states in one local directory.
+# Serialize mutations across sessions to protect counts and state transitions.
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
   [Parameter(Mandatory = $true)]
-  [ValidateSet('Record', 'Maintain', 'SetCandidateState')]
+  [ValidateSet(
+    'Record', 'Maintain', 'SetCandidateState', 'UserFeedbackStatus',
+    'SetUserFeedbackCapture', 'RecordUserEvent', 'UpdateUserEvent',
+    'ListUserEvents', 'PromoteUserFeedback'
+  )]
   [string]$Action,
   [string]$InputPath,
   [string]$FeedbackHome,
   [string]$CandidateId,
   [ValidateSet('candidate', 'confirmed', 'applied', 'rejected')]
   [string]$CandidateState,
+  [ValidateSet('enabled', 'disabled')]
+  [string]$CaptureState,
+  [string]$EventId,
+  [int]$Limit = 50,
   [switch]$DeleteArchived,
   [switch]$ConfirmDeletion
 )
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
+. (Join-Path $PSScriptRoot 'feedback-user-events.ps1')
 
 function Get-DefaultFeedbackHome {
   $skillDirectory = Split-Path -Parent $PSScriptRoot
@@ -99,6 +108,9 @@ function Get-DerivedSignals {
   foreach ($signal in @($Payload.candidateSignals | Where-Object { $null -ne $_ })) {
     if ([string]::IsNullOrWhiteSpace([string]$signal.key) -or [string]::IsNullOrWhiteSpace([string]$signal.category) -or [string]::IsNullOrWhiteSpace([string]$signal.summary)) {
       throw 'Every candidateSignals entry needs key, category, and summary.'
+    }
+    if ([string]$signal.key -like 'user-feedback:*') {
+      throw 'The user-feedback candidate namespace is reserved for explicit promotion.'
     }
     $signals.Add([PSCustomObject]@{ key = [string]$signal.key; category = [string]$signal.category; summary = [string]$signal.summary })
   }
@@ -203,6 +215,51 @@ switch ($Action) {
     $candidate | Add-Member -NotePropertyName lastUpdatedAt -NotePropertyValue (Get-UtcTimestamp) -Force
     Write-AtomicJson -Path $candidatePath -Value $candidate
     [PSCustomObject]@{ action = 'candidate_state_updated'; candidateId = $CandidateId; state = $CandidateState } | ConvertTo-Json
+  }
+  'UserFeedbackStatus' {
+    @{ enabled = (Get-UserFeedbackEnabled $FeedbackHome) } | ConvertTo-Json
+  }
+  'SetUserFeedbackCapture' {
+    if (-not $CaptureState) {
+      throw 'SetUserFeedbackCapture requires -CaptureState enabled or disabled.'
+    }
+    $enabled = $CaptureState -eq 'enabled'
+    if (-not $PSCmdlet.ShouldProcess('local feedback store', "Set capture $CaptureState")) {
+      @{ action = 'what_if'; enabled = (Get-UserFeedbackEnabled $FeedbackHome) } |
+        ConvertTo-Json
+      break
+    }
+    if (-not $enabled -and -not (Test-Path -LiteralPath $FeedbackHome)) {
+      @{ action = 'capture_state_updated'; enabled = $false } | ConvertTo-Json
+      break
+    }
+    $storeLock = Enter-FeedbackStoreLock -Store $FeedbackHome
+    $settings = Resolve-TeamContainedPath $FeedbackHome 'feedback/user-feedback-settings.json'
+    Write-AtomicJson -Path $settings -Value @{ schemaVersion = 1; enabled = $enabled }
+    @{ action = 'capture_state_updated'; enabled = $enabled } | ConvertTo-Json
+  }
+  { $_ -in @('RecordUserEvent', 'UpdateUserEvent') } {
+    if ($WhatIfPreference) {
+      @{ action = 'what_if' } | ConvertTo-Json
+      break
+    }
+    Save-UserFeedbackEvent -Store $FeedbackHome -InputPath $InputPath -EventId $EventId `
+      -Update:($Action -eq 'UpdateUserEvent') | ConvertTo-Json
+  }
+  'ListUserEvents' {
+    Get-UserFeedbackEvents -Store $FeedbackHome -Limit $Limit | ConvertTo-Json -Depth 6
+  }
+  'PromoteUserFeedback' {
+    $promotion = Read-UserFeedbackPromotion -InputPath $InputPath
+    if (-not $PSCmdlet.ShouldProcess('local feedback store', 'Promote linked user feedback')) {
+      @{ action = 'what_if' } | ConvertTo-Json
+      break
+    }
+    if (-not (Test-Path -LiteralPath $FeedbackHome)) {
+      throw 'USER_FEEDBACK: A promoted event does not exist.'
+    }
+    $storeLock = Enter-FeedbackStoreLock -Store $FeedbackHome
+    Save-UserFeedbackCandidate -Store $FeedbackHome -Promotion $promotion | ConvertTo-Json
   }
 }
 } finally {
