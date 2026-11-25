@@ -176,7 +176,7 @@ function taskResources(task) {
 
 /** Project only the labels, status and evidence needed by the standalone cards. */
 export function dashboardTasks(snapshot) {
-  const view = publicSnapshot(snapshot);
+  const view = publicSnapshot(snapshot, { includeManualConfirmation: true });
   const roots = [snapshot.board.projectRoot, ...(snapshot.board.workspaces ?? []).map(item => item?.root)]
     .filter(root => typeof root === 'string' && (path.win32.isAbsolute(root) || path.posix.isAbsolute(root)))
     .sort((left, right) => right.length - left.length);
@@ -204,6 +204,9 @@ export function dashboardTasks(snapshot) {
       id: task.id,
       title: taskTitles.get(task.id) ?? '',
       state: task.state,
+      manualConfirmation: task.manualConfirmation,
+      manualConfirmed: task.state === 'closed' && task.resultValid === true &&
+        task.acceptedResult?.confirmation?.source === 'local-dashboard',
       phase: displayText(task.phase, 80),
       progress: displayText(task.progress, 280) ?? '',
       updatedAt: displayText(task.updatedAt, 80),

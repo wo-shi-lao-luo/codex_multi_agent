@@ -75,11 +75,15 @@
     },
     {
       "path": "packages/task-board/src/cli/help.mjs",
-      "sha256": "83d6fbdfebbca67eafbdf3c462dfe66d09ad44d7e89b62c815ff34092da19272"
+      "sha256": "6443fddc9196a8917168f6289c4a3efbde723c1b8bd3eb8be4ccda0cda3b6323"
     },
     {
       "path": "packages/task-board/src/cli/maintenance.mjs",
       "sha256": "e4b2fe336aa6edcde3cb9a2f06c5eadbdf30e5d6bc2814db73679bdf97a2c1ec"
+    },
+    {
+      "path": "packages/task-board/src/coordination/acceptance.mjs",
+      "sha256": "06f4a1aec44778edc8e94e95480f7b328b2b70846da7384b40cddffcc5182249"
     },
     {
       "path": "packages/task-board/src/coordination/artifact-protection.mjs",
@@ -103,7 +107,7 @@
     },
     {
       "path": "packages/task-board/src/coordination/service.mjs",
-      "sha256": "5faab72869843d2951f570103e29af38aefbee56ddeb922838a85c1fdba05534"
+      "sha256": "12da493fe0923ef4f3cd3888612a6f23efd6a85243b9fa3fdb8860150804044c"
     },
     {
       "path": "packages/task-board/src/coordination/team-sync.mjs",
@@ -155,15 +159,15 @@
     },
     {
       "path": "packages/task-board/src/server/dashboard-card-projection.mjs",
-      "sha256": "f65f3554ab4536c74e9054e9d134a7c81a453ff44513d20e68ea9f9a518c1438"
+      "sha256": "ed6c3eac3f20b2e0881b9004052b0952f48930993a9cd5baebd30f20970e3dfa"
     },
     {
       "path": "packages/task-board/src/server/dashboard-catalog.mjs",
-      "sha256": "c2f9cad6c05f27ac8d64ad8db3d86d981d6fd53f4393cbac679116b3bb269223"
+      "sha256": "89e6925b98c897d4e75fd947537218dda391ed2a294214376d44db8a63b77410"
     },
     {
       "path": "packages/task-board/src/server/dashboard.mjs",
-      "sha256": "cc6575317999c3bf903b177e5c9a71e63cc6f93c521c54e7bc191d4f887bcefd"
+      "sha256": "e9ed499003c5d8a92e27554f8e49f45d567382261ed5b66a21cc6641a75351a6"
     },
     {
       "path": "packages/task-board/src/server/server.mjs",
@@ -267,15 +271,15 @@
     },
     {
       "path": "packages/task-board/web/dashboard.css",
-      "sha256": "6d3b6226ee5385372f49f691706bba6666af70da5e76de6488d91f13f2559c73"
+      "sha256": "351e7b96a6764c1597beed6aa8bc982b091a783fc8338a394c3612c0dc9f5b5d"
     },
     {
       "path": "packages/task-board/web/dashboard.html",
-      "sha256": "10fea629bf81953774f7b68718ee6eeb0ed6ab55e08d9aea7e111673ff4e96ec"
+      "sha256": "e0f7c2a41238cc74abae7259349ce89cf65d8c2481ce95f5d573cad1bda26403"
     },
     {
       "path": "packages/task-board/web/dashboard.js",
-      "sha256": "894f1e3b06cbfe149f2313d624da8ef95870d59a642b6d744181865743887739"
+      "sha256": "0ce7b1399dc2366bf8c8a260844b51d490cce1f7b722b966533c1153facf7095"
     },
     {
       "path": "packages/task-board/web/index.html",
@@ -361,11 +365,15 @@
     },
     {
       "path": "src/cli/help.mjs",
-      "sha256": "83d6fbdfebbca67eafbdf3c462dfe66d09ad44d7e89b62c815ff34092da19272"
+      "sha256": "6443fddc9196a8917168f6289c4a3efbde723c1b8bd3eb8be4ccda0cda3b6323"
     },
     {
       "path": "src/cli/maintenance.mjs",
       "sha256": "e4b2fe336aa6edcde3cb9a2f06c5eadbdf30e5d6bc2814db73679bdf97a2c1ec"
+    },
+    {
+      "path": "src/coordination/acceptance.mjs",
+      "sha256": "06f4a1aec44778edc8e94e95480f7b328b2b70846da7384b40cddffcc5182249"
     },
     {
       "path": "src/coordination/artifact-protection.mjs",
@@ -389,7 +397,7 @@
     },
     {
       "path": "src/coordination/service.mjs",
-      "sha256": "5faab72869843d2951f570103e29af38aefbee56ddeb922838a85c1fdba05534"
+      "sha256": "12da493fe0923ef4f3cd3888612a6f23efd6a85243b9fa3fdb8860150804044c"
     },
     {
       "path": "src/coordination/team-sync.mjs",
@@ -441,15 +449,15 @@
     },
     {
       "path": "src/server/dashboard-card-projection.mjs",
-      "sha256": "f65f3554ab4536c74e9054e9d134a7c81a453ff44513d20e68ea9f9a518c1438"
+      "sha256": "ed6c3eac3f20b2e0881b9004052b0952f48930993a9cd5baebd30f20970e3dfa"
     },
     {
       "path": "src/server/dashboard-catalog.mjs",
-      "sha256": "c2f9cad6c05f27ac8d64ad8db3d86d981d6fd53f4393cbac679116b3bb269223"
+      "sha256": "89e6925b98c897d4e75fd947537218dda391ed2a294214376d44db8a63b77410"
     },
     {
       "path": "src/server/dashboard.mjs",
-      "sha256": "cc6575317999c3bf903b177e5c9a71e63cc6f93c521c54e7bc191d4f887bcefd"
+      "sha256": "e9ed499003c5d8a92e27554f8e49f45d567382261ed5b66a21cc6641a75351a6"
     },
     {
       "path": "src/server/server.mjs",
@@ -553,15 +561,15 @@
     },
     {
       "path": "web/dashboard.css",
-      "sha256": "6d3b6226ee5385372f49f691706bba6666af70da5e76de6488d91f13f2559c73"
+      "sha256": "351e7b96a6764c1597beed6aa8bc982b091a783fc8338a394c3612c0dc9f5b5d"
     },
     {
       "path": "web/dashboard.html",
-      "sha256": "10fea629bf81953774f7b68718ee6eeb0ed6ab55e08d9aea7e111673ff4e96ec"
+      "sha256": "e0f7c2a41238cc74abae7259349ce89cf65d8c2481ce95f5d573cad1bda26403"
     },
     {
       "path": "web/dashboard.js",
-      "sha256": "894f1e3b06cbfe149f2313d624da8ef95870d59a642b6d744181865743887739"
+      "sha256": "0ce7b1399dc2366bf8c8a260844b51d490cce1f7b722b966533c1153facf7095"
     },
     {
       "path": "web/index.html",

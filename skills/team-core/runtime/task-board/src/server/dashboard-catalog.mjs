@@ -1,7 +1,10 @@
-/** Discover existing session Boards beneath approved projects and project only read-only data. */
+/** Discover existing session Boards beneath approved projects; only prepared confirmation writes. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { confirmManualAcceptance, legacyManualAcceptancePhase, replayManualAcceptance }
+  from '../coordination/acceptance.mjs';
+import { protectArtifacts } from '../coordination/artifact-protection.mjs';
 import { sessionLocation } from '../domain/session.mjs';
 import { connect, readMetadata } from '../storage/connection.mjs';
 import { openBoard } from '../storage/index.mjs';
@@ -47,7 +50,10 @@ function describeBoard(projectRoot, boardPath, { expectedSessionKey, includeActi
       updatedAt: board.updatedAt ?? null,
       revision: boardRevision(board),
       ...(includeActivity ? {
-        hasRunningTasks: db.prepare("SELECT 1 FROM tasks WHERE state = 'running' LIMIT 1").get() !== undefined,
+        // Some older Leads reported waiting for a human while leaving the persisted state running.
+        hasRunningTasks: db.prepare(`SELECT 1 FROM tasks WHERE state = 'running'
+          AND coalesce(json_extract(payload, '$.phase'), '') <> ? LIMIT 1`)
+          .get(legacyManualAcceptancePhase) !== undefined,
       } : {}),
     };
   } finally {
@@ -176,6 +182,23 @@ export function createDashboardCatalog(projectRoots) {
         sessionName: metadata.sessionProfile.sessionName,
         tasks: dashboardTasks(snapshot),
       };
+    },
+
+    /** Commit only the exact prepared result. Every retry shares a deterministic receipt key. */
+    confirmManual(location, { taskId, taskRevision, generation }) {
+      protectArtifacts({ ...location, allowAppend: false });
+      const operation = 'manual-confirmation';
+      const requestHash = createHash('sha256')
+        .update(JSON.stringify([operation, generation, taskId, taskRevision])).digest('hex');
+      const request = { taskId, taskRevision, generation, operationId: `${operation}:${requestHash}` };
+      const board = openBoard(location);
+      try {
+        board.transactOperation({ request, requestHash, operation,
+          authorizeReplay: (tx, receipt) => replayManualAcceptance(tx, request, receipt.result),
+        }, tx => confirmManualAcceptance(tx, request));
+      } finally {
+        board.close();
+      }
     },
   };
 }

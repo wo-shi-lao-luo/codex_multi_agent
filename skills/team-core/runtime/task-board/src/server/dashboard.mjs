@@ -1,14 +1,23 @@
-/** Independent loopback viewer. It reads approved Board databases without agent or hub activation. */
+/** Independent loopback dashboard with one bounded write for prepared human confirmation. */
 import http from 'node:http';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { createDashboardCatalog } from './dashboard-catalog.mjs';
+import { validManualConfirmationTaskId } from '../coordination/acceptance.mjs';
+import { BoardError } from '../domain/errors.mjs';
+import { StorageError } from '../storage/errors.mjs';
 
 const capabilityFormat = /^[a-f0-9]{64}$/;
 const maxStreams = 24;
 const pollIntervalMs = 750;
 const keepaliveMs = 15000;
 const viewHeader = 'x-task-board-view';
+const confirmationRoute = '/api/manual-confirmation';
+const confirmationBodyLimit = 16384;
+const confirmationConflictCodes = new Set([
+  'CONFLICT', 'STALE_GENERATION', 'STALE_ASSIGNMENT', 'DEPENDENCY_BLOCKED', 'QUESTION_PENDING',
+  'WORKSPACE_MISMATCH', 'UNAUTHORIZED', 'SOURCE_INVALID', 'SOURCE_UNAVAILABLE', 'UNSAFE_PATH',
+]);
 const assets = new Map([
   ['/', ['dashboard.html', 'text/html;charset=utf-8']],
   ['/dashboard.js', ['dashboard.js', 'text/javascript;charset=utf-8']],
@@ -31,7 +40,61 @@ function json(response, status, value) {
   response.end(JSON.stringify(value));
 }
 
-/** Start one foreground viewer with no filesystem writes or access to activation credentials. */
+/** Decode only the three bounded parameters accepted by the local confirmation transaction. */
+async function confirmationInput(request) {
+  if (Number(request.headers['content-length']) > confirmationBodyLimit) return { tooLarge: true };
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request.iterator({ destroyOnReturn: false })) {
+    size += chunk.length;
+    if (size > confirmationBodyLimit) return { tooLarge: true };
+    chunks.push(chunk);
+  }
+  try {
+    const body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks)));
+    if (!body || Object.keys(body).length !== 3 ||
+      !validManualConfirmationTaskId(body.taskId) ||
+      typeof body.generation !== 'string' || !/^[a-f0-9-]{36}$/.test(body.generation) ||
+      !Number.isSafeInteger(body.taskRevision) || body.taskRevision < 1) return {};
+    return { input: body };
+  } catch {
+    return {};
+  }
+}
+
+/** Handle only an authorized same-origin confirmation; never accept caller-supplied evidence. */
+async function respondToConfirmation(request, response, catalog, location) {
+  const contentType = request.headers['content-type']?.split(';')[0].trim().toLowerCase();
+  if (contentType !== 'application/json') {
+    json(response, 415, { error: 'CONFIRMATION_REQUIRES_JSON' });
+    return;
+  }
+  const { input, tooLarge } = await confirmationInput(request);
+  if (tooLarge) {
+    response.setHeader('Connection', 'close');
+    json(response, 413, { error: 'CONFIRMATION_TOO_LARGE' });
+    return;
+  }
+  if (!input) {
+    json(response, 400, { error: 'INVALID_CONFIRMATION' });
+    return;
+  }
+  try {
+    catalog.confirmManual(location, input);
+    json(response, 200, { ok: true });
+  } catch (error) {
+    if (error instanceof BoardError && error.code === 'ARTIFACTS') {
+      json(response, 503, { error: 'CONFIRMATION_ARTIFACT_PROTECTION' });
+      return;
+    }
+    const rejected = (error instanceof BoardError || error instanceof StorageError) &&
+      confirmationConflictCodes.has(error.code);
+    json(response, rejected ? 409 : 503,
+      { error: rejected ? 'CONFIRMATION_CONFLICT' : 'CONFIRMATION_UNAVAILABLE' });
+  }
+}
+
+/** Start a loopback dashboard that never loads Lead tokens or activation credentials. */
 export async function startDashboard({ projectRoots, port = 43180 }) {
   if (!Number.isInteger(port) || port < 0 || port > 65535) {
     throw Object.assign(new Error('Dashboard port is invalid.'), {
@@ -121,7 +184,13 @@ export async function startDashboard({ projectRoots, port = 43180 }) {
       }).end();
       return;
     }
-    if (request.method !== 'GET') {
+    const confirming = request.method === 'POST' && url.pathname === confirmationRoute;
+    if (confirming && (request.headers.origin !== origin ||
+        request.headers['sec-fetch-site'] !== 'same-origin')) {
+      response.writeHead(403).end();
+      return;
+    }
+    if (request.method !== 'GET' && !confirming) {
       response.writeHead(405).end();
       return;
     }
@@ -143,7 +212,7 @@ export async function startDashboard({ projectRoots, port = 43180 }) {
       json(response, 200, catalog.list());
       return;
     }
-    if (url.pathname !== '/api/snapshot' && url.pathname !== '/api/events') {
+    if (!confirming && url.pathname !== '/api/snapshot' && url.pathname !== '/api/events') {
       response.writeHead(404).end();
       return;
     }
@@ -155,6 +224,10 @@ export async function startDashboard({ projectRoots, port = 43180 }) {
     const location = catalog.lookup(id);
     if (!location) {
       json(response, 404, { error: 'SESSION_NOT_AVAILABLE' });
+      return;
+    }
+    if (confirming) {
+      await respondToConfirmation(request, response, catalog, location);
       return;
     }
     try {

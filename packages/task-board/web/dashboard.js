@@ -5,6 +5,8 @@ const elements = Object.fromEntries([
   'connection', 'sync-time',
   'session-list', 'group-mode', 'retry', 'catalog-warning', 'work', 'work-title', 'work-project',
   'work-summary', 'work-empty', 'tasks', 'task-detail', 'task-detail-title', 'task-detail-content',
+  'work-confirmation-message', 'task-confirmation', 'task-confirmation-message', 'task-confirm-complete',
+  'task-detail-close',
 ].map(id => [id, document.getElementById(id)]));
 
 const stateNames = new Map([
@@ -15,6 +17,7 @@ const stateNames = new Map([
 const taskColumns = [
   { id: 'waiting', title: '待开始', empty: '暂无待开始的任务' },
   { id: 'active', title: '进行中', empty: '暂无进行中的任务' },
+  { id: 'confirmation', title: '需要人工确认', empty: '暂无需要人工确认的任务' },
   { id: 'ended', title: '已结束', empty: '暂无已结束的任务' },
   { id: 'abandoned', title: '已放弃', empty: '暂无已放弃的任务' },
 ];
@@ -51,6 +54,7 @@ const questionLabels = new Map([
 const timeFormat = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'medium' });
 const lastSessionKey = 'task-board:last-session';
 const groupModeKey = 'task-board:group-by-activity';
+const confirmationDragType = 'application/x-task-board-confirmation';
 const state = {
   catalog: new Map(),
   catalogSignature: null,
@@ -61,6 +65,7 @@ const state = {
   groupByActivity: readPreference(groupModeKey) === 'true',
   viewCapability: null,
   viewRequest: null,
+  confirmationDrag: null,
 };
 
 /** Persist only presentation preferences. A private browser can still use the current page. */
@@ -126,11 +131,12 @@ function showCatalogWarning(text) {
   if (elements['catalog-warning'].textContent !== text) showText('catalog-warning', text);
 }
 
-async function callBoard(url, signal) {
+async function callBoard(url, signal, options = {}) {
   const request = capability => fetch(url, {
+    ...options,
     cache: 'no-store',
     signal,
-    headers: { 'X-Task-Board-View': capability },
+    headers: { ...options.headers, 'X-Task-Board-View': capability },
   });
   const used = await getViewCapability();
   const response = await request(used);
@@ -153,6 +159,7 @@ function stopSelected() {
   if (!state.selected) return false;
   const view = state.selected;
   state.selected = null;
+  clearConfirmationDrag();
   const dialog = elements['task-detail'];
   const wasOpen = dialog.open;
   if (wasOpen) dialog.close();
@@ -184,25 +191,103 @@ function responsibilityText(task) {
 }
 
 function showTaskDetail(task) {
-  if (!state.selected) return;
-  state.selected.detailTaskId = task.id;
-  renderTaskDetail(task);
+  const view = state.selected;
+  if (!view) return;
   const dialog = elements['task-detail'];
+  if (!dialog.open || view.detailTaskId !== task.id) {
+    view.detailConfirmation = confirmationRequest(task);
+  }
+  view.detailTaskId = task.id;
+  renderTaskDetail(task);
   if (!dialog.open) dialog.showModal();
 }
 
+function needsManualConfirmation(task) {
+  return ['ready', 'waiting-for-submission'].includes(task?.manualConfirmation?.state)
+    && !['closed', 'ended', 'canceled', 'archived'].includes(task.state);
+}
+
+function confirmationRequest(task) {
+  const confirmation = task?.manualConfirmation;
+  if (!needsManualConfirmation(task) || confirmation.state !== 'ready') return null;
+  return { taskId: task.id, taskRevision: confirmation.taskRevision, generation: confirmation.generation };
+}
+
+function sameConfirmation(a, b) {
+  return Boolean(a && b && a.taskId === b.taskId && a.taskRevision === b.taskRevision
+    && a.generation === b.generation);
+}
+
+function canConfirm(view, request) {
+  if (!view || view !== state.selected || !request || view.pendingConfirmation) return false;
+  const current = confirmationRequest(view.tasks?.get(request.taskId));
+  return sameConfirmation(current, request)
+    && !sameConfirmation(view.completedConfirmations.get(request.taskId), request);
+}
+
+/** Accept a drop only when it starts in this view with the same current result. */
+function clearConfirmationDrag() {
+  state.confirmationDrag = null;
+  delete elements.tasks.dataset.confirmationDragging;
+}
+
+function dragConfirmation(event, task) {
+  const view = state.selected;
+  const request = confirmationRequest(task);
+  if (!canConfirm(view, request) || !event.dataTransfer) {
+    event.preventDefault();
+    return;
+  }
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData(confirmationDragType, '1');
+  state.confirmationDrag = { view, request };
+  elements.tasks.dataset.confirmationDragging = 'true';
+}
+
+function allowConfirmationDrop(event) {
+  const drag = state.confirmationDrag;
+  if (!drag || !canConfirm(drag.view, drag.request)
+      || !Array.from(event.dataTransfer?.types ?? []).includes(confirmationDragType)) return false;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  return true;
+}
+
+function dropConfirmation(event) {
+  const drag = state.confirmationDrag;
+  const accepted = allowConfirmationDrop(event);
+  clearConfirmationDrag();
+  if (accepted) void confirmTask(drag.view, drag.request);
+}
+
 function renderTaskCard(task) {
-  const stateLabel = stateNames.get(task.state) ?? '状态未知';
+  const manual = needsManualConfirmation(task);
+  let stateLabel = stateNames.get(task.state) ?? '状态未知';
+  if (manual) stateLabel = '待人工确认';
+  if (task.state === 'closed' && task.manualConfirmed === true) stateLabel = '已人工确认';
   const abandoned = task.state === 'canceled';
   const item = node('li', '', 'task');
   const header = node('div', '', 'task-heading');
   const badge = node('span', stateLabel, 'task-state');
-  if (stateNames.has(task.state)) badge.classList.add(task.state);
+  if (manual) badge.classList.add('manual-confirmation');
+  else if (stateNames.has(task.state)) badge.classList.add(task.state);
   const title = node('button', task.title || '未命名任务', 'task-title-button');
   title.type = 'button';
   title.dataset.taskId = task.id;
   title.setAttribute('aria-haspopup', 'dialog');
-  title.addEventListener('click', () => showTaskDetail(task));
+  title.addEventListener('click', event => {
+    event?.stopPropagation();
+    showTaskDetail(task);
+  });
+  item.addEventListener('click', () => {
+    title.focus({ preventScroll: true });
+    showTaskDetail(task);
+  });
+  if (canConfirm(state.selected, confirmationRequest(task))) {
+    item.draggable = true;
+    item.addEventListener('dragstart', event => dragConfirmation(event, task));
+    item.addEventListener('dragend', clearConfirmationDrag);
+  }
   const heading = node('h4', '', 'task-title');
   heading.append(title);
   header.append(heading, badge);
@@ -211,7 +296,9 @@ function renderTaskCard(task) {
   item.append(node('p', candidatesText(task), 'subtle task-line'),
     node('p', responsibilityText(task), 'subtle task-line'));
   const phase = stateNames.get(task.phase) ?? task.phase;
-  if (!abandoned && phase && phase !== stateLabel) item.append(node('p', `阶段 · ${phase}`, 'subtle task-phase'));
+  if (!manual && !abandoned && phase && phase !== stateLabel) {
+    item.append(node('p', `阶段 · ${phase}`, 'subtle task-phase'));
+  }
   if (task.state === 'open' && task.readinessReason) {
     item.append(node('p', task.readiness === 'ready' ? '就绪条件已满足' : task.readinessReason,
       'subtle task-line'));
@@ -219,7 +306,8 @@ function renderTaskCard(task) {
   if (!abandoned) item.append(node('p', task.progress || '尚无实际进展报告', 'task-progress'),
     node('p', `下一检查点：${task.nextCheckpoint || '尚未报告'}`, 'task-checkpoint'));
   const flags = [
-    !abandoned && task.blocker && `阻塞：${task.blocker}`,
+    manual && task.manualConfirmation.state === 'waiting-for-submission' && '等候可确认的提交',
+    !manual && !abandoned && task.blocker && `阻塞：${task.blocker}`,
     abandoned && task.cancellationReason && `放弃说明：${task.cancellationReason}`,
     task.dependencyCount > 0 && `依赖 ${task.dependencyCount}`,
     task.pendingQuestionCount > 0 && `待处理问询 ${task.pendingQuestionCount}`,
@@ -255,20 +343,89 @@ function questionText(question) {
   ].filter(Boolean).join('\n');
 }
 
+function updateConfirmationControls(view, task) {
+  const request = confirmationRequest(task);
+  const changed = request && view?.detailTaskId === task.id
+    && !sameConfirmation(view.detailConfirmation, request);
+  let message = view?.confirmationMessage?.taskId === task.id ? view.confirmationMessage.text : '';
+  if (changed) message = '待确认的结果已更新。请关闭后重新打开详情，核对最新结果。';
+  const button = elements['task-confirm-complete'];
+  const disabled = Boolean(changed) || !canConfirm(view, request);
+  if (disabled && document.activeElement === button) elements['task-detail-close'].focus();
+  button.hidden = !request;
+  button.disabled = disabled;
+  elements['task-confirmation'].hidden = !request && !message;
+  showText('task-confirmation-message', message);
+}
+
+function reportConfirmation(view, request, message) {
+  view.confirmationMessage = { taskId: request.taskId, text: message };
+  showText('work-confirmation-message', message);
+  const detail = view.tasks.get(view.detailTaskId);
+  if (detail) updateConfirmationControls(view, detail);
+}
+
+/** Both gestures submit only the selected snapshot's acceptance request. Never move a card locally. */
+async function confirmTask(view, request) {
+  if (!canConfirm(view, request)) return;
+  view.pendingConfirmation = request;
+  clearConfirmationDrag();
+  reportConfirmation(view, request, '正在保存人工确认…');
+
+  let message;
+  try {
+    const response = await callBoard(sessionUrl('manual-confirmation', view.id),
+      AbortSignal.timeout(8000), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      });
+    if (response.status === 503) {
+      const failure = await response.json().catch(() => null);
+      if (failure?.error === 'CONFIRMATION_ARTIFACT_PROTECTION') {
+        message = '项目的看板写入保护未满足。请由主 Agent 核对后再试。';
+        return;
+      }
+    }
+    requireSuccess(response);
+    const result = await response.json();
+    if (result.ok !== true) throw new Error('Missing confirmation receipt.');
+    view.completedConfirmations.set(request.taskId, request);
+    message = '已保存人工确认。';
+  } catch (error) {
+    if (error.status === 409) {
+      message = '当前结果暂不能确认。请核对更新后的详情。';
+    } else {
+      message = '暂时无法核实确认结果。正在重新读取任务。';
+    }
+  } finally {
+    view.pendingConfirmation = null;
+    if (view === state.selected) {
+      reportConfirmation(view, request, message);
+      void refreshSnapshot(view);
+    }
+  }
+}
+
 function renderTaskDetail(task) {
   const detail = task.details ?? {};
   elements['task-detail-title'].textContent = task.title || '未命名任务';
   const result = task.resultValid === true ? '当前结果有效' :
     task.state === 'closed' && task.resultValid === false ? '历史已关闭 · 结果已失效' : '';
   const abandoned = task.state === 'canceled';
+  const manual = needsManualConfirmation(task);
   const sections = [
     detailSection('角色与执行者', [candidatesText(task), responsibilityText(task), ...(detail.responsibilities ?? [])]),
     detailSection('任务说明', [detail.outcome]),
+    detailSection('人工确认', [
+      manual && task.manualConfirmation.state === 'waiting-for-submission' && '等候可确认的提交。',
+      task.state === 'closed' && task.manualConfirmed === true && '已人工确认。',
+    ]),
     detailSection('放弃记录', [task.cancellationReason,
       abandoned && task.cleanupPending && '资源待安全收尾']),
     detailSection(abandoned ? '历史进展' : '执行进展', [task.progress,
       task.nextCheckpoint && `${abandoned ? '放弃前的检查点' : '下一检查点'}：${task.nextCheckpoint}`,
-      task.blocker && `${abandoned ? '当时的阻塞' : '阻塞'}：${task.blocker}`]),
+      !manual && task.blocker && `${abandoned ? '当时的阻塞' : '阻塞'}：${task.blocker}`]),
     detailSection('执行与交接记录', (detail.executionHistory ?? []).map(record =>
       `${personName(record.person)}（${record.active ? '当前分配' : '分配已结束'}）`)),
     detailSection('来源与验收引用', [
@@ -288,6 +445,7 @@ function renderTaskDetail(task) {
     detailSection('问询与答复', (detail.questions ?? []).map(questionText)),
   ];
   elements['task-detail-content'].replaceChildren(...sections.filter(Boolean));
+  updateConfirmationControls(state.selected, task);
 }
 
 function restoreCardFocus(id) {
@@ -298,9 +456,25 @@ function restoreCardFocus(id) {
 }
 
 function renderTasks(tasks) {
+  const view = state.selected;
+  if (view) {
+    view.tasks = new Map(tasks.map(task => [task.id, task]));
+    for (const [id, request] of view.completedConfirmations) {
+      if (!sameConfirmation(confirmationRequest(view.tasks.get(id)), request)) {
+        view.completedConfirmations.delete(id);
+      }
+    }
+  }
+  const drag = state.confirmationDrag;
+  if (drag && !canConfirm(drag.view, drag.request)) clearConfirmationDrag();
+
   const focused = document.activeElement?.dataset?.taskId;
   const grouped = new Map(taskColumns.map(({ id }) => [id, []]));
-  for (const task of tasks) grouped.get(columnForState.get(task.state) ?? 'waiting').push(task);
+  for (const task of tasks) {
+    const column = needsManualConfirmation(task)
+      ? 'confirmation' : columnForState.get(task.state) ?? 'waiting';
+    grouped.get(column).push(task);
+  }
   elements.tasks.replaceChildren(...taskColumns.map(({ id, title, empty }) => {
     const items = grouped.get(id);
     const column = node('section', '', 'task-column');
@@ -312,11 +486,16 @@ function renderTasks(tasks) {
     const list = node('ul', '', 'column-tasks');
     list.append(...items.map(renderTaskCard));
     column.append(header, items.length ? list : node('p', empty, 'column-empty'));
+    if (id === 'ended') {
+      column.dataset.confirmationTarget = 'true';
+      column.addEventListener('dragover', allowConfirmationDrop);
+      column.addEventListener('drop', dropConfirmation);
+    }
     return column;
   }));
   elements.tasks.hidden = false;
   showText('work-empty', '');
-  const running = tasks.filter(task => task.state === 'running').length;
+  const running = tasks.filter(task => task.state === 'running' && !needsManualConfirmation(task)).length;
   showText('work-summary', `${tasks.length} 项任务 · ${running} 项进行中`);
   const detailId = state.selected?.detailTaskId;
   if (detailId) {
@@ -339,6 +518,7 @@ function selectSession(id) {
   elements.tasks.replaceChildren();
   elements.tasks.hidden = true;
   showText('work-summary', '');
+  showText('work-confirmation-message', '');
 
   const session = state.catalog.get(id);
   if (!session) {
@@ -351,7 +531,11 @@ function selectSession(id) {
     return;
   }
 
-  const view = { id, live: false, lastSync: null, error: false, refreshPending: false };
+  const view = {
+    id, live: false, lastSync: null, error: false, refreshPending: false,
+    tasks: new Map(),
+    completedConfirmations: new Map(),
+  };
   state.selected = view;
   state.lastSessionId = id;
   savePreference(lastSessionKey, id);
@@ -556,7 +740,13 @@ elements['task-detail'].addEventListener('close', () => {
   if (!state.selected || elements['task-detail'].open) return;
   const id = state.selected.detailTaskId;
   state.selected.detailTaskId = null;
+  state.selected.detailConfirmation = null;
   restoreCardFocus(id);
+});
+elements['task-confirm-complete'].addEventListener('click', () => {
+  const view = state.selected;
+  if (!view || !elements['task-detail'].open) return;
+  void confirmTask(view, view.detailConfirmation);
 });
 elements.retry.addEventListener('click', () => {
   void refreshCatalog();

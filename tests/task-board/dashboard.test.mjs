@@ -5,7 +5,8 @@ import path from 'node:path';
 import test from 'node:test';
 import { createContext, runInContext } from 'node:vm';
 import { randomUUID } from 'node:crypto';
-import { initializeBoard } from '../../packages/task-board/src/storage/index.mjs';
+import { execFileSync } from 'node:child_process';
+import { initializeBoard, openBoard } from '../../packages/task-board/src/storage/index.mjs';
 import { sessionLocation } from '../../packages/task-board/src/domain/session.mjs';
 import { hash } from '../../packages/task-board/src/coordination/service.mjs';
 import { startDashboard } from '../../packages/task-board/src/server/dashboard.mjs';
@@ -104,22 +105,26 @@ test('dashboard puts abandoned tasks in their own column and preserves precise t
   const board = elements.get('tasks');
   runInContext('renderTasks([]);', context);
   assert.deepEqual(board.children.map(column => column.children[0].children[0].textContent),
-    ['待开始', '进行中', '已结束', '已放弃']);
+    ['待开始', '进行中', '需要人工确认', '已结束', '已放弃']);
   assert.ok(board.children.every(column => column.children[1].tag === 'p'));
 
   context.sampleTasks = ['planned', 'open', 'ready', 'running', 'blocked', 'submitted', 'closed', 'canceled']
     .map(state => state === 'canceled'
-      ? { state, title: state, cancellationReason: 'The approved scope was superseded.', cleanupPending: true,
+      ? { id: state, state, title: state, cancellationReason: 'The approved scope was superseded.', cleanupPending: true,
           progress: 'Past work', nextCheckpoint: 'Obsolete checkpoint' }
-      : { state, title: state });
+      : { id: state, state, title: state });
+  context.sampleTasks.unshift({ state: 'blocked', title: 'legacy-manual', id: 'legacy-manual',
+    manualConfirmation: { state: 'waiting-for-submission' } });
   runInContext('renderTasks(sampleTasks);', context);
   const cards = board.children.map(column => column.children[1].children);
   assert.deepEqual(cards.map(column => column.map(card => card.children[0].children[0].children[0].textContent)),
-    [['planned', 'open', 'ready'], ['running', 'blocked', 'submitted'], ['closed'], ['canceled']]);
+    [['planned', 'open', 'ready'], ['running', 'blocked', 'submitted'], ['legacy-manual'], ['closed'], ['canceled']]);
   assert.deepEqual(cards[1].map(card => card.children[0].children[1].textContent),
     ['进行中', '阻塞', '待核验']);
-  assert.equal(cards[3][0].children[0].children[1].textContent, '已放弃');
-  const abandoned = cards[3][0].children.map(child => child.textContent);
+  assert.equal(cards[2][0].children[0].children[1].textContent, '待人工确认');
+  assert.equal(cards[2][0].draggable, undefined);
+  assert.equal(cards[4][0].children[0].children[1].textContent, '已放弃');
+  const abandoned = cards[4][0].children.map(child => child.textContent);
   assert.ok(abandoned.some(text => text?.includes('The approved scope was superseded.')));
   assert.ok(abandoned.some(text => text?.includes('资源待安全收尾')));
   assert.ok(!abandoned.some(text => text?.includes('Obsolete checkpoint')));
@@ -150,7 +155,7 @@ test('dashboard cards restore execution context and expose the detailed evidence
   assert.ok(rendered.includes('执行者：后端工程师 · worker'));
   assert.ok(rendered.includes('下一检查点：Verify the endpoint'));
   assert.ok(rendered.some(line => line?.includes('待处理问询 1')));
-  title.listeners.click();
+  card.listeners.click();
   const dialog = elements.get('task-detail');
   assert.equal(dialog.open, true);
   assert.equal(elements.get('task-detail-title').textContent, task.title);
@@ -176,6 +181,178 @@ test('dashboard cards restore execution context and expose the detailed evidence
   runInContext('renderTasks([fixtureTask]); showTaskDetail(fixtureTask); renderCatalog([]);', context);
   assert.equal(dialog.open, false, 'Removing a session closes its task details.');
   assert.equal(heading.focused, true, 'Removing the session moves focus to the workspace heading.');
+});
+
+test('dashboard detail button and internal drag confirm the same scoped result', async () => {
+  // Exercise both UI gestures and verify that only a server snapshot moves the card.
+  const { elements, context } = await dashboardClient([
+    { id: 's', projectKey: 'p', projectName: 'Kit', sessionName: 'Development' },
+  ]);
+  const request = { state: 'ready', taskRevision: 4, generation: 'fixture-generation' };
+  const makeTask = id => ({ id, title: id, state: 'submitted', manualConfirmation: request });
+  const requests = [];
+  let snapshot = [makeTask('button'), makeTask('drag')];
+  let releaseResponse;
+  const failures = [503, 409];
+  context.fetch = async (url, options) => {
+    if (url.startsWith('/api/snapshot?')) return { ok: true, json: async () => ({ tasks: snapshot }) };
+    if (url === '/api/manual-confirmation?session=s' && options.method === 'POST') {
+      const body = JSON.parse(options.body);
+      requests.push(body);
+      await new Promise(resolve => { releaseResponse = resolve; });
+      const status = failures.shift();
+      if (status) return { ok: false, status, json: async () => ({ error: 'CONFIRMATION_ARTIFACT_PROTECTION' }) };
+      snapshot = snapshot.map(task => task.id === body.taskId
+        ? { ...task, state: 'closed', manualConfirmation: null } : task);
+      return { ok: true, json: async () => ({ ok: true }) };
+    }
+    return new Promise(() => {});
+  };
+  context.fixtureTasks = snapshot;
+  runInContext('renderTasks(fixtureTasks);', context);
+  const tasks = elements.get('tasks');
+  const [first] = tasks.children[2].children[1].children;
+  first.listeners.click();
+  const button = elements.get('task-confirm-complete');
+  assert.equal(button.hidden, false);
+  for (const message of ['写入保护未满足', '暂不能确认']) {
+    button.listeners.click();
+    await new Promise(resolve => setImmediate(resolve));
+    releaseResponse();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.ok(elements.get('task-confirmation-message').textContent.includes(message));
+    assert.equal(button.disabled, false, 'A declined request can be retried while its snapshot is still current.');
+  }
+  button.listeners.click();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(requests, Array.from({ length: 3 }, () =>
+    ({ taskId: 'button', taskRevision: 4, generation: request.generation })));
+  assert.equal(tasks.children[2].children[1].children.length, 2, 'No optimistic move.');
+  releaseResponse();
+  await new Promise(resolve => setImmediate(resolve));
+  elements.get('task-detail').close();
+
+  const [drag] = tasks.children[2].children[1].children;
+  const target = tasks.children[3];
+  const dataTransfer = { types: [], setData(type) { this.types.push(type); } };
+  const event = { dataTransfer, preventDefault() {} };
+  target.listeners.drop(event);
+  assert.equal(requests.length, 3, 'A drop from outside this dashboard cannot confirm.');
+  assert.equal(drag.draggable, true);
+  drag.listeners.dragstart(event);
+  target.listeners.drop(event);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(requests[3], { taskId: 'drag', taskRevision: 4, generation: request.generation });
+  releaseResponse();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(tasks.children[3].children[1].children.length, 2);
+});
+
+test('only an explicit, current manual confirmation request can close through the dashboard', async t => {
+  // Use the same writer CLI, actual SQLite receipts and same-origin browser boundary as production.
+  const parent = sourcePath('_work/task-board/test-fixtures');
+  fs.mkdirSync(parent, { recursive: true });
+  const root = fs.mkdtempSync(path.join(parent, 'manual-confirmation-'));
+  let viewer;
+  t.after(async () => {
+    await viewer?.close();
+    if (path.dirname(root) !== parent || !path.basename(root).startsWith('manual-confirmation-')) {
+      throw Error('Unexpected fixture cleanup path.');
+    }
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+  execFileSync('git', ['init', '-q', root]);
+  fs.writeFileSync(path.join(root, '.gitignore'), '/_work/task-board/\n');
+  const board = session(root, 'Fixture project', 'Manual confirmation');
+  await addTask(board, 'manual', { eligibleRoles: ['lead'], allowLeadInline: true,
+    resources: [{ kind: 'resource', key: 'fixture-editor', mode: 'exclusive' }] });
+  const assignment = await assignTask(board, 'manual');
+  const submitted = await boardCommand(board, 'lead-inline-report', {
+    taskId: 'manual', taskRevision: assignment.task.taskRevision,
+    assignmentId: assignment.assignment.id, claimToken: assignment.claimToken,
+    action: 'submit', inputRevision: 'fixture:tested-result', writesStopped: true, processStopped: true,
+    evidenceRefs: ['fixture/artifact'],
+  });
+  const legacy = session(root, 'Fixture project', 'Legacy manual wait');
+  await addTask(legacy, 'manual', { eligibleRoles: ['lead'], allowLeadInline: true });
+  const waiting = await assignTask(legacy, 'manual');
+  await boardCommand(legacy, 'lead-inline-report', {
+    taskId: 'manual', taskRevision: waiting.task.taskRevision,
+    assignmentId: waiting.assignment.id, claimToken: waiting.claimToken,
+    action: 'report', phase: 'awaiting-manual-acceptance', progress: 'Legacy record only',
+  });
+  viewer = await startDashboard({ projectRoots: [root], port: 0 });
+  const { url } = viewer;
+  const { headers } = await openView(url);
+  const response = await fetch(url + '/api/sessions', { headers });
+  const { sessions } = await response.json();
+  const target = sessions.find(item => item.sessionName === 'Manual confirmation');
+  const priorSession = sessions.find(item => item.sessionName === 'Legacy manual wait');
+  assert.equal(priorSession.hasRunningTasks, false);
+  const snapshot = async (sessionId = target.id) => {
+    const reply = await fetch(`${url}/api/snapshot?session=${sessionId}`, { headers });
+    assert.equal(reply.status, 200);
+    return reply.json();
+  };
+  const submit = (payload, overrides = {}, sessionId = target.id) => fetch(`${url}/api/manual-confirmation?session=${sessionId}`, {
+    method: 'POST', headers: { ...headers, Origin: url, 'Sec-Fetch-Site': 'same-origin',
+      'Content-Type': 'application/json', ...overrides }, body: JSON.stringify(payload),
+  });
+  const initial = { taskId: 'manual', taskRevision: submitted.result.task.taskRevision,
+    generation: board.generation };
+  assert.equal((await snapshot(priorSession.id)).tasks[0].manualConfirmation.state,
+    'waiting-for-submission');
+  assert.notEqual((await submit(initial)).status, 200, 'Ordinary technical submissions cannot be closed here.');
+  await boardCommand(board, 'request-manual-acceptance', {
+    taskId: 'manual', taskRevision: initial.taskRevision, evidenceRefs: ['fixture/technical-verification'],
+  });
+  const pending = await snapshot();
+  const { manualConfirmation } = pending.tasks[0];
+  assert.equal(manualConfirmation.state, 'ready');
+  const exact = { taskId: 'manual', taskRevision: manualConfirmation.taskRevision,
+    generation: manualConfirmation.generation };
+  assert.notEqual((await submit(exact, { Origin: 'http://127.0.0.1:1' })).status, 200);
+  assert.notEqual((await submit(exact, { [viewHeader]: '' })).status, 200);
+  assert.notEqual((await submit(exact, { 'Sec-Fetch-Site': 'same-site' })).status, 200);
+  assert.notEqual((await submit(exact, {}, 'a'.repeat(64))).status, 200);
+  assert.equal((await submit(exact, {}, priorSession.id)).status, 409);
+  assert.equal((await submit({ ...exact, taskId: 'a'.repeat(4097) })).status, 400);
+  assert.notEqual((await submit({ ...exact, evidenceRefs: ['browser/forgery'] })).status, 200);
+  assert.equal((await submit(initial)).status, 409, 'A previous task revision cannot confirm the new request.');
+  const bypass = await invoke(board.projectRoot, board.boardPath, 'accept', {
+    ...exact, actorId: 'lead', leadToken: board.leadToken, operationId: randomUUID(),
+    gatesSatisfied: true, evidenceRefs: ['fixture/not-a-human-confirmation'],
+  }, { sessionKey: board.sessionKey });
+  assert.notEqual(bypass.code, 0, 'A prepared manual gate cannot be bypassed by ordinary accept.');
+  const ignore = path.join(root, '.gitignore');
+  fs.writeFileSync(ignore, '# Board policy temporarily unavailable in this fixture.\n');
+  try {
+    const missingProtection = await submit(exact);
+    assert.equal(missingProtection.status, 503);
+    assert.deepEqual(await missingProtection.json(), { error: 'CONFIRMATION_ARTIFACT_PROTECTION' });
+  } finally {
+    fs.writeFileSync(ignore, '/_work/task-board/\n');
+  }
+  assert.equal((await snapshot()).revision, pending.revision, 'Denied attempts cannot advance the Board.');
+  const stream = await subscribe(url, target.id, headers, t);
+  assert.equal(await stream.next(), pending.revision);
+  const confirmations = await Promise.all([submit(exact), submit(exact)]);
+  for (const confirmed of confirmations) {
+    assert.equal(confirmed.status, 200);
+    assert.deepEqual(await confirmed.json(), { ok: true });
+  }
+  assert.notEqual(await stream.next(), pending.revision);
+  const complete = await snapshot();
+  assert.equal(complete.tasks[0].state, 'closed');
+  assert.equal(complete.tasks[0].manualConfirmed, true);
+  assert.equal(complete.tasks[0].responsibility.person.id, 'lead');
+  const stored = openBoard({ ...board, readOnly: true });
+  try {
+    assert.equal(stored.snapshot().reservations.filter(record => record.active).length, 1,
+      'Manual confirmation does not release recorded ownership.');
+  } finally { stored.close(); }
+  assert.equal((await submit(exact)).status, 200, 'An exact retry returns the committed confirmation.');
+  assert.equal((await snapshot()).revision, complete.revision, 'An exact retry does not write again.');
 });
 
 /** Create canonical Board files and keep the original credential only in the writer fixture. */

@@ -127,6 +127,9 @@ commands.at(-1).conditions.push(
 commands.at(-1).notes = 'Only action=report/block records server-owned lastReportAt; submit does not. '
   + 'Caller lastReportAt is rejected. Exact receipt replay preserves the recorded time.';
 write('accept', [...task, 'gatesSatisfied', 'evidenceRefs'], ['checkResults']);
+write('request-manual-acceptance', [...task, 'evidenceRefs'], ['checkResults']);
+commands.at(-1).notes = 'Lead attests the non-human gates for one current frozen submission. '
+  + 'The local dashboard can then confirm it. A changed result needs new preparation.';
 write('release', [...task, 'writesStopped', 'processStopped']);
 write('amend', [...task, 'reason', 'expectedInputRevision', 'patch']);
 for (const name of ['return', 'reopen', 'cancel']) write(name, [...task, 'reason']);

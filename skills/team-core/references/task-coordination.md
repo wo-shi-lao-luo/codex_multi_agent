@@ -85,7 +85,7 @@ For each completed or submitted task whose executor has stopped, inspect active 
 
 ## Standalone browser dashboard
 
-The user can launch one read-only dashboard in a normal PowerShell terminal after installing the Board runtime:
+The user can launch the dashboard in a normal PowerShell terminal after installing the Board runtime:
 
 ```powershell
 & "$HOME/.agents/skills/team-core/scripts/task-board.ps1" -BoardArguments @(
@@ -95,6 +95,22 @@ The user can launch one read-only dashboard in a normal PowerShell terminal afte
 ```
 
 Open the local URL printed by that process. The browser establishes view access automatically on the same origin. Only register project data that may be viewed from this machine. Project roots are explicitly selected by the user at launch; the dashboard discovers bound session databases only under their canonical Board directories. It uses one loopback listener and does not start Agents or claim tasks. Closing or stopping the viewer leaves task recording available. “Running” reflects recorded task state; the viewer does not observe host presence.
+
+### Manual confirmation in the standalone dashboard
+
+When only the user's manual acceptance remains, submit the actual result, finish the applicable
+software and independent checks, then use the Lead-only `request-manual-acceptance` operation.
+Use `help --operation request-manual-acceptance` for current inputs. Prepare the current result with
+its verification references and applicable independent check bindings. This puts the card in
+**需要人工确认**, distinct from a technical blocker or an ordinary submission pending Lead review.
+The column also shows old cards explicitly labeled `awaiting-manual-acceptance`. Those old records
+need a valid prepared result before the user can confirm them. Review and prepare them with real
+evidence, retaining the same card and avoiding invented submissions or pass results.
+
+The user can open a prepared card and select **确认完成**, or drag it to **已结束**. Both actions
+confirm the same exact result. Separately recheck and release stopped execution's reservations
+under the normal cleanup rules. A manual decision cannot submit work, satisfy a technical check,
+release a running process, modify scope, or authorize work on another Board.
 
 Agents use the normal activation wrapper and coordination CLI, with no dashboard credential or viewer process dependency. An activation failure may include a bounded `diagnostic` (phase, operation, path category) and verified completed steps. A viewer failure is reported separately from recording or authority failures.
 
@@ -257,7 +273,8 @@ Kit installation does not install, enable or trust hooks. Never merge these sett
 
 ## Task synchronization CLI
 
-The Board already has a local JSON CLI; the browser is its read-only projection. After activation,
+The Board already has a local JSON CLI. The browser displays its records and can confirm a
+Lead-prepared result through the dedicated manual confirmation action. After activation,
 use the finite `sync-task` operation for routine teamwork updates instead of rerunning activation
 or manually assembling a sequence of low-level commands. Keep the existing raw operations for
 explicit lifecycle, submission, independent acceptance and maintenance actions.

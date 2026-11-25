@@ -493,12 +493,21 @@ dependency is introduced by these extensions.
 
 The installed activation wrapper defaults to record-only for normal activate and resume. Run the same safe coordination commands within the activation process so session writes no longer require an internal CLI child process or an HTTP service. Existing bindings, audit events, assignment rules and exact operation receipts remain the storage authority. Legacy panel and its service-only actions remain available when explicitly selected.
 
-A user starts the local dashboard with the installed task-board launcher and explicit project roots. It displays bound sessions from their existing databases on one loopback port. Opening the local URL sets up view access automatically using a same-origin request and an in-memory page capability. Other local programs are inside this trust boundary. Read-only routes return bounded lists and public task fields. The UI refreshes the selected session on revision events and refetches its snapshot after reconnection. Each snapshot is a short SQLite read. A missing, linked, inaccessible or invalid Board does not make other sessions unavailable. Record-only activation never calls the viewer to discover or authenticate a session.
+A user starts the local dashboard with the installed task-board launcher and explicit project roots. It displays bound sessions from their existing databases on one loopback port. Opening the local URL sets up access automatically using a same-origin request and an in-memory page capability. Other local programs are inside this trust boundary. Read routes return bounded lists and public task fields. The UI refreshes the selected session on revision events and refetches its snapshot after reconnection. Each snapshot is a short SQLite read. A missing, linked, inaccessible or invalid Board does not make other sessions unavailable. Record-only activation never calls the viewer to discover or authenticate a session.
 
 The standalone dashboard gives explicitly canceled tasks their own column. It uses the existing
 `canceled` state and displays the recorded reason and outstanding cleanup. Closed work and work
 awaiting verification keep their existing meanings. Reconciliation and cancellation remain
-Lead-authorized coordination operations, independent of the read-only dashboard.
+Lead-authorized coordination operations.
+
+The dashboard exposes a single write for manual confirmation. An authenticated Lead prepares a
+specific current submission only after its technical and required independent gates pass. The
+browser's confirmation is restricted to that task and revision in the selected registered Board.
+The service revalidates the exact submission and all acceptance gates in the write transaction,
+records the local human confirmation, and uses the ordinary accepted-result transition. The
+browser supplies neither Lead credentials nor acceptance evidence. Confirmation leaves resource
+cleanup with the existing owner and preserves the submission's actual executor. Legacy explicit
+manual-wait phases can appear in the manual column before preparation, with confirmation disabled.
 
 ### Legacy shared display service
 

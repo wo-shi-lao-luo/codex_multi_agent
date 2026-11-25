@@ -137,6 +137,7 @@ button:active:not(:disabled) { background: #dbe8ff; }
   background: var(--warning-bg);
   font-size: 14px;
 }
+.confirmation-notice { margin: 0 20px 12px; }
 
 .workspace-panel { min-width: 0; }
 .work-heading { padding: 16px 20px; }
@@ -147,7 +148,7 @@ button:active:not(:disabled) { background: #dbe8ff; }
 .empty { padding: 14px 20px 24px; color: var(--muted); }
 .task-board {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: start;
   gap: 12px;
   padding: 0 20px 20px;
@@ -157,6 +158,11 @@ button:active:not(:disabled) { background: #dbe8ff; }
   border: 1px solid var(--border);
   border-radius: 10px;
   background: #f5f6f8;
+}
+.task-board[data-confirmation-dragging] [data-confirmation-target] {
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+  background: var(--selected);
 }
 .column-heading {
   display: flex;
@@ -182,7 +188,11 @@ button:active:not(:disabled) { background: #dbe8ff; }
   border-radius: 8px;
   background: var(--surface);
   overflow-wrap: anywhere;
+  cursor: pointer;
 }
+.task:hover { border-color: #8ba5cc; }
+.task[draggable="true"] { cursor: grab; }
+.task[draggable="true"]:active { cursor: grabbing; }
 .task-heading {
   display: flex;
   flex-wrap: wrap;
@@ -215,7 +225,7 @@ button:active:not(:disabled) { background: #dbe8ff; }
 .task-checkpoint, .task-warning { font-size: 13px; overflow-wrap: anywhere; }
 .task-checkpoint { color: #34445a; }
 .task-warning { color: var(--warning); }
-.badge, .task-state {
+.task-state {
   display: inline-block;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -230,6 +240,7 @@ button:active:not(:disabled) { background: #dbe8ff; }
 .task-state.running { border-color: #cadbfc; background: var(--selected); color: #174b9b; }
 .task-state.blocked { border-color: #f5c5c0; background: var(--error-bg); color: var(--error); }
 .task-state.submitted { border-color: #ead5a8; background: var(--warning-bg); color: var(--warning); }
+.task-state.manual-confirmation { border-color: #acd1c6; background: #eef8f4; color: #19554a; }
 
 .task-detail {
   width: min(100% - 28px, 690px);
@@ -255,6 +266,27 @@ button:active:not(:disabled) { background: #dbe8ff; }
 }
 .detail-heading h2 { overflow-wrap: anywhere; }
 .detail-content { padding: 0 20px 20px; }
+.detail-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.confirmation-status {
+  flex: 1 1 210px;
+  color: var(--muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.confirm-task-button { border-color: var(--accent); background: var(--accent); color: white; }
+.confirm-task-button:hover:not(:disabled),
+.confirm-task-button:active:not(:disabled) { background: #124aab; color: white; }
 .detail-section { padding-top: 13px; }
 .detail-section + .detail-section { margin-top: 12px; border-top: 1px solid var(--border); }
 .detail-section p {
@@ -264,7 +296,11 @@ button:active:not(:disabled) { background: #dbe8ff; }
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1390px) {
+  .task-board { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1120px) {
   .task-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -285,5 +321,6 @@ button:active:not(:disabled) { background: #dbe8ff; }
   main.frame { padding-block: 16px 32px; }
   .work-heading, .task-board { padding-inline: 14px; }
   .work-heading { flex-wrap: wrap; gap: 4px; }
-  .detail-heading, .detail-content { padding-inline: 14px; }
+  .detail-heading, .detail-content, .detail-actions { padding-inline: 14px; }
+  .confirmation-notice { margin-inline: 14px; }
 }

@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Standalone, read-only session browser. The local service owns authentication and data. -->
+<!-- Standalone session browser with revision-bound manual task confirmation. -->
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -11,7 +11,7 @@
 <body>
   <header class="site-header">
     <div class="frame header-content">
-      <h1>任务看板 <span class="badge">只读</span></h1>
+      <h1>任务看板</h1>
       <div class="connection">
         <p id="connection" role="status">正在连接本地看板</p>
         <p id="sync-time" class="subtle" hidden></p>
@@ -40,6 +40,7 @@
           <p id="work-summary" class="subtle" hidden></p>
         </div>
         <p id="work-empty" class="empty">正在读取任务…</p>
+        <p id="work-confirmation-message" class="notice confirmation-notice" role="status" hidden></p>
         <div id="tasks" class="task-board" aria-label="任务看板" hidden></div>
       </section>
       <noscript>启用 JavaScript 后即可查看本地看板。</noscript>
@@ -48,9 +49,13 @@
   <dialog id="task-detail" class="task-detail" aria-labelledby="task-detail-title">
     <header class="detail-heading">
       <h2 id="task-detail-title"></h2>
-      <form method="dialog"><button type="submit" autofocus>关闭</button></form>
+      <form method="dialog"><button id="task-detail-close" type="submit" autofocus>关闭</button></form>
     </header>
     <div id="task-detail-content" class="detail-content"></div>
+    <footer id="task-confirmation" class="detail-actions" hidden>
+      <p id="task-confirmation-message" class="confirmation-status" role="status" hidden></p>
+      <button id="task-confirm-complete" class="confirm-task-button" type="button" hidden>确认完成</button>
+    </footer>
   </dialog>
 </body>
 </html>
