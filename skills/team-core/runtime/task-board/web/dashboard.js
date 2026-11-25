@@ -1,0 +1,577 @@
+/** View session snapshots and follow committed revisions from the local service. */
+'use strict';
+
+const elements = Object.fromEntries([
+  'connection', 'sync-time',
+  'session-list', 'group-mode', 'retry', 'catalog-warning', 'work', 'work-title', 'work-project',
+  'work-summary', 'work-empty', 'tasks', 'task-detail', 'task-detail-title', 'task-detail-content',
+].map(id => [id, document.getElementById(id)]));
+
+const stateNames = new Map([
+  ['planned', '计划'], ['open', '待分配'], ['ready', '就绪'], ['running', '进行中'], ['blocked', '阻塞'],
+  ['submitted', '待核验'], ['closed', '已结束'], ['ended', '已结束'],
+  ['canceled', '已放弃'], ['archived', '已归档'],
+]);
+const taskColumns = [
+  { id: 'waiting', title: '待开始', empty: '暂无待开始的任务' },
+  { id: 'active', title: '进行中', empty: '暂无进行中的任务' },
+  { id: 'ended', title: '已结束', empty: '暂无已结束的任务' },
+  { id: 'abandoned', title: '已放弃', empty: '暂无已放弃的任务' },
+];
+const columnForState = new Map([
+  ['running', 'active'], ['blocked', 'active'], ['submitted', 'active'],
+  ['closed', 'ended'], ['ended', 'ended'], ['archived', 'ended'], ['canceled', 'abandoned'],
+]);
+const roleNames = new Map([
+  ['lead', '主 Agent'], ['team-backend-engineer', '后端工程师'],
+  ['team-frontend-engineer', '前端工程师'], ['team-reviewer', '代码审查'],
+  ['team-tester', '测试工程师'], ['team-ai-tester', 'AI 测试'],
+  ['team-architect', '架构师'], ['team-ai-architect', 'AI 架构师'],
+  ['team-ai-engineer', 'AI 工程师'], ['team-database-specialist', '数据库专家'],
+  ['team-data-scientist', '数据科学家'], ['team-designer', '界面设计'],
+  ['team-explorer', '代码探索'], ['team-researcher', '信息收集'],
+  ['team-docs-maintainer', '文档维护'], ['team-code-maintainer', '代码整理'],
+  ['team-delivery-checker', '交付检查'],
+  ['team-ai-simulation-actor-basic', '基础模拟 Actor'],
+  ['team-ai-simulation-actor-advanced', '高级模拟 Actor'],
+]);
+const responsibilityLabels = new Map([
+  ['executor', '执行者'], ['submitter', '提交者'],
+  ['completed', '完成者'], ['historical', '历史完成人'],
+]);
+const submissionLabels = new Map([
+  ['current', '当前待核验提交'], ['accepted', '已验收提交'],
+  ['historical', '历史提交'], ['invalid', '历史验收提交（结果已失效）'],
+]);
+const questionLabels = new Map([
+  ['pending', '待答复'], ['answered', '已答复，尚未应用'], ['applied', '已应用'],
+  ['stale', '已过期'], ['approval-pending', '审批待决'],
+  ['stale-approval-pending', '审批待决 · 原问询已过期'],
+]);
+const timeFormat = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'medium' });
+const lastSessionKey = 'task-board:last-session';
+const groupModeKey = 'task-board:group-by-activity';
+const state = {
+  catalog: new Map(),
+  catalogSignature: null,
+  catalogRequest: null,
+  catalogTimer: null,
+  selected: null,
+  lastSessionId: readPreference(lastSessionKey),
+  groupByActivity: readPreference(groupModeKey) === 'true',
+  viewCapability: null,
+  viewRequest: null,
+};
+
+/** Persist only presentation preferences. A private browser can still use the current page. */
+function readPreference(key) {
+  try { return window.localStorage.getItem(key); } catch { return null; }
+}
+
+function savePreference(key, value) {
+  try { window.localStorage.setItem(key, value); } catch { /* Keep in-memory state. */ }
+}
+
+/** Fresh tabs and restarted servers obtain a page capability automatically. */
+async function getViewCapability() {
+  if (state.viewCapability) return state.viewCapability;
+  if (!state.viewRequest) {
+    state.viewRequest = (async () => {
+      const response = await fetch('/api/view', {
+        method: 'POST',
+        headers: { 'X-Task-Board-Bootstrap': '1' },
+        signal: AbortSignal.timeout(8000),
+      });
+      requireSuccess(response);
+      const capability = response.headers.get('X-Task-Board-View');
+      if (!capability) throw new Error('Dashboard view capability missing.');
+      state.viewCapability = capability;
+      return capability;
+    })().finally(() => { state.viewRequest = null; });
+  }
+  return state.viewRequest;
+}
+
+function node(tag, text, className) {
+  const element = document.createElement(tag);
+  element.textContent = text;
+  if (className) element.className = className;
+  return element;
+}
+
+function formatTime(value) {
+  if (value == null || value === '') return '';
+  const time = new Date(value);
+  return Number.isNaN(time.getTime()) ? '' : timeFormat.format(time);
+}
+
+function showText(id, value) {
+  elements[id].textContent = value;
+  elements[id].hidden = !value;
+}
+
+function status(message) {
+  if (elements.connection.textContent !== message) elements.connection.textContent = message;
+}
+
+function refreshStatus(view) {
+  if (view.error) status(view.lastSync ? '更新暂不可用 · 正在重试' : '任务暂时无法读取');
+  else if (!view.lastSync) status('正在同步任务');
+  else status(view.live ? '实时更新' : '实时连接中断 · 正在重连');
+  showText('sync-time', view.lastSync ? `上次同步 ${formatTime(view.lastSync)}` : '');
+}
+
+/** Preserve a visible, timestamped snapshot on temporary connection failures. */
+function showCatalogWarning(text) {
+  if (elements['catalog-warning'].textContent !== text) showText('catalog-warning', text);
+}
+
+async function callBoard(url, signal) {
+  const request = capability => fetch(url, {
+    cache: 'no-store',
+    signal,
+    headers: { 'X-Task-Board-View': capability },
+  });
+  const used = await getViewCapability();
+  const response = await request(used);
+  if (response.status !== 401) return response;
+  if (state.viewCapability === used) state.viewCapability = null;
+  return request(await getViewCapability());
+}
+
+function requireSuccess(response) {
+  if (!response.ok) {
+    throw Object.assign(new Error('Dashboard request failed.'), { status: response.status });
+  }
+}
+
+function sessionUrl(kind, id) {
+  return `/api/${kind}?${new URLSearchParams({ session: id })}`;
+}
+
+function stopSelected() {
+  if (!state.selected) return false;
+  const view = state.selected;
+  state.selected = null;
+  const dialog = elements['task-detail'];
+  const wasOpen = dialog.open;
+  if (wasOpen) dialog.close();
+  clearTimeout(view.streamRetry);
+  view.streamRequest?.abort();
+  view.snapshotRequest?.abort();
+  return wasOpen;
+}
+
+function roleName(role) {
+  return roleNames.get(role) ?? role ?? '角色未记录';
+}
+
+function personName(person) {
+  return person ? [roleName(person.role), person.id].filter(Boolean).join(' · ') : '未记录';
+}
+
+function candidatesText(task) {
+  const roles = new Set(task.eligibleRoles ?? []);
+  if (task.allowLeadInline) roles.add('lead');
+  return `可承接：${[...roles].map(roleName).join(' / ') || '角色未指定'}`;
+}
+
+function responsibilityText(task) {
+  const { kind, person } = task.responsibility ?? {};
+  if (kind === 'canceled') return '已放弃 · 无完成者';
+  const label = responsibilityLabels.get(kind);
+  return label ? `${label}：${personName(person)}` : '未分配实例';
+}
+
+function showTaskDetail(task) {
+  if (!state.selected) return;
+  state.selected.detailTaskId = task.id;
+  renderTaskDetail(task);
+  const dialog = elements['task-detail'];
+  if (!dialog.open) dialog.showModal();
+}
+
+function renderTaskCard(task) {
+  const stateLabel = stateNames.get(task.state) ?? '状态未知';
+  const abandoned = task.state === 'canceled';
+  const item = node('li', '', 'task');
+  const header = node('div', '', 'task-heading');
+  const badge = node('span', stateLabel, 'task-state');
+  if (stateNames.has(task.state)) badge.classList.add(task.state);
+  const title = node('button', task.title || '未命名任务', 'task-title-button');
+  title.type = 'button';
+  title.dataset.taskId = task.id;
+  title.setAttribute('aria-haspopup', 'dialog');
+  title.addEventListener('click', () => showTaskDetail(task));
+  const heading = node('h4', '', 'task-title');
+  heading.append(title);
+  header.append(heading, badge);
+  item.append(header);
+
+  item.append(node('p', candidatesText(task), 'subtle task-line'),
+    node('p', responsibilityText(task), 'subtle task-line'));
+  const phase = stateNames.get(task.phase) ?? task.phase;
+  if (!abandoned && phase && phase !== stateLabel) item.append(node('p', `阶段 · ${phase}`, 'subtle task-phase'));
+  if (task.state === 'open' && task.readinessReason) {
+    item.append(node('p', task.readiness === 'ready' ? '就绪条件已满足' : task.readinessReason,
+      'subtle task-line'));
+  }
+  if (!abandoned) item.append(node('p', task.progress || '尚无实际进展报告', 'task-progress'),
+    node('p', `下一检查点：${task.nextCheckpoint || '尚未报告'}`, 'task-checkpoint'));
+  const flags = [
+    !abandoned && task.blocker && `阻塞：${task.blocker}`,
+    abandoned && task.cancellationReason && `放弃说明：${task.cancellationReason}`,
+    task.dependencyCount > 0 && `依赖 ${task.dependencyCount}`,
+    task.pendingQuestionCount > 0 && `待处理问询 ${task.pendingQuestionCount}`,
+    task.cleanupPending && '资源待安全收尾',
+    task.needsReconcile && '待协调确认',
+    task.state === 'closed' && task.resultValid === false && '历史结果已失效',
+  ].filter(Boolean);
+  if (flags.length) item.append(node('p', flags.join(' · '), 'task-warning'));
+  const lastReport = formatTime(task.lastReportAt);
+  const updated = formatTime(task.updatedAt);
+  if (lastReport) item.append(node('p', `最近报告 ${lastReport}`, 'task-time'));
+  if (updated && updated !== lastReport) item.append(node('p', `最近更新 ${updated}`, 'task-time'));
+  return item;
+}
+
+function detailSection(title, entries) {
+  const values = entries.filter(Boolean);
+  if (!values.length) return null;
+  const section = node('section', '', 'detail-section');
+  section.append(node('h3', title), ...values.map(value => node('p', value)));
+  return section;
+}
+
+function questionText(question) {
+  return [
+    questionLabels.get(question.status) ?? question.status, question.question, question.step, question.impact,
+    ...(question.options ?? []), question.recommendation && `建议：${question.recommendation}`,
+    ...(question.checkedRefs ?? []),
+    ...(question.answers ?? []).flatMap(answer => [
+      answer.text && `答复：${answer.text}`, answer.decision,
+      ...(answer.evidenceRefs ?? []),
+    ]),
+  ].filter(Boolean).join('\n');
+}
+
+function renderTaskDetail(task) {
+  const detail = task.details ?? {};
+  elements['task-detail-title'].textContent = task.title || '未命名任务';
+  const result = task.resultValid === true ? '当前结果有效' :
+    task.state === 'closed' && task.resultValid === false ? '历史已关闭 · 结果已失效' : '';
+  const abandoned = task.state === 'canceled';
+  const sections = [
+    detailSection('角色与执行者', [candidatesText(task), responsibilityText(task), ...(detail.responsibilities ?? [])]),
+    detailSection('任务说明', [detail.outcome]),
+    detailSection('放弃记录', [task.cancellationReason,
+      abandoned && task.cleanupPending && '资源待安全收尾']),
+    detailSection(abandoned ? '历史进展' : '执行进展', [task.progress,
+      task.nextCheckpoint && `${abandoned ? '放弃前的检查点' : '下一检查点'}：${task.nextCheckpoint}`,
+      task.blocker && `${abandoned ? '当时的阻塞' : '阻塞'}：${task.blocker}`]),
+    detailSection('执行与交接记录', (detail.executionHistory ?? []).map(record =>
+      `${personName(record.person)}（${record.active ? '当前分配' : '分配已结束'}）`)),
+    detailSection('来源与验收引用', [
+      ...(detail.sourceRefs ?? []).map(reference => `来源：${reference}`),
+      ...(detail.acceptanceRefs ?? []).map(reference => `验收：${reference}`),
+    ]),
+    detailSection('结果与提交', [result, ...(detail.acceptanceEvidence ?? []),
+      ...(detail.submissions ?? []).map(submission => [
+        `${submissionLabels.get(submission.kind) ?? '提交'} · ${personName(submission.person)}`,
+        ...(submission.evidenceRefs ?? []),
+      ].join('\n'))]),
+    detailSection('依赖与资源', [
+      ...(detail.dependencies ?? []).map(dependency => `依赖：${dependency.title || '名称未记录'}`),
+      ...(detail.resources ?? []).map(resource => `资源：${resource.key}${resource.mode ? `（${resource.mode}）` : ''}`),
+      !abandoned && task.cleanupPending && '资源待安全收尾', task.needsReconcile && '任务待协调确认',
+    ]),
+    detailSection('问询与答复', (detail.questions ?? []).map(questionText)),
+  ];
+  elements['task-detail-content'].replaceChildren(...sections.filter(Boolean));
+}
+
+function restoreCardFocus(id) {
+  if (!id) return;
+  const button = [...elements.tasks.querySelectorAll('[data-task-id]')]
+    .find(item => item.dataset.taskId === id);
+  (button ?? elements['work-title']).focus({ preventScroll: true });
+}
+
+function renderTasks(tasks) {
+  const focused = document.activeElement?.dataset?.taskId;
+  const grouped = new Map(taskColumns.map(({ id }) => [id, []]));
+  for (const task of tasks) grouped.get(columnForState.get(task.state) ?? 'waiting').push(task);
+  elements.tasks.replaceChildren(...taskColumns.map(({ id, title, empty }) => {
+    const items = grouped.get(id);
+    const column = node('section', '', 'task-column');
+    const heading = node('h3', title, 'column-title');
+    heading.id = `task-column-${id}`;
+    column.setAttribute('aria-labelledby', heading.id);
+    const header = node('div', '', 'column-heading');
+    header.append(heading, node('span', String(items.length), 'column-count'));
+    const list = node('ul', '', 'column-tasks');
+    list.append(...items.map(renderTaskCard));
+    column.append(header, items.length ? list : node('p', empty, 'column-empty'));
+    return column;
+  }));
+  elements.tasks.hidden = false;
+  showText('work-empty', '');
+  const running = tasks.filter(task => task.state === 'running').length;
+  showText('work-summary', `${tasks.length} 项任务 · ${running} 项进行中`);
+  const detailId = state.selected?.detailTaskId;
+  if (detailId) {
+    const current = tasks.find(task => task.id === detailId);
+    if (current) renderTaskDetail(current);
+    else elements['task-detail'].close();
+  } else restoreCardFocus(focused);
+}
+
+function showSessionHeading(session) {
+  elements['work-title'].textContent = session.sessionName;
+  showText('work-project', session.projectName);
+}
+
+/** Replace selection atomically. Aborted or late requests cannot paint the next session. */
+function selectSession(id) {
+  const closedDetails = stopSelected();
+  showText('sync-time', '');
+  elements.work.hidden = false;
+  elements.tasks.replaceChildren();
+  elements.tasks.hidden = true;
+  showText('work-summary', '');
+
+  const session = state.catalog.get(id);
+  if (!session) {
+    elements['work-title'].textContent = '任务';
+    showText('work-project', '');
+    status('已连接看板');
+    showText('work-empty', state.catalog.size ? '请从左侧选择会话。' : '暂无可查看的会话。');
+    renderSidebar();
+    if (closedDetails) elements['work-title'].focus({ preventScroll: true });
+    return;
+  }
+
+  const view = { id, live: false, lastSync: null, error: false, refreshPending: false };
+  state.selected = view;
+  state.lastSessionId = id;
+  savePreference(lastSessionKey, id);
+  showSessionHeading(session);
+  renderSidebar();
+  showText('work-empty', '正在读取任务…');
+  refreshStatus(view);
+  void refreshSnapshot(view);
+  void followRevisions(view);
+}
+
+function sidebarProjects(sessions, headingTag, buttons) {
+  const groups = new Map();
+  for (const session of sessions) {
+    if (!groups.has(session.projectKey)) {
+      const project = node('section', '', 'sidebar-project');
+      const list = node('ul', '', 'session-rows');
+      project.append(node(headingTag, session.projectName, 'sidebar-project-name'), list);
+      groups.set(session.projectKey, { project, list });
+    }
+    const row = node('li', '', 'session-row');
+    const button = node('button', '', 'session-link');
+    button.type = 'button';
+    button.dataset.sessionId = session.id;
+    if (session.id === state.selected?.id) button.setAttribute('aria-current', 'true');
+    button.append(node('span', session.sessionName, 'session-label'));
+  if (session.hasRunningTasks) {
+    const activity = node('span', '进行中', 'session-activity');
+    activity.title = '此会话有已开始且仍为进行中的看板任务';
+    button.append(activity);
+  }
+    button.addEventListener('click', () => {
+      if (state.selected?.id !== session.id) selectSession(session.id);
+    });
+    buttons.set(session.id, button);
+    row.append(button);
+    groups.get(session.projectKey).list.append(row);
+  }
+  return [...groups.values()].map(({ project }) => project);
+}
+
+/** Keep the sidebar stable during background refreshes, including keyboard focus. */
+function renderSidebar() {
+  const sessions = [...state.catalog.values()];
+  const signature = JSON.stringify([state.groupByActivity, state.selected?.id,
+    ...sessions.map(({ id, projectKey, projectName, sessionName, hasRunningTasks }) =>
+      [id, projectKey, projectName, sessionName, Boolean(hasRunningTasks)])]);
+  if (signature === state.catalogSignature) return;
+  state.catalogSignature = signature;
+  elements['group-mode'].setAttribute('aria-pressed', String(state.groupByActivity));
+  elements['group-mode'].disabled = !sessions.length;
+  const focused = document.activeElement?.dataset?.sessionId;
+  const buttons = new Map();
+  if (!sessions.length) {
+    elements['session-list'].replaceChildren(node('p', '暂无可查看的会话。', 'catalog-empty'));
+  } else if (state.groupByActivity) {
+    elements['session-list'].replaceChildren(...[true, false].map(active => {
+      const group = node('section', '', 'activity-group');
+      const members = sessions.filter(session => Boolean(session.hasRunningTasks) === active);
+      group.append(node('h3', active ? '进行中' : '无进行中任务', 'activity-heading'));
+      group.append(...(members.length ? sidebarProjects(members, 'h4', buttons)
+        : [node('p', '暂无会话', 'catalog-empty')]));
+      return group;
+    }));
+  } else {
+    elements['session-list'].replaceChildren(...sidebarProjects(sessions, 'h3', buttons));
+  }
+  buttons.get(focused)?.focus({ preventScroll: true });
+}
+
+function renderCatalog(sessions) {
+  const previousId = state.selected?.id ?? state.lastSessionId;
+  state.catalog = new Map(sessions.map(session => [session.id, session]));
+  const session = previousId ? state.catalog.get(previousId) : sessions[0];
+  if (!state.selected || session?.id !== state.selected.id) selectSession(session?.id);
+  else {
+    showSessionHeading(session);
+    renderSidebar();
+  }
+  return Boolean(previousId && !session);
+}
+
+/** Refresh session discovery without overlapping requests or destroying an existing view on error. */
+async function refreshCatalog() {
+  if (state.catalogRequest) return;
+  clearTimeout(state.catalogTimer);
+  const request = new AbortController();
+  state.catalogRequest = request;
+  const timeout = setTimeout(() => request.abort(), 8000);
+  try {
+    const response = await callBoard('/api/sessions', request.signal);
+    requireSuccess(response);
+    const { sessions, unavailable } = await response.json();
+    if (request !== state.catalogRequest) return;
+    const missing = renderCatalog(sessions);
+    const warnings = [];
+    if (missing) warnings.push('上次查看的会话暂不可用。');
+    if (unavailable) warnings.push(`${unavailable} 项会话来源暂时无法读取，系统会自动重试。`);
+    showCatalogWarning(warnings.join(' '));
+  } catch {
+    if (request !== state.catalogRequest) return;
+    if (!state.selected) status('会话列表暂不可用');
+    showCatalogWarning('无法更新会话列表。系统会自动重试，也可以手动重新连接。');
+  } finally {
+    clearTimeout(timeout);
+    if (state.catalogRequest === request) {
+      state.catalogRequest = null;
+      state.catalogTimer = setTimeout(refreshCatalog, 4000);
+    }
+  }
+}
+
+/** Coalesce revision notifications during a request into one follow-up snapshot read. */
+async function refreshSnapshot(view) {
+  if (view !== state.selected) return;
+  if (view.snapshotRequest) {
+    view.refreshPending = true;
+    return;
+  }
+  const request = new AbortController();
+  view.snapshotRequest = request;
+  const timeout = setTimeout(() => request.abort(), 8000);
+  try {
+    const response = await callBoard(sessionUrl('snapshot', view.id), request.signal);
+    requireSuccess(response);
+    const { tasks } = await response.json();
+    if (view !== state.selected) return;
+    view.lastSync = Date.now();
+    view.error = false;
+    renderTasks(tasks);
+  } catch {
+    if (view !== state.selected) return;
+    view.error = true;
+    if (!view.lastSync) showText('work-empty', '暂时无法读取任务。可重新连接或切换会话。');
+  } finally {
+    clearTimeout(timeout);
+    view.snapshotRequest = null;
+    if (view === state.selected) {
+      refreshStatus(view);
+      if (view.refreshPending) {
+        view.refreshPending = false;
+        void refreshSnapshot(view);
+      }
+    }
+  }
+}
+
+/** Read complete revision frames. Fetch allows the required private view header. */
+async function followRevisions(view) {
+  if (view !== state.selected || view.streamRequest) return;
+  clearTimeout(view.streamRetry);
+  const request = new AbortController();
+  view.streamRequest = request;
+  const connectTimeout = setTimeout(() => request.abort(), 8000);
+  try {
+    const response = await callBoard(sessionUrl('events', view.id), request.signal);
+    requireSuccess(response);
+    clearTimeout(connectTimeout);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let pending = '';
+    try {
+      while (view === state.selected && view.streamRequest === request) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        pending += decoder.decode(value, { stream: true });
+        let endOfFrame = pending.indexOf('\n\n');
+        while (endOfFrame !== -1) {
+          const frame = pending.slice(0, endOfFrame);
+          pending = pending.slice(endOfFrame + 2);
+          if (frame.startsWith('event: revision\n')) {
+            view.live = true;
+            void refreshSnapshot(view);
+          }
+          endOfFrame = pending.indexOf('\n\n');
+        }
+        if (pending.length > 16384) throw new Error('Dashboard stream frame too large.');
+      }
+    } finally {
+      await reader.cancel().catch(() => {});
+      reader.releaseLock();
+    }
+  } catch {
+    // Keep the last observed snapshot visible while the stream reconnects.
+  } finally {
+    clearTimeout(connectTimeout);
+    if (view === state.selected && view.streamRequest === request) {
+      view.streamRequest = null;
+      view.live = false;
+      refreshStatus(view);
+      view.streamRetry = setTimeout(() => void followRevisions(view), 2000);
+    }
+  }
+}
+
+elements['group-mode'].addEventListener('click', () => {
+  state.groupByActivity = !state.groupByActivity;
+  savePreference(groupModeKey, String(state.groupByActivity));
+  renderSidebar();
+});
+elements['task-detail'].addEventListener('close', () => {
+  if (!state.selected || elements['task-detail'].open) return;
+  const id = state.selected.detailTaskId;
+  state.selected.detailTaskId = null;
+  restoreCardFocus(id);
+});
+elements.retry.addEventListener('click', () => {
+  void refreshCatalog();
+  const view = state.selected;
+  if (!view) return;
+  view.streamRequest?.abort();
+  view.streamRequest = null;
+  view.live = false;
+  refreshStatus(view);
+  void followRevisions(view);
+  void refreshSnapshot(view);
+});
+
+// Remove the obsolete fragment from old local dashboard shortcuts.
+if (window.location.hash.startsWith('#code=')) {
+  window.history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+void refreshCatalog();

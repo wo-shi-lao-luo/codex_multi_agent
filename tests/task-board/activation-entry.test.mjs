@@ -5,6 +5,7 @@ import { spawnSync, spawn } from 'node:child_process';
 import { mkdtemp, mkdir, rm, readFile, writeFile, cp } from 'node:fs/promises';
 import { resolve, join, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
+import { pathToFileURL } from 'node:url';
 import { invoke, secret } from './helpers.mjs';
 
 const entry = resolve('packages/task-board/src/cli/activation.mjs');
@@ -42,9 +43,9 @@ async function fixture(t) {
     await closeFixtureSharedRuntime(join(root, 'hub'));
     await rm(root, { recursive: true, force: true });
   });
-  function run(patch = {}, nodeArgs = []) {
+  function run(patch = {}, nodeArgs = [], flags = []) {
     const input = { ...request, ...patch };
-    const child = spawnSync(process.execPath, [...nodeArgs, entry, '--project-root', root, '--stdin'], {
+    const child = spawnSync(process.execPath, [...nodeArgs, entry, '--project-root', root, '--stdin', ...flags], {
       input: JSON.stringify(input), encoding: 'utf8', timeout: 20000,
       env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(root), CODEX_BOARD_SERVICE_HOME: join(root, 'hub') },
     });
@@ -59,6 +60,51 @@ async function fixture(t) {
   }
   return { root, request, board, sessionKey, run, track: value => { service = value; } };
 }
+
+test('ACTIVATION.standaloneRecordingDoesNotSpawnOrContactViewer', async t => {
+  const f = await fixture(t);
+  const blockChild = join(f.root, 'deny-child.mjs');
+  await writeFile(blockChild, `import child from 'node:child_process';
+    import { syncBuiltinESMExports } from 'node:module';
+    child.spawn = () => { throw Object.assign(Error('Fixture denies async children'), { code: 'EPERM' }); };
+    syncBuiltinESMExports();`);
+  const first = f.run({}, ['--import', pathToFileURL(blockChild).href], ['--record-only']).result;
+  assert.equal(first.state, 'enabled', JSON.stringify(first));
+  assert.equal(first.activationScope, 'record-only');
+  assert.deepEqual(first.presentation, { status: 'external' });
+  assert.deepEqual(first.completed, { boardVerified: true, initialReportVerified: true });
+  assert.equal(first.service, undefined);
+  await assert.rejects(readFile(join(f.root, 'hub', 'instance.json')), { code: 'ENOENT' });
+  const resume = f.run({ action: 'resume' }, ['--import', pathToFileURL(blockChild).href], ['--record-only']).result;
+  assert.equal(resume.state, 'enabled');
+  const snapshot = await invoke(f.root, f.board, 'inspect', { actorId: 'lead',
+    leadToken: f.request.leadToken }, { sessionKey: f.sessionKey });
+  assert.equal(snapshot.code, 0);
+  assert.equal(snapshot.reply.result.tasks.length, 1);
+  assert.equal(snapshot.reply.result.tasks[0].state, 'running');
+  const reject = f.run({ action: 'resume', leadToken: secret() }, [], ['--record-only']).result;
+  assert.equal(reject.reasonCode, 'UNAUTHORIZED');
+  assert.deepEqual(reject.diagnostic, { phase: 'record', operation: 'inspect', pathCategory: 'project-board' });
+  assert.deepEqual(reject.completed, { boardVerified: false, initialReportVerified: false });
+});
+
+test('ACTIVATION.reportsDurableRecordWhenActivationLockCleanupIsDenied', async t => {
+  const f = await fixture(t);
+  const hook = join(f.root, 'deny-lock-release.mjs');
+  await writeFile(hook, `import fs from 'node:fs';
+    const unlink = fs.unlinkSync;
+    fs.unlinkSync = file => {
+      if (String(file).endsWith('activation.lock')) {
+        throw Object.assign(Error('Fixture denies lock removal'), { code: 'EPERM' });
+      }
+      return unlink(file);
+    };`);
+  const result = f.run({}, ['--import', pathToFileURL(hook).href], ['--record-only']).result;
+  assert.equal(result.state, 'enabled');
+  assert.equal(result.completed.initialReportVerified, true);
+  assert.deepEqual(result.cleanup, { status: 'pending', reasonCode: 'EPERM',
+    diagnostic: { phase: 'record', operation: 'release-activation-lock', pathCategory: 'project-journal' } });
+});
 
 // A ready runtime must proceed beyond help/doctor into a real visible task and owned service.
 test('ACTIVATION.freshCreatesTruthfulInlineCard', async t => {
@@ -141,6 +187,13 @@ test('ACTIVATION.scopeConflictReusesServiceAndResumesAfterSafeRelease', async t 
 
   const newTask = { ...firstTask, id: 'work-two', title: 'Overlapping work' };
   const request = { task: newTask, claimToken: secret() };
+  const recordOnly = f.run(request, [], ['--record-only']).result;
+  assert.equal(recordOnly.state, 'enabled', JSON.stringify(recordOnly));
+  assert.equal(recordOnly.activationScope, 'record-only');
+  assert.equal(recordOnly.taskExecution, 'not-resumed');
+  assert.equal(recordOnly.reasonCode, 'SCOPE_CONFLICT');
+  assert.equal(recordOnly.completed.initialReportVerified, false);
+  assert.deepEqual(recordOnly.presentation, { status: 'external' });
   const blocked = f.run(request).result;
   assert.equal(blocked.state, 'enabled', JSON.stringify(blocked));
   assert.equal(blocked.activationScope, 'presentation-only');

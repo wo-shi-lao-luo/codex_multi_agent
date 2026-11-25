@@ -1,6 +1,6 @@
 ---
 name: team
-description: Route engineering design, plans, implementation, diagnosis, reviews, local Team feedback, or explicit $team invocations. Use for repository-backed planning before coding, explicit feedback on related Team work, and requests to enable, disable, or review local feedback. Ordinary explanations and open-ended brainstorming remain direct.
+description: Route engineering design, plans, implementation, diagnosis, reviews, local Team feedback, or explicit $team invocations. Use for repository-backed planning before coding, explicit feedback on related Team work, and requests to enable, disable, route, receive, or review Team feedback. Ordinary explanations and open-ended brainstorming remain direct.
 ---
 
 # Unified Team entry
@@ -13,7 +13,7 @@ Read [workflow routing](../team-core/references/workflow-routing.md) for mode se
 
 At the start, briefly say which path fits, why, and the current authorization boundary. Reassess at a [discussion-to-planning transition](../team-core/references/workflow-routing.md#discussion-to-planning-checkpoint) before producing a formal engineering design or plan; do not silently keep the previous brainstorming workflow. This is informational, not a request to approve an already-approved design. Ask only when a material choice, authority, or required evidence is missing. A low-risk factual consultation can be answered directly without delegation, a full workflow lifecycle, or a feedback record.
 
-Use [local user feedback capture and review](../team-core/references/feedback-recording.md#capture-explicit-user-feedback) for explicit feedback on the current or a directly related completed Team task, and for explicit requests to enable, disable, or review Team feedback. Handle feedback-store-only requests directly without activating the Board or starting an engineering workflow. Capture also applies to the light path. Match the user's own feedback message to the Team task before checking capture.
+Use [user feedback capture and review](../team-core/references/feedback-recording.md#capture-explicit-user-feedback) for explicit feedback on the current or a directly related completed Team task. Use the [optional receiver chat](../team-core/references/feedback-recording.md#optional-receiver-chat) for explicit receiver setup and verified inbound deliveries. Handle feedback-store-only requests directly without activating the Board or starting an engineering workflow. Capture also applies to the light path. Match the user's own feedback message to the Team task before checking capture.
 
 The route may select one primary workflow or compose relevant stages when the request and evidence warrant them. For a combined request to diagnose and fix, use the repair guard's combined diagnostic/repair limits and preserve one Work contract, packet, and issue history; do not stack separate budgets. An ordinary request to fix an unknown-cause bug does not by itself grant the six-round debug allocation, and prior failures do not reset. Reuse accepted decisions, records, packets, and repair history; never repeat gates already satisfied. A debug investigation does not authorize a repair. A review phase does not authorize edits. Implementation follows the shared [risk-proportional light path](../team-core/references/execution-contract.md#risk-proportional-light-path) when eligible; otherwise retain its standard authorization, named-role, testing, documentation, TDD, review, and handoff requirements.
 
@@ -29,7 +29,7 @@ At execution start, resume, or a transition from discussion to execution, call t
 
 Follow its [complete request preparation](../team-core/references/task-coordination.md#preparing-a-complete-request) sequence: resolve native identity, prepare or recover the private request, activate with `-RequestPath`, and inspect the actual state. Correctable missing fields must not become a standing degradation or disappear into a backlog without a user-facing handoff.
 
-For Board opening or reopening, apply [target-session panel verification](../team-core/references/task-coordination.md#target-session-panel-verification): explicitly target the bound main chat, inspect its actual right-side view and connection, and check for duplicate Board tabs. Host acknowledgment alone does not establish these outcomes; retain unavailable observations as unknown.
+Normal Board activation records the work for an external dashboard. For an explicit legacy Board panel request, apply [target-session panel verification](../team-core/references/task-coordination.md#target-session-panel-verification): explicitly target the bound main chat, inspect its actual right-side view and connection, and check for duplicate Board tabs. Host acknowledgment alone does not establish these outcomes; retain unavailable observations as unknown.
 
 ## Output contract
 

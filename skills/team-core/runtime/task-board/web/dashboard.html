@@ -1,0 +1,56 @@
+<!doctype html>
+<!-- Standalone, read-only session browser. The local service owns authentication and data. -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>任务看板</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <script src="/dashboard.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="frame header-content">
+      <h1>任务看板 <span class="badge">只读</span></h1>
+      <div class="connection">
+        <p id="connection" role="status">正在连接本地看板</p>
+        <p id="sync-time" class="subtle" hidden></p>
+      </div>
+    </div>
+  </header>
+  <main class="frame">
+    <aside id="catalog" class="panel catalog" aria-label="项目与会话">
+      <div class="catalog-heading">
+        <h2>项目与会话</h2>
+        <button id="retry" type="button">重新连接</button>
+      </div>
+      <button id="group-mode" type="button" aria-pressed="false">按任务状态分组</button>
+      <p id="catalog-warning" class="notice" role="status" hidden></p>
+      <nav id="session-list" class="session-list" aria-label="会话列表" aria-description="进行中表示看板中有已开始的任务。">
+        <p class="catalog-empty">正在读取会话…</p>
+      </nav>
+    </aside>
+    <div class="workspace-panel">
+      <section id="work" class="panel work" aria-labelledby="work-title" hidden>
+        <div class="work-heading">
+          <div>
+            <h2 id="work-title" tabindex="-1">任务</h2>
+            <p id="work-project" class="subtle" hidden></p>
+          </div>
+          <p id="work-summary" class="subtle" hidden></p>
+        </div>
+        <p id="work-empty" class="empty">正在读取任务…</p>
+        <div id="tasks" class="task-board" aria-label="任务看板" hidden></div>
+      </section>
+      <noscript>启用 JavaScript 后即可查看本地看板。</noscript>
+    </div>
+  </main>
+  <dialog id="task-detail" class="task-detail" aria-labelledby="task-detail-title">
+    <header class="detail-heading">
+      <h2 id="task-detail-title"></h2>
+      <form method="dialog"><button type="submit" autofocus>关闭</button></form>
+    </header>
+    <div id="task-detail-content" class="detail-content"></div>
+  </dialog>
+</body>
+</html>

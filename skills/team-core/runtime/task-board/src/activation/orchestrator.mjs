@@ -13,6 +13,7 @@ import { serviceStatus, serviceOpen, stopService } from '../server/control.mjs';
 import { attachSharedService } from './shared-service.mjs';
 import { sharedHome } from './shared-registry.mjs';
 import { callCli } from './transport.mjs';
+import { executeBoardCommand } from '../cli/board-command.mjs';
 import { normalizeScope } from '../domain/workspace-scope.mjs';
 import { requestIssues, invalidRequest } from './request.mjs';
 import { probeServiceTransport, verifyRecoveryCredential } from './service-recovery.mjs';
@@ -90,11 +91,23 @@ function launchService(input) {
  * Recovery requires a reconciled refused service or an OS-confirmed absent owned PID.
  * Uncertain launch is never retried.
  */
-export async function activate(projectRoot, request, { serviceMode = 'legacy', sharedRuntimeHome } = {}) {
+export async function activate(projectRoot, request, options = {}) {
   let release;
+  const result = await runActivation(projectRoot, request, options, callback => { release = callback; });
+  try { release?.(); }
+  catch (error) {
+    result.cleanup = { status: 'pending', reasonCode: error.code ?? 'IO_ERROR',
+      diagnostic: { phase: 'record', operation: 'release-activation-lock', pathCategory: 'project-journal' } };
+  }
+  return result;
+}
+
+async function runActivation(projectRoot, request, { serviceMode = 'legacy', sharedRuntimeHome }, setRelease) {
   let selected;
   let retainedService;
   let scopeConflict = false;
+  let diagnostic = { phase: 'prepare', operation: 'verify-request', pathCategory: 'none' };
+  const completed = { boardVerified: false, initialReportVerified: false };
   try {
     const issues = requestIssues(request);
     if (issues.missingFields.length || issues.invalidFields.length) return invalidRequest(issues);
@@ -108,6 +121,7 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
     const database = path.join(directory, 'board.sqlite');
     const journalPath = inspectPath(path.join(directory, 'activation.json'));
     const lockPath = inspectPath(path.join(directory, 'activation.lock'));
+    diagnostic = { phase: 'prepare', operation: 'probe-runtime', pathCategory: 'none' };
     const runtime = await probeRuntime();
     if (!runtime.available) fail(runtime.reasonCode);
     const credentials = ['record-open-result', 'recover-service', 'reopen-service', 'migrate-service'].includes(request.action)
@@ -126,8 +140,14 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
         || !request.task.sourceRefs?.length || !request.task.acceptanceRefs?.length)) {
       fail('EXECUTION_APPROVAL_REQUIRED');
     }
-    const call = (operation, input) => callCli(root, selected.boardPath, selected.sessionKey,
-      operation, { actorId: request.actorId, leadToken: request.leadToken, ...input });
+    const call = async (operation, input) => {
+      diagnostic = { phase: 'record', operation, pathCategory: 'project-board' };
+      const payload = { actorId: request.actorId, leadToken: request.leadToken, ...input };
+      if (serviceMode !== 'record') return callCli(root, selected.boardPath, selected.sessionKey, operation, payload);
+      const reply = await executeBoardCommand(location, operation, payload, { cwd: root });
+      if (!reply.ok) fail(reply.error?.code ?? 'IO_ERROR');
+      return reply;
+    };
     // Authenticate existing data before touching ignore policy, journal or lock files.
     let observed;
     if (fs.existsSync(database)) observed = await call('inspect', {});
@@ -135,11 +155,17 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
         && (!observed || !fs.existsSync(journalPath))) {
       fail('ACTIVATION_HANDOFF_REQUIRED');
     }
+    if (observed) completed.boardVerified = true;
+    diagnostic = { phase: 'prepare', operation: 'protect-artifacts', pathCategory: 'project-policy' };
     protectArtifacts({ ...location, allowAppend: !fs.existsSync(database) });
+    diagnostic = { phase: 'record', operation: 'lock-activation', pathCategory: 'project-journal' };
     fs.mkdirSync(directory, { recursive: true });
     let lock;
-    try { lock = fs.openSync(lockPath, 'wx', 0o600); } catch { fail('ACTIVATION_BUSY'); }
-    release = () => { fs.closeSync(lock); fs.unlinkSync(lockPath); };
+    try { lock = fs.openSync(lockPath, 'wx', 0o600); } catch (error) {
+      if (error.code === 'EEXIST') fail('ACTIVATION_BUSY');
+      throw error;
+    }
+    setRelease(() => { fs.closeSync(lock); fs.unlinkSync(lockPath); });
     let journal;
     if (fs.existsSync(journalPath)) {
       if (fs.statSync(journalPath).size > 1048576) fail('ACTIVATION_STATE_INVALID');
@@ -153,6 +179,7 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
         tasks: {}, presentation: { status: 'not-attempted' } };
     }
     const save = () => {
+      diagnostic = { phase: 'record', operation: 'save-activation', pathCategory: 'project-journal' };
       inspectPath(journalPath);
       const temporary = `${journalPath}.${randomUUID()}.tmp`;
       fs.writeFileSync(temporary, JSON.stringify(journal), { flag: 'wx', mode: 0o600 });
@@ -164,13 +191,17 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
       save();
       observed = await call('initialize', { sessionProfile: request.sessionProfile });
     }
+    completed.boardVerified = true;
     if (journal.generation && journal.generation !== observed.generation) fail('STALE_GENERATION');
     const runtimeHome = sharedRuntimeHome ?? journal.sharedRuntimeHome ?? sharedHome();
-    if (journal.service?.serviceMode === 'shared-v1' && journal.sharedRuntimeHome
+    if (serviceMode !== 'record' && journal.service?.serviceMode === 'shared-v1' && journal.sharedRuntimeHome
         && runtimeHome !== journal.sharedRuntimeHome) fail('ACTIVATION_CONTEXT_MISMATCH');
-    const attach = () => attachSharedService({ location, actorId: request.actorId,
-      generation: observed.generation, leadToken: request.leadToken,
-      serviceControlToken: request.serviceControlToken }, { home: runtimeHome });
+    const attach = () => {
+      diagnostic = { phase: 'display', operation: 'attach-shared-service', pathCategory: 'viewer-runtime' };
+      return attachSharedService({ location, actorId: request.actorId,
+        generation: observed.generation, leadToken: request.leadToken,
+        serviceControlToken: request.serviceControlToken }, { home: runtimeHome });
+    };
     const retain = (service, processId) => {
       const { ticketUrl, ticketExpiresAt, status, ...identity } = service;
       journal.service = identity; journal.serviceProcessId = processId;
@@ -403,9 +434,11 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
         assignmentId: shown.assignment.id, claimToken: request.claimToken,
         action: 'report', ...retainedTask.initialReport,
       }, 'initial-report');
+      completed.initialReportVerified = true;
       retainedTask.reported = true;
       save();
     }
+    if (retainedTask.reported === true) completed.initialReportVerified = true;
     // Labels change independently from task/approval revisions.
     const labels = observed.result?.sessionProfile;
     if (labels && (labels.projectName !== profile.projectName || labels.sessionName !== profile.sessionName)) {
@@ -413,6 +446,15 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
         expectedLabelRevision: labels.labelRevision, projectName: profile.projectName,
         sessionName: profile.sessionName });
     }
+    if (serviceMode === 'record') {
+      return { state: 'enabled', ...selected, taskId: task.id, boardId: observed.boardId,
+        generation: observed.generation, activationScope: 'record-only',
+        ...(scopeConflict ? { taskExecution: 'not-resumed', reasonCode: 'SCOPE_CONFLICT',
+          nextStep: scopeConflictNextStep } : {}),
+        identityBinding: request.leadPrincipal || worker?.executorKey ? 'observed' : 'unknown',
+        presentation: { status: 'external' }, completed };
+    }
+    diagnostic = { phase: 'display', operation: 'resolve-listener', pathCategory: 'loopback' };
     // Validate task authority before service work. A resource-blocked claim can use the same
     // authenticated display lifecycle while its task remains open and unassigned.
     let firstUrl;
@@ -493,10 +535,10 @@ export async function activate(projectRoot, request, { serviceMode = 'legacy', s
     }
     return { state: 'activation-pending', taskExecution:'not-resumed', ...selected,
       ...(retainedService ? { service: retainedService } : {}),
-      reasonCode: error.code ?? 'ACTIVATION_STATE_INVALID',
+      reasonCode: error.code ?? 'ACTIVATION_STATE_INVALID', diagnostic, completed,
       ...(scopeConflict ? { taskBlockReasonCode: 'SCOPE_CONFLICT' } : {}),
       ...(['EACCES', 'EPERM', 'ECONNREFUSED', 'ETIMEDOUT'].includes(transportCode)
         ? { transportCode } : {}),
       nextStep };
-  } finally { release?.(); }
+  }
 }

@@ -489,9 +489,20 @@ fixtures accompany the change; real-workload speed and cross-platform behavior n
 No SQL schema migration, structural reorganization, automatic installation or additional runtime
 dependency is introduced by these extensions.
 
-## 15. Shared local display service
+## 15. Independent task recording and browser display
 
-The unified activation CLI defaults to one local HTTP Hub per trusted selected Agents runtime
+The installed activation wrapper defaults to record-only for normal activate and resume. Run the same safe coordination commands within the activation process so session writes no longer require an internal CLI child process or an HTTP service. Existing bindings, audit events, assignment rules and exact operation receipts remain the storage authority. Legacy panel and its service-only actions remain available when explicitly selected.
+
+A user starts the local dashboard with the installed task-board launcher and explicit project roots. It displays bound sessions from their existing databases on one loopback port. Opening the local URL sets up view access automatically using a same-origin request and an in-memory page capability. Other local programs are inside this trust boundary. Read-only routes return bounded lists and public task fields. The UI refreshes the selected session on revision events and refetches its snapshot after reconnection. Each snapshot is a short SQLite read. A missing, linked, inaccessible or invalid Board does not make other sessions unavailable. Record-only activation never calls the viewer to discover or authenticate a session.
+
+The standalone dashboard gives explicitly canceled tasks their own column. It uses the existing
+`canceled` state and displays the recorded reason and outstanding cleanup. Closed work and work
+awaiting verification keep their existing meanings. Reconciliation and cancellation remain
+Lead-authorized coordination operations, independent of the read-only dashboard.
+
+### Legacy shared display service
+
+The compatible legacy panel CLI uses one local HTTP Hub per trusted selected Agents runtime
 home, rather than one Node process per chat. It mounts independent Board endpoints in process at
 `/boards/<sessionKey>/`, retaining separate SQLite databases, task authority, generations,
 credentials and event cursors. Low-level standalone `serve()` remains compatible; old live

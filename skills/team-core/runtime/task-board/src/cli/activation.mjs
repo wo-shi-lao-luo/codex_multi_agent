@@ -11,12 +11,14 @@ try {
   if (args.length === 1 && args[0] === '--help') {
     process.stdout.write(`${JSON.stringify({ schemaVersion: 1, operation: 'activation-help',
       requiredFlags: ['--project-root', '--stdin'],
+      optionalFlags: ['--record-only'],
       actions: ['activate', 'resume', 'recover-service', 'reopen-service', 'migrate-service', 'record-open-result', 'prepare-request', 'prepare-next-task'],
       nextTask: 'prepare-next-task or nextTask on an activate request explicitly selects approved new work with retained Board credentials; wrapper -TaskPath supplies the public spec.',
       presentationOnly: { action:'reopen-service', requiredFields:['servicePresentation.expectedServiceId','servicePresentation.evidenceRefs'], result:'presentation-only; taskExecution:not-resumed' },
       scopeConflict: { state: 'enabled', activationScope: 'presentation-only',
         taskExecution: 'not-resumed', reasonCode: 'SCOPE_CONFLICT' },
-      sharedService: { default: true, perBoardRoute: '/boards/<sessionKey>/',
+      recordOnly: 'Normal activate/resume writes tasks without opening or contacting any viewer.',
+      sharedService: { mode: 'compatibility', perBoardRoute: '/boards/<sessionKey>/',
         serviceMigration: { expectedServiceId: 'retained legacy service ID', evidenceRefs: ['authorized migration'],
           confirmedStopped: 'required only if the legacy endpoint is already refused' } },
       serviceRecovery: { expectedServiceId: 'retained service ID', confirmedStopped: true,
@@ -45,7 +47,8 @@ try {
         + 'Record the observed host outcome separately; healthy resume never reopens the panel.' })}\n`);
     process.exit(0);
   }
-  if (args.length !== 3 || args[0] !== '--project-root' || args[2] !== '--stdin') {
+  const recordOnly = args.length === 4 && args[3] === '--record-only';
+  if ((args.length !== 3 && !recordOnly) || args[0] !== '--project-root' || args[2] !== '--stdin') {
     throw Object.assign(new Error('Explicit root and stdin are required.'), { code: 'INVALID_INPUT' });
   }
   const chunks = [];
@@ -57,6 +60,7 @@ try {
   }
   // Decode only after concatenation: a UTF-8 character may span stdin chunks.
   const request = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  const serviceMode = recordOnly && ['activate', 'resume'].includes(request.action) ? 'record' : 'shared';
   if (request.action === 'prepare-request') reply=prepareRequest(args[1],request);
   else if (request.action === 'prepare-next-task' || Object.hasOwn(request,'nextTask')) {
     if (!['prepare-next-task','activate','resume'].includes(request.action)) throw Object.assign(Error(),{code:'NEXT_TASK_INVALID'});
@@ -64,10 +68,10 @@ try {
     if (reply.state==='prepared' && request.action!=='prepare-next-task') {
       const preparedPath=reply.requestPath;
       const prepared=readPreparedTask(preparedPath,reply.requestDigest);
-      reply=await activate(args[1],prepared,{serviceMode:'shared',sharedRuntimeHome:process.env.CODEX_BOARD_SERVICE_HOME??sharedHome()});
+      reply=await activate(args[1],prepared,{serviceMode,sharedRuntimeHome:process.env.CODEX_BOARD_SERVICE_HOME??sharedHome()});
       reply.requestPath=preparedPath;
     }
-  } else reply=await activate(args[1], request, { serviceMode: 'shared',
+  } else reply=await activate(args[1], request, { serviceMode,
       sharedRuntimeHome: process.env.CODEX_BOARD_SERVICE_HOME ?? sharedHome() });
 } catch (error) {
   reply = { state: 'activation-pending', taskExecution:'not-resumed', reasonCode: error.code ?? 'INVALID_INPUT',

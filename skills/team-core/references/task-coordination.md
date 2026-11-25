@@ -6,11 +6,11 @@ Board is a human-readable execution view as well as a coordination queue. Apply 
 
 At the start of an authorized execution task, enable the session-bound Board by default for human visibility, whether the Lead works alone or uses children. Development, debugging, test execution, maintenance and delivery can qualify; multiple agents, task size and parallelism are not prerequisites. Verification-only work that runs tests or exercises the product uses this checkpoint. Ordinary questions, brief explanations and standalone read-only consultation/review need no Board unless explicitly requested. Planning-only work does not grant implementation authority, but an explicit request to display its progress may use a Board for that authorized scope. Respect an explicit user opt-out and project restrictions; never spawn extra agents to justify a Board. A consultation/review subtask inside an enabled execution task does not disable its parent Board or create another one.
 
-For a small task, one task card is sufficient. Reuse the existing lead-inline execution mode for the actual Lead when no child is needed, with its normal approvals and authorization; do not fabricate a worker or independent check. Opening Board does not raise the workflow risk tier: do not add task decomposition, agents, reviews, tests or full documentation packets solely for visibility. Existing risk-based gates still apply. Show the current phase, completed result, next step and blockers/user decisions in plain language. Update at real milestones (start, meaningful phase/result, blocker, verification and completion), not for every command or through model polling. Do not invent progress percentages, completion facts or liveness from silence. Reuse one Board per main session and preserve first-open/no-reopen rules.
+For a small task, one task card is sufficient. Reuse the existing lead-inline execution mode for the actual Lead when no child is needed, with its normal approvals and authorization; do not fabricate a worker or independent check. Opening Board does not raise the workflow risk tier: do not add task decomposition, agents, reviews, tests or full documentation packets solely for visibility. Existing risk-based gates still apply. Show the current phase, completed result, next step and blockers/user decisions in plain language. Update at real milestones (start, meaningful phase/result, blocker, verification and completion), not for every command or through model polling. Do not invent progress percentages, completion facts or liveness from silence. Reuse one Board per main session.
 
 State the decision and reason in the normal opening/progress update and existing Work/handoff: enabled, exempt (ordinary question, brief explanation, standalone consultation/review, or user opt-out), or activation-pending with the missing prerequisite/blocker and next step. Record enabled only after verified initialization or reuse; until then retain activation-pending. Keep this separate from the panel opening result. Reassess an exemption when a conversation becomes an authorized execution task. Use a concise task/status note on the light path; do not create a full Work contract solely for Board. This is a Lead instruction checkpoint, not a native task-start hook or proof that a client loaded the Skill.
 
-Use the verified installed launcher/runtime, obtain reliable current host/project/main-session identity under the session rules below, protect the canonical artifact scope, and initialize or safely reuse only that session's Board. Complete applicable approval/assignment steps before dependent dispatch. Start/reuse the confirmed owned read-only service and follow Browser presentation for its first opening attempt; report its actual outcome separately from Board activation. A usable Board with an unavailable browser panel still supports coordination.
+Use the verified installed launcher/runtime, obtain reliable current host/project/main-session identity under the session rules below, protect the canonical artifact scope, and initialize or safely reuse only that session's Board. On an existing Board, apply [previous-task reconciliation](#previous-task-reconciliation) before acquiring overlapping scopes or dispatching dependent work. Complete applicable approval/assignment steps before dependent dispatch. The default launcher only records the work, returning `activationScope: record-only` and `presentation.status: external`. Never start, attach or open a browser service from normal task activation. A user-started external dashboard reads the saved data separately.
 
 Do not fabricate stable identities, use mutable titles as IDs, automatically install dependencies, alter permissions, or bypass user decisions. With no existing Board and missing runtime, identity, artifact protection or other prerequisites, record activation-pending, explain the impact, and continue only independently safe, already-authorized direct work with normal ownership and evidence. Do not claim Board coordination or retry in the background. If an existing Board is unsafe, unavailable or incompatible, preserve it and in-flight facts, stop affected claims/mutations and arrange explicit reconciliation; never replace it with an empty Board. Browser opening failure alone does not invalidate a healthy Board or authorize resetting tasks.
 
@@ -23,7 +23,18 @@ Apply this checkpoint on every new user instruction, including messages received
 - A priority change updates the active focus and next checkpoint. A status-only question receives the current factual status without creating another task or restarting work. Cancellation/pause follows the existing safe lifecycle and preserves in-flight facts.
 - Before continuing, use a verified read-back to confirm the task identity, actual executor, state, phase and next step. If synchronization fails, report the exact pending condition and follow safe degradation; do not report that the task is reflected on the Board when only a command was attempted.
 
-Opening the panel is not task synchronization. New cards and progress updates reuse the existing service and SSE view without another browser opening. Apply the same checkpoint after a child handoff, a meaningful phase change and before final handoff. Keep one task authority; do not create a second checklist or update after every shell command.
+When the Lead starts materially advancing a ready task, complete its Lead-inline assignment and
+record the first actual milestone. Add, approve and grant can leave a card ready with no executor.
+If read-back still shows ready/open while work is underway, resume the same task's missing
+assignment or report through the supported path. When safe synchronization remains unavailable,
+state which step is pending and that the dashboard will not show the work as running.
+Check `taskExecution` as well as `state`: an enabled Board can return `not-resumed` for its task.
+Report `taskBlockReasonCode` or the task-level `reasonCode` separately from viewer errors. On
+`SCOPE_CONFLICT`, reconcile the conflicting reservation and its actual executor before retrying
+the same task. Release only when stopped writes and processes are confirmed, or use a genuinely
+separate approved scope for independent work.
+
+Task synchronization is a database operation. The external dashboard refreshes on committed changes. Apply the same checkpoint after a child handoff, a meaningful phase change and before final handoff. Keep one task authority; do not create a second checklist or update after every shell command.
 
 ### Executor focus and truthful progress
 
@@ -41,13 +52,51 @@ Before dispatch, approve the bounded work and prepare the actual known worker's 
 
 A required independent gate may be the only active child. Explain the gate on its check card and in the Lead update; do not call this parallel implementation. If the Lead only waits for the check, record the parent task's waiting phase/reason through its valid lifecycle instead of claiming ongoing Lead implementation. If the Lead has real independent work, show its own task and distinct scope. Do not spawn a child to fill a card. When historical work was omitted, record the omission and the actual observed outcome; do not backdate dispatch, fabricate an assignment, or replay a completed check solely to make the Board look complete.
 
+### Previous-task reconciliation
+
+When starting or resuming an authorized execution turn on an existing Board, take a bounded pass
+over the current session's unresolved work. Start with the previous handoff and the cards that can
+affect the new work: running or submitted cards, blockers, dependencies, and retained allocations
+or cleanup. Read current `status` and targeted `show`/history as needed. Compare them with the
+actual outputs, acceptance evidence and owner or host information. Recheck affected cards at
+handoff. Ordinary status questions and unrelated archives do not require this execution pass.
+
+| What the evidence establishes | What the Lead records |
+| --- | --- |
+| Work finished, but its card did not advance because a report or transition was missed | Repair the existing card through its supported report, submission and acceptance steps using the real executor and available evidence. Close only after all due gates pass. If a required check, valid submission or authority cannot be established, record the missing item and who can resolve it. |
+| An authorized decision dropped or superseded the work | Use `cancel` on the existing card with the current revision and a reason that identifies the decision and any follow-on task. The standalone dashboard puts it under **已放弃**. Preserve history and check affected dependencies; cancellation does not satisfy a dependency or prove cleanup. |
+| Work is still needed | Preserve its real state. Identify the current executor if active, or the blocker, missing input or next activation trigger if waiting. Reuse the same card when work continues. |
+| The evidence is insufficient | Keep the recorded state and identify the missing evidence or decision in the current handoff. Age, silence or a new priority alone cannot justify closure, cancellation or resource release. |
+
+On canceled or stopped work, check both assignment and resource ownership. Use `release` only
+after confirming writes and related processes have stopped. Read back the card and allocations
+before claiming overlapping work. If canceled work is later explicitly approved again, create a
+new bounded task linked to the old card and retain the original cancellation. Apply changes only
+with current Lead authority on this Board. Keep the pass focused on the work at hand, with no
+global sweep or bulk reclassification of historical cards.
+
 ### Related-task closeout
 
 At meaningful handoffs and before final delivery, revisit the related task IDs already linked by source, dependency or check evidence, including earlier repair cards affected by a later install. Update completed facts, obsolete next steps, blockers and remaining acceptance through supported lifecycle operations; a later closed delivery card does not update an earlier card automatically. Preserve immutable submissions and historical evidence. If a submitted card needs a new factual report, use its valid Return/report/resubmit path only with applicable ownership/resources, or retain a reconciliation gap; never edit the database directly or reopen work merely for cosmetic consistency.
 
 Keep source/test/review success, publication, installation verification and manual acceptance distinct. Close only the bounded outcome whose due gates actually passed. For unobserved acceptance, retain its pending state with an owner and next trigger; installation success cannot prove that an old chat loaded new rules. Do not require a fresh verification task solely to remove a pending badge, and do not make a status question create new execution work.
 
-For each completed or submitted task whose executor has stopped, inspect active assignments, reservations and cleanupPending before final handoff or before claiming overlapping follow-up work. This includes work that finished outside the Board while its card remained running. Confirm the relevant writes and processes have stopped, then use Release where applicable and read back the resulting ownership/cleanup state. Acceptance/Closed alone does not release allocations. Pending manual acceptance can remain submitted after safe release; it does not require retaining write resources while awaiting a future observation. Keep a genuinely active or uncertain allocation, explain its owner and next checkpoint, and never infer stopped work from silence or release unrelated tasks. Final handoff reports unresolved acceptance and cleanup separately.
+For each completed or submitted task whose executor has stopped, inspect active assignments, reservations and cleanupPending before final handoff or before claiming overlapping follow-up work. This includes work that finished outside the Board while its card remained running. Confirm the relevant writes and processes have stopped, then use Release where applicable and verify the resulting ownership/cleanup state by read-back. Acceptance/Closed alone does not release allocations. Pending manual acceptance can remain submitted after safe release; it does not require retaining write resources while awaiting a future observation. Keep a genuinely active or uncertain allocation, explain its owner and next checkpoint, and never infer stopped work from silence or release unrelated tasks. Final handoff reports unresolved acceptance and cleanup separately.
+
+## Standalone browser dashboard
+
+The user can launch one read-only dashboard in a normal PowerShell terminal after installing the Board runtime:
+
+```powershell
+& "$HOME/.agents/skills/team-core/scripts/task-board.ps1" -BoardArguments @(
+  'dashboard', '--project-root', '<absolute project checkout>',
+  '--project-root', '<another checkout>', '--port', '43180'
+)
+```
+
+Open the local URL printed by that process. The browser establishes view access automatically on the same origin. Only register project data that may be viewed from this machine. Project roots are explicitly selected by the user at launch; the dashboard discovers bound session databases only under their canonical Board directories. It uses one loopback listener and does not start Agents or claim tasks. Closing or stopping the viewer leaves task recording available. “Running” reflects recorded task state; the viewer does not observe host presence.
+
+Agents use the normal activation wrapper and coordination CLI, with no dashboard credential or viewer process dependency. An activation failure may include a bounded `diagnostic` (phase, operation, path category) and verified completed steps. A viewer failure is reported separately from recording or authority failures.
 
 ## Unified activation entry
 
@@ -127,7 +176,7 @@ HttpOnly cookie and per-Board header remain required; cookie-only access is deni
 Browser history state is not an isolation boundary against arbitrary same-origin code
 and may be persisted by the browser; do not describe it as memory-only or never stored.
 
-The unified CLI uses a shared local service by default: one process/listener per selected trusted
+The legacy panel flow uses a shared local service: one process/listener per selected trusted
 Agents runtime home, with each session mounted at `/boards/<sessionKey>/`. Each Board keeps its
 own SQLite, generation, service credential, browser capability and event cursor. Child agents of
 one main chat still share that chat's Board. Shared bindings carry `serviceMode: shared-v1`,
@@ -243,6 +292,17 @@ current card. Preserve an overall goal as context/dependency without leaving it 
 one serial executor advances one current implementation card. A sole required independent checker
 is a check gate, not evidence of parallel implementation.
 
+### Task description on new cards
+
+Give the card a short title and write its task introduction in `task.outcome`, which the dashboard
+shows in the expanded detail. For small tasks, one sentence stating the intended result is enough.
+For work that needs context, use short paragraphs or lines explaining why the work is needed, what
+it covers, the expected deliverable, and how the Lead will tell it is done. Include relevant scope
+exclusions or prerequisites when they change how the task is carried out. Reference the authoritative
+plan or evidence through `sourceRefs` and `acceptanceRefs`. Put later updates and next checkpoints in
+the progress fields. Apply this when creating new cards. Preserve historical descriptions and use
+the ordinary amendment path only when a live task's approved contract actually changes.
+
 ### Forward-only Lead identity binding
 
 New activation requests may supply `leadPrincipal: {hostId, agentId, evidenceRefs}` obtained from
@@ -348,7 +408,7 @@ For existing Board maintenance, begin with `maintenance-status` and `diagnose` f
 
 Present a board only after the Lead has selected and authorized it. Start or reuse only the service whose ownership and identity are confirmed. Keep its service identity and control token private in the existing Work record or handoff; never place the control token in chat, logs, URLs, or board records.
 
-On the first activation for the current chat, board, and generation, inspect the target chat's existing tabs when the host permits it. Reuse a confirmed healthy Board view; otherwise use `service-open` to obtain a fresh one-use browser URL, then use the available `open_in_codex` host tool with the explicit bound MAIN-session `threadId` and `placement: right`. Never rely on its default recipient when displaying another chat's Board. Follow the current operation help for exact input fields. Record the observed opening outcome and any confirmed tab identity in the existing private handoff as `not-attempted`, `queued`, `opened`, `link-only`, or `unknown`; do not create a separate registry. A successful `service-open` only mints a URL. A host result of `queued` means the request has not yet opened the panel; it is not evidence of an opened tab or visible rendering.
+For an explicit legacy panel request (using `-LegacyPanel` on activation), inspect the target chat's existing tabs when the host permits it. Reuse a confirmed healthy Board view; otherwise use `service-open` to obtain a fresh one-use browser URL, then use the available `open_in_codex` host tool with the explicit bound MAIN-session `threadId` and `placement: right`. Never rely on its default recipient when displaying another chat's Board. Follow the current operation help for exact input fields. Record the observed opening outcome and any confirmed tab identity in the existing private handoff as `not-attempted`, `queued`, `opened`, `link-only`, or `unknown`; do not create a separate registry. A successful `service-open` only mints a URL. A host result of `queued` means the request has not yet opened the panel; it is not evidence of an opened tab or visible rendering.
 
 Do not open the panel again for subtasks, progress updates, or resume after a completed or unknown first attempt. If the host reports `queued`, wait for the user to return to the chat or check the owned tab later; do not reissue the link, invoke automatic navigation, or bring the chat to the foreground unless the user explicitly asks. If the host reports an unknown outcome, inspect or confirm the owned tab before retrying. Closing the panel must not take focus back from the user or stop work. Only an explicit user request to open or reopen the board authorizes another fresh one-use URL; reuse a verified tab when the host supports it. If a one-use URL expires or ticket capacity prevents minting, do not replay it or fall back to a permanent unauthenticated URL; wait for an explicit open/reopen request before obtaining a fresh ticket. If the host tool is unavailable, provide a readable ephemeral browser link and record `link-only`. Do not force an external browser or promise a permanent native sidebar.
 

@@ -9,7 +9,7 @@ Apply [new-instruction synchronization and executor focus](../team-core/referenc
 
 For direct development requests as well as routed work, resolve or reuse the [task document selection](../team-task-docs/SKILL.md#select-the-document-path) before starting execution. If the user opts in, draft and review through Team plan first. Reuse an approved set without a second review gate. For an adopted set, at a workspace transfer or when the documents, premises or evidence change, follow the [receiving check](../team-task-docs/SKILL.md#receive-the-document-set) before dependent execution.
 
-At authorized execution start or resume, complete the [unified Board activation entry](../team-core/references/task-coordination.md#unified-activation-entry) with an actual enabled/exempt/pending decision; help/runtime probes alone are insufficient. Preserve the task's existing risk tier, ownership and exemptions.
+At authorized execution start or resume, complete the [unified Board activation entry](../team-core/references/task-coordination.md#unified-activation-entry) with an actual enabled/exempt/pending decision; help/runtime probes alone are insufficient. Preserve the task's existing risk tier, ownership and exemptions. A record-only result enables coordination without any panel request.
 
 Use its [complete request preparation](../team-core/references/task-coordination.md#preparing-a-complete-request) sequence before dispatch. Resolve available request fields and prepare/recover private credentials; process success or an internal pending note is not successful activation. Report genuine unresolved blockers to the user without fabricating identity or resetting retained state.
 
