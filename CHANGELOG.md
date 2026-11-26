@@ -4,6 +4,19 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
 
+## [2.1.0] - 2026-11-27
+
+### Added
+
+- Open a standalone local Task Board in a browser and switch between registered projects and sessions on one port. The sidebar restores the last session and can group sessions by active Agent work. Cards show their assignments, progress, dependencies, and available evidence.
+- Track final human acceptance and intermediate verification, testing, or operations in one human-work column. A prepared final result supports confirmation by button or drag. Submitting an intermediate result, including a failure, returns the task to the Agent queue.
+- Accept explicit Team feedback through the local store or an optional designated local receiver chat. Keep capture, authorization, and storage receipts visible in the workflow.
+
+### Changed
+
+- Make routine Team activation record task state without depending on a browser or viewer process. Keep the Board available when a reservation conflict or a pending human step prevents Agent execution.
+- Add optional Team routing and task-document guidance for user outcomes, coupled design decisions, recovery paths, representative inputs, and end-to-end verification.
+
 ## [2.0.7] - 2026-11-20
 
 ### Changed

@@ -7,7 +7,7 @@
     },
     {
       "path": "VERSION",
-      "sha256": "3297f848bfd1ff4183e9c570d5d3a5c9aed02771b6dc03f49345c11eaa6e5bfd"
+      "sha256": "c89b87c262e9d5ffd20e73aac74a1772adcc9f5a21682cc33adcf5086e5fef5c"
     },
     {
       "path": "packages/task-board/package.json",
