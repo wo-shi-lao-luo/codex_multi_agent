@@ -88,6 +88,22 @@ Do not add `-Force` to get past a conflict. Stop, inspect the named destination 
 
 The deployment manager installs receipt-owned agents and complete Skill directories in the current user's Codex homes (by default `~/.codex/agents` and `~/.agents/skills`). The full install/update wrapper additionally reuses or provisions the pinned private Node.js runtime required by the installed Task Board launcher; the lower-level payload-only `deploy-user.ps1` remains offline and does not acquire dependencies. Neither flow changes global `PATH`, installs global npm packages, merges or rewrites global Codex configuration, or changes the source checkout. If you use custom homes, pass the same explicit home options to status, verification, preview, and deployment commands; see [safe deployment](safe-deployment.md). Configuration fragments in `config/` are optional and must be handled separately by the user.
 
+### Optional Team routing for all repositories
+
+If you want Codex to start engineering tasks through Team by default, explicitly opt in with `-EnableTeamGuidance` on install or update. Preview the selected Codex home first and run the same command without `-WhatIf` after you accept the change.
+
+```powershell
+.\scripts\install-user.ps1 -EnableTeamGuidance -WhatIf
+# For an existing installation:
+.\scripts\update-user.ps1 -EnableTeamGuidance -WhatIf
+```
+
+The option appends one marked section to the selected Codex home's `AGENTS.md` and backs up its original bytes. A missing file is created. Repeating the option recognizes the same section and preserves later edits. A nonempty `AGENTS.override.md`, an edited managed section, or an unsafe path requires separate review. Omitting the option leaves the global instructions alone.
+
+To enable just this preference for an already-installed Kit, run `.\scripts\enable-team-guidance.ps1 -WhatIf`, then run it again without `-WhatIf`. Pass the same `-CodexHome` and `-AgentsHome` when you use custom homes. The instruction covers engineering tasks, keeps small tasks on the light path, and respects explicit user choices. To turn it off, remove the section between its begin and end markers while keeping the rest of the file. Kit rollback handles the managed payload separately.
+
+Verify in a fresh Codex chat with a normal engineering request that omits the Skill name. Check that the agent reads the Team entry and selects the appropriate workflow before acting. The file provides startup guidance, and actual execution is verified separately.
+
 ## Check discovery and report
 
 After deployment, check the installed receipt/payload and the actual Task Board launcher health:

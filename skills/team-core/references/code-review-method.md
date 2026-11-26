@@ -90,7 +90,7 @@ obligations; choose the smallest adequate adjustment. Apply existing
 
 | Surface | Review questions |
 | --- | --- |
-| Placement/responsibility | Does this belong to its domain/module? Are responsibilities scattered or combined so local changes require unrelated edits? Can callers find the authoritative implementation? |
+| Placement/responsibility | Apply [file responsibilities and placement](file-ownership.md#file-responsibilities-and-placement) to material additions in the actual diff. Does the receiving file or module own this behavior? Can maintainers find its authoritative implementation? Does the diff add an unrelated concern through a field, branch, dependency, or default? |
 | Layering/dependencies | Are public/private boundaries preserved? Does foundational code import its consumers, leak internal state, introduce cycles or hidden side effects? |
 | Duplicate implementations | Does suitable project capability exist? Should these rules evolve together? Can one copy miss a fix? Check semantic differences before deduplication. |
 | Utilities/base/shared code | Is shared behavior cohesive and stable? Moving business policy into `utils` does not make it generic. Check consumer contracts, error semantics, state, ownership and change blast radius. |
@@ -113,8 +113,12 @@ Writer hands off approved intent/constraints, change summary, exact snapshot, ch
 with actual outcomes, gaps and retained compatibility/debt. Reviewer independently
 compares implementation to authority and affected consumers. Check whether tests
 encode approved behavior or merely mirror implementation, change expectations to fit
-it, or bypass real integration with mocks. Lead routes findings to the owner; author
-repairs, affected checks rerun and due rereview occurs without resetting issue history.
+it, or bypass real integration with mocks. Where a
+[user-goal walkthrough](test-acceptance-contract.md#user-goal-walkthroughs) is due,
+inspect its user brief and first-attempt evidence, including any coaching. Compare
+affected-path results and material assertions with approved outcomes. The Lead
+routes findings to the owner. After repair, rerun affected checks and conduct any
+due rereview while preserving issue history.
 
 Respect the existing risk tier: a scoped Lead/author backcheck remains non-independent.
 When independent review is due on an enabled Board, declare

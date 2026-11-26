@@ -1,5 +1,17 @@
 # File ownership
 
+## File responsibilities and placement
+
+Apply this check to feature work, repairs, and maintenance, including a single writer on the light path.
+
+- **Before editing.** Identify what belongs in each material target file or module and where the changed behavior is already owned. Use relevant repository instructions, architecture notes, nearby code, and callers as evidence. Fit new logic to the existing owner and dependency direction. If a new file is needed, place it according to project conventions and make its responsibility clear.
+- **While editing.** Keep entrypoints and composition files focused on wiring, and keep rules, state, and transformations with the modules that maintain them. Check shared code for new feature-specific fields, conditions, or defaults, including dependencies expressed through data or configuration. Keep related logic together when it changes for the same reason. If the appropriate location changes materially, return to the existing Contract step and obtain any approval already required for structural refactoring.
+- **Before handoff.** Inspect the actual diff, including new files and any changed dependency direction. For each material addition, confirm that the file owns that behavior and that a maintainer would look there when it changes. Correct misplaced changes within the authorized scope even if tests pass. Report pre-existing or out-of-scope placement issues through the existing ownership and review process.
+
+For a small task, the executor checks the relevant file before editing and self-checks the diff afterward. For a change spanning responsibilities, record the affected file or module roles and handoffs in the existing Work contract or Blueprint as applicable. The existing Reviewer checks material placement when independent review is due. Use the existing records and risk tier for all of these checks.
+
+## Writer assignment and transfer
+
 For optional queue-based parallel assignments, also follow the [task coordination contract](task-coordination.md): independent packages need disjoint paths/resources and explicit integration ownership; shared contracts and each concrete path retain one writer. The queue does not replace exact-path freeze and transfer checks below.
 
 1. The Lead declares ownership before parallel writers start.

@@ -33,7 +33,11 @@ Do not use to impose a generic coverage target, create tests solely to increase 
 3. Choose the adequate test boundary and observation method under the contract's [efficient execution and tier rules](../team-core/references/test-acceptance-contract.md#efficient-test-execution). For a standalone small change/bug, follow the [small-task rule](../team-core/references/test-acceptance-contract.md#tier-selection-reuse-and-resource-limits); include real UI/integration evidence when the symptom requires it. Do not force unrelated layers or a full suite for each fix, but honor risk expansion and repository gates. The Tester retains selection, execution and sufficiency decisions.
 4. Plan checks at the contract's iteration, first-usable-chain and named acceptance checkpoints. For deferred checks, record owner, scope/IDs, status, next trigger and flush condition; planned work is never a pass, and known failures block dependent work. If the scoped test surface is unclear and not cheap to map, request a bounded Explorer lookup.
 
+For user-facing E2E and simulated manual testing, [trace affected journeys and retained behavior](../team-core/references/test-acceptance-contract.md#derive-cases-from-the-changed-behavior). Use the [user-goal walkthrough](../team-core/references/test-acceptance-contract.md#user-goal-walkthroughs) when its conditions apply. Keep the acting Agent on the user brief while the evaluator retains the engineering context and checks the evidence.
+
 Use the task's approved expected-behavior source as the QA oracle; ask the Lead to resolve missing or conflicting authority rather than treating implementation as truth. Assigned cases are a minimum: make bounded observations of relevant adjacent user-facing behavior, not a full-app audit. Apply the canonical [QA input, finding and handoff guidance](../team-core/references/test-acceptance-contract.md#qa-inputs-and-user-perspective-verification); observations do not grant repair authority or expand scope.
+
+Apply [E2E-to-regression mapping](../team-core/references/test-acceptance-contract.md#turn-e2e-findings-into-automated-regressions) when handing off or verifying a confirmed E2E defect.
 
 For UI/UX verification, use [task-driven evaluation](../team-core/references/ui-design-and-evaluation.md)
 to select meaningful transitions and counterexamples. Observe discoverability,

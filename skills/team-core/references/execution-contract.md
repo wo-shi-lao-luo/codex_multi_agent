@@ -38,6 +38,8 @@ Delivery checks are also risk-proportional. For an authorized routine commit, pu
 
 On each new user instruction, priority change and work handoff, apply [Board synchronization and executor focus](task-coordination.md#new-instruction-synchronization-checkpoint) before dependent execution. Before any child creation or resumed assignment, apply the [delegation necessity checkpoint](role-routing.md#delegation-necessity-checkpoint). Several serial responsibilities do not require several executors; several cards do not establish concurrent work.
 
+On a new message that explicitly evaluates or corrects a Team task, including a directly related follow-up after handoff, the Lead applies [local user feedback capture](feedback-recording.md#capture-explicit-user-feedback) before the requested response or rework. This checkpoint is shared by direct workflows and `$team`; apply it once per message, on either risk path and regardless of Board availability.
+
 For noneligible code-changing `$team-dev` work, the Lead performs serial workflow responsibilities by default: own implementation, prepare the coverage/TDD plan and packet, implement, and run required checks as explicitly labeled self-check evidence. Use a separate named implementation or Tester child when parallel work has a demonstrated benefit from independent boundaries, ready inputs, reduced context-switching, or a genuine independent evidence requirement; role names describe responsibilities and do not require separate process identities. Keep test-file ownership separate from production-code ownership whenever work is delegated. Preserve every required independent gate: a Lead self-check is not independent Tester evidence, and every material implementation still receives an independent `team-reviewer` review after the writer's complete pass. `team-tester` remains the general role when independent test execution/evaluation is required; `team-ai-tester` may fill that role when application AI behavior evaluation is primary. Apply the [AI evaluation contract](ai-evaluation.md) for that specialist's scope. Follow [role routing](role-routing.md) for mixed scopes, one canonical packet owner and when distinct software-level coverage needs a second Tester. Risk, unfamiliar boundaries and materiality determine checks and evidence, not a mandatory number of roles. See the [risk-proportional light path](#risk-proportional-light-path) for its separate reduction in process obligations.
 
 Outside the light path, task size may shorten the record and reduce the number of roles, but does not remove applicable lifecycle checks. The Lead establishes task-doc sufficiency and active PRD authority; applies Blueprint only when its contract's conditions are met; creates or reuses the required stage packet and establishes TDD/coverage decisions; checks applicable manual, E2E and other test layers; applies code-comment and relevant domain/UI requirements; verifies actual outcomes; and reports remaining gaps. These serial duties may be performed by the Lead; named roles are used for independent gates or justified parallel work. Do not require every document category or test layer when the applicable contract marks it conditional or unnecessary.
@@ -73,6 +75,8 @@ For these migrations and other delegated work with meaningful multi-phase effort
 **Exit:** the team has enough repository facts to choose an approach. If uncertainty remains material, assign a bounded investigation rather than treating an assumption as fact.
 
 ## 3. Contract
+
+For implementation, confirm [file responsibilities and placement](file-ownership.md#file-responsibilities-and-placement) before editing or assigning a writer. Carry the relevant locations and cross-module handoffs in the existing Work contract when needed.
 
 In `$team-plan` and `$team-dev`, apply [risk-proportional design exploration](design-exploration.md) before assigning work or implementation: decide whether a light check is sufficient or material risk/uncertainty requires fuller exploration. Use the Lead-owned context, role and return-path limits there; task size alone never decides design depth. A full exploration does not add an approval gate for already accepted decisions or replace existing approval authority.
 
@@ -117,6 +121,8 @@ For code changes, apply the [code comment contract](code-comments.md) and the [c
 For documentation changes, apply the assigned document purpose while editing. Inspect relevant connected documents and repair clear, evidenced defects that are within the assignment; send cross-owner or ambiguous findings back through the Contract/decision path instead of silently expanding scope.
 
 ## 5. Verify
+
+Have the writer check [placement in the actual diff](file-ownership.md#file-responsibilities-and-placement) before handoff. Use the existing review when independent review is due.
 
 Include the code comment and readability contracts' writer self-checks and, when review is assigned, semantic review of comments and readability. Record inspected scope and outcome; automated checks alone do not establish documentation correctness or semantic equivalence.
 

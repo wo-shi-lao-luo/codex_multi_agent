@@ -2,7 +2,7 @@
 #requires -Version 7.0
 [CmdletBinding()]
 param([string]$ProjectRoot, [string]$AgentsHome, [string]$RequestPath, [string]$TaskPath,
-  [string]$SharedRuntimeHome, [switch]$Help)
+  [string]$SharedRuntimeHome, [switch]$LegacyPanel, [switch]$Help)
 $ErrorActionPreference = 'Stop'
 # Windows .NET 10 Process.Start inherits unrelated inheritable handles as well as its redirected
 # streams. A detached descendant can retain this wrapper's outer capture pipes after we exit.
@@ -76,6 +76,7 @@ try {
   $info.RedirectStandardError = $true
   if (-not $Help -and -not $ProjectRoot) { throw 'PROJECT_ROOT_REQUIRED' }
   $arguments = if ($Help) { @($entry, '--help') } else { @($entry, '--project-root', $ProjectRoot, '--stdin') }
+  if (-not $Help -and -not $LegacyPanel -and -not $SharedRuntimeHome) { $arguments += '--record-only' }
   foreach ($argument in $arguments) {
     $info.ArgumentList.Add($argument)
   }

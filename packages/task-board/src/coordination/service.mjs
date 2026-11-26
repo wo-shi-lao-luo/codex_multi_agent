@@ -16,6 +16,10 @@ import { validateSourceRefs, requireCurrentSources, observeSources, resetSourceO
 import { executorIdentity, executorBinding, roleEligible, validateExecutionContract,
   requireWorkerScope } from '../domain/executor.mjs';
 import { requireIndependentChecks } from './execution-evidence.mjs';
+import { acceptanceEvidence, manualConfirmationView, preparedManualAcceptance,
+  recordAcceptance, requestManualAcceptance } from './acceptance.mjs';
+import { replayHumanStepRequest, requestHumanStep, requireHumanStepCleared, waitingForAgentPhase }
+  from './human-step.mjs';
 import { assertWorkspaceBinding, verifyWorkspaceRoot, workspaceBindings, MAX_WORKSPACES,
   beginWorkspaceObservation, finishWorkspaceObservation, discardWorkspaceObservation }
   from '../storage/workspaces.mjs';
@@ -85,6 +89,7 @@ export function authorizeReplay(tx, operation, input, result, context = {}) {
     operation = operation === 'assign' ? 'claim' :
       ['lead-proxy-report', 'lead-record-report'].includes(operation) ? input.action : operation;
   }
+  requireHumanStepCleared(tx, operation, input);
   if (operation === 'grant') {
     const task = tx.tasks.get(input.taskId);
     const registered = tx.workers.get(input.workerId);
@@ -108,6 +113,14 @@ export function authorizeReplay(tx, operation, input, result, context = {}) {
     assertWorkspaceBinding(tx, input.workspace.id);
     return;
   }
+  if (operation === 'request-manual-acceptance') {
+    const task = tx.tasks.get(input.taskId);
+    requireValue(task?.manualAcceptance?.operationId === input.operationId, 'CONFLICT',
+      'The manual confirmation request is no longer current.');
+    preparedManualAcceptance(tx, task);
+    return;
+  }
+  if (operation === 'request-human-step') return replayHumanStepRequest(tx, input);
   if (operation === 'accept') {
     const task = tx.tasks.get(input.taskId);
     const evidence = tx.submissions.get(result.task.acceptedResult?.submissionId);
@@ -301,6 +314,7 @@ export function mutate(tx, operation, input, context = {}) {
 function mutateAuthorized(tx, operation, input, worker, provenance) {
   requireValue(!tx.board.recoveryRequired || operation === 'recover', 'RECOVERY_REQUIRED',
     'Restored state requires explicit reconciliation before any new coordination writes.');
+  requireHumanStepCleared(tx, operation, input);
   if (questionOperations.has(operation)) {
     return questionMutation(tx, operation, input, worker, { authenticate, provenance });
   }
@@ -535,7 +549,8 @@ function mutateAuthorized(tx, operation, input, worker, provenance) {
         'QUESTION_PENDING', 'A current task decision still blocks execution.');
       task.state = operation === 'block' || !applicable ?
         'blocked' : 'running';
-      task.phase = input.phase ?? task.phase;
+      task.phase = input.phase ?? (task.state === 'running' && task.phase === waitingForAgentPhase ?
+        'running' : task.phase);
       task.progress = input.progress ?? '';
       task.blocker = input.blocker ?? null;
       if (input.nextCheckpoint !== undefined) {
@@ -544,30 +559,13 @@ function mutateAuthorized(tx, operation, input, worker, provenance) {
         task.nextCheckpoint = input.nextCheckpoint;
       }
     }
+  } else if (operation === 'request-human-step') {
+    requestHumanStep(tx, task, input);
+  } else if (operation === 'request-manual-acceptance') {
+    requestManualAcceptance(tx, task, input);
   } else if (operation === 'accept') {
-    // An unknown execution epoch is reconciliation failure, distinct from pending decisions.
-    requireValue(Number.isSafeInteger(task.executionRevision) && task.executionRevision > 0,
-      'DEPENDENCY_BLOCKED', 'Unknown execution format requires explicit reconciliation.');
-    requireValue(consumableResult(tx, task), 'QUESTION_PENDING',
-      'Resolve the approval obligations of this result and its consumed inputs before accepting.');
-    requireValue(task.state === 'submitted' && input.gatesSatisfied === true &&
-      input.evidenceRefs?.length && task.inputValid && !task.needsReconcile &&
-      dependencyReady(tx, task),
-      'CONFLICT', 'Acceptance requires current submitted evidence and satisfied gates.');
-    const evidence = tx.submissions.list({ taskId: task.id }).find(item =>
-      item.freezeValid && item.freezeRevision === task.freezeRevision);
-    requireValue(evidence, 'DEPENDENCY_BLOCKED', 'Current immutable frozen evidence is required.');
-    currentExecutionEligibility(tx, task, { record: evidence });
-    const checkBindings = requireIndependentChecks(tx, task, evidence, input.checkResults);
-    task.state = 'closed';
-    task.resultRevision++;
-    task.resultValid = true;
-    task.acceptanceEvidence = input.evidenceRefs;
-    task.acceptedResult = { resultRevision: task.resultRevision, submissionId: evidence.id, checkBindings,
-      ...executionBinding(tx, task) };
-    tx.audit('accepted-result', { taskId: task.id, inputRevision: task.inputRevision,
-      resultRevision: task.resultRevision, evidenceRefs: input.evidenceRefs,
-      acceptedResult: task.acceptedResult });
+    requireValue(!task.manualAcceptance, 'CONFLICT', 'This task requires local human confirmation.');
+    recordAcceptance(tx, task, input, acceptanceEvidence(tx, task, input));
   } else if (operation === 'release') {
     requireValue(input.writesStopped === true && input.processStopped === true,
       'RECOVERY_REQUIRED', 'Confirm all writers and processes stopped before release.');
@@ -590,7 +588,9 @@ function mutateAuthorized(tx, operation, input, worker, provenance) {
 }
 
 /** Project a consistent storage snapshot into bounded public lists without credentials. */
-export function publicSnapshot(snapshot, { includeArchived = false } = {}) {
+export function publicSnapshot(snapshot, {
+  includeArchived = false, includeManualConfirmation = false,
+} = {}) {
   const { board, ...lists } = snapshot;
   const tx = snapshotContext(snapshot);
   // The materialized browser projection is one bounded read, not one Git observation per
@@ -598,7 +598,8 @@ export function publicSnapshot(snapshot, { includeArchived = false } = {}) {
   beginWorkspaceObservation(tx);
   try { return redact({ ...lists,
     tasks: lists.tasks.filter(task => includeArchived || task.archived !== true)
-      .map(task => ({ ...task, ...readiness(tx, task, resourcesAvailable) })),
+      .map(task => ({ ...task, ...readiness(tx, task, resourcesAvailable),
+        ...(includeManualConfirmation ? { manualConfirmation: manualConfirmationView(tx, task) } : {}) })),
     questions: lists.questions.map(question => projectQuestion(tx, question)),
     questionPolicy: questionPolicy(board), schemaVersion: 1, databaseSchemaVersion: board.schemaVersion,
     boardId: board.boardId, generation: board.generation,

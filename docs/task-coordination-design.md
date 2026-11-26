@@ -489,9 +489,47 @@ fixtures accompany the change; real-workload speed and cross-platform behavior n
 No SQL schema migration, structural reorganization, automatic installation or additional runtime
 dependency is introduced by these extensions.
 
-## 15. Shared local display service
+## 15. Independent task recording and browser display
 
-The unified activation CLI defaults to one local HTTP Hub per trusted selected Agents runtime
+The installed activation wrapper defaults to record-only for normal activate and resume. Run the same safe coordination commands within the activation process so session writes no longer require an internal CLI child process or an HTTP service. Existing bindings, audit events, assignment rules and exact operation receipts remain the storage authority. Legacy panel and its service-only actions remain available when explicitly selected.
+
+A user starts the local dashboard with the installed task-board launcher and explicit project roots. It displays bound sessions from their existing databases on one loopback port. Opening the local URL sets up access automatically using a same-origin request and an in-memory page capability. Other local programs are inside this trust boundary. Read routes return bounded lists and public task fields. The UI refreshes the selected session on revision events and refetches its snapshot after reconnection. Each snapshot is a short SQLite read. A missing, linked, inaccessible or invalid Board does not make other sessions unavailable. Record-only activation never calls the viewer to discover or authenticate a session.
+
+The standalone dashboard gives explicitly canceled tasks their own column. It uses the existing
+`canceled` state and displays the recorded reason and outstanding cleanup. Closed work and work
+awaiting verification keep their existing meanings. Reconciliation and cancellation remain
+Lead-authorized coordination operations.
+
+File previews resolve a reference from the selected card in the registered session. The browser
+passes an opaque reference ID. The server resolves it in the associated worktree and returns bounded
+plain text or a structured test summary. The details panel retains its position when the user returns
+from a preview. Execution records retain technical identity fields for diagnostic queries. The dashboard
+uses readable role labels for people.
+
+The dashboard has separate writes for final confirmation and intermediate human work. For final
+confirmation, an authenticated Lead prepares a specific current submission only after its
+technical and required independent gates pass. The preparation can include the user's setup,
+actions and observable results. The card surfaces those
+instructions in its human-confirmation column. Legacy cards without instructions say so. The browser's
+confirmation is restricted to that task and revision in the selected registered Board.
+The service revalidates the exact submission and all acceptance gates in the write transaction,
+records the local human confirmation, and uses the ordinary accepted-result transition. The
+browser supplies neither Lead credentials nor acceptance evidence. Confirmation leaves resource
+cleanup with the existing owner and preserves the submission's actual executor. Legacy explicit
+manual-wait phases need an Agent to prepare the current frozen result before they enter the
+human column.
+
+For intermediate work, the authenticated Lead records a bounded step with the type, the person
+responsible, the instruction and the expected observation. The view groups explicit pending
+human steps in the human column. A local submission is bound to the registered Board, generation
+and current task revision. The assignee label describes the intended person. The receipt identifies
+the authorized local dashboard as its source. The write records the observed result, including
+failure, and returns the card to the Agent queue with its independent gates, dependencies and
+retained allocations. The Agent resumes through the normal authorization and readiness rules.
+
+### Legacy shared display service
+
+The compatible legacy panel CLI uses one local HTTP Hub per trusted selected Agents runtime
 home, rather than one Node process per chat. It mounts independent Board endpoints in process at
 `/boards/<sessionKey>/`, retaining separate SQLite databases, task authority, generations,
 credentials and event cursors. Low-level standalone `serve()` remains compatible; old live

@@ -6,6 +6,7 @@ param(
   [string]$GitRef,
   [string]$RuntimeArchivePath,
   [switch]$Offline,
+  [switch]$EnableTeamGuidance,
   [switch]$Force
 )
 
@@ -23,6 +24,7 @@ $arguments = @{
 if ($GitRef) { $arguments.GitRef = $GitRef }
 if ($RuntimeArchivePath) { $arguments.RuntimeArchivePath = $RuntimeArchivePath }
 if ($Offline) { $arguments.Offline = $true }
+if ($EnableTeamGuidance) { $arguments.EnableTeamGuidance = $true }
 if ($Force) { $arguments.Force = $true }
 if ($WhatIfPreference) { $arguments.WhatIf = $true }
 

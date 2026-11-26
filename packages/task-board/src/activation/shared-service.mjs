@@ -1,6 +1,7 @@
 /** Authenticated discovery/start/attach, finite and serialized. No task operations or host UI. */
 import fs from 'node:fs';
 import http from 'node:http';
+import net from 'node:net';
 import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -22,11 +23,29 @@ export function sharedFingerprint() {
   return hash.digest('hex');
 }
 
+function hasRetainedEndpoint(identity) {
+  return identity?.protocol === 1 && typeof identity.hubId === 'string'
+    && /^[a-f0-9-]{36}$/.test(identity.hubId)
+    && Number.isInteger(identity.port) && identity.port >= 1 && identity.port <= 65535
+    && identity.url === `http://127.0.0.1:${identity.port}`;
+}
+
+/** An obsolete port may belong to a different listener. Probe without credentials or HTTP. */
+function probeRetainedPort(port) {
+  return new Promise((resolve, reject) => {
+    const socket = net.connect({ host: '127.0.0.1', port });
+    socket.once('connect', () => { socket.destroy(); resolve(); });
+    socket.once('error', error => reject(Object.assign(sharedError('SHARED_UNAVAILABLE'), {
+      details: transportDetails(error),
+    })));
+    socket.setTimeout(2000, () => socket.destroy(Object.assign(Error(), { code: 'ETIMEDOUT' })));
+  });
+}
+
 /** Bounded private management transport. Tokens are header/stdin data, never URL/argv data. */
 export function hubRequest(identity, managerToken, operation, input) {
-  if (!identity || identity.protocol !== 1 || !/^[a-f0-9-]{36}$/.test(identity.hubId)
-    || !Number.isInteger(identity.port) || identity.port < 1 || identity.port > 65535
-    || identity.url !== `http://127.0.0.1:${identity.port}` || !/^[a-f0-9]{64}$/.test(managerToken)) {
+  if (!hasRetainedEndpoint(identity) || typeof managerToken !== 'string'
+      || !/^[a-f0-9]{64}$/.test(managerToken)) {
     throw sharedError('SHARED_STATE_INVALID');
   }
   return new Promise((resolve, reject) => {
@@ -82,11 +101,23 @@ export async function attachSharedService(input, { home = sharedHome() } = {}) {
     const token = managerCredential(home), fingerprint = sharedFingerprint();
     let instance = readRuntime(home, 'instance.json');
     if (instance?.state === 'starting') throw sharedError('SHARED_START_OUTCOME_UNKNOWN');
-    if (instance && instance.fingerprint !== fingerprint) throw sharedError('SHARED_RUNTIME_MISMATCH');
+    const incompatible = instance && instance.fingerprint !== fingerprint;
+    // An older running record may be stale after an upgrade. Check its exact endpoint
+    // before deciding, and permit replacement only via the existing refused + absent-PID proof.
+    if (incompatible && (instance.state !== 'running' || typeof instance.fingerprint !== 'string'
+        || !/^[a-f0-9]{64}$/.test(instance.fingerprint) || !hasRetainedEndpoint(instance))) {
+      throw sharedError('SHARED_RUNTIME_MISMATCH');
+    }
     if (instance && instance.state !== 'stopped') {
       try {
+        if (incompatible) {
+          await probeRetainedPort(instance.port);
+          throw sharedError('SHARED_RUNTIME_MISMATCH');
+        }
         const status = await hubRequest(instance, token, 'status');
-        if (status.fingerprint !== fingerprint || status.status !== 'running') throw sharedError('SHARED_RUNTIME_MISMATCH');
+        if (status.fingerprint !== fingerprint || status.status !== 'running') {
+          throw sharedError('SHARED_RUNTIME_MISMATCH');
+        }
       } catch (error) {
         if (error.code !== 'SHARED_UNAVAILABLE' || error.details?.transportCode !== 'ECONNREFUSED') throw error;
         let absent = false;

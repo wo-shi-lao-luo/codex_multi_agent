@@ -59,6 +59,12 @@ test('IDENTITY.forwardBindingPreservesOldFreezeAndNeedsFreshIndependentCheck', a
   shown = (await f.ok('show', { taskId: 'producer' })).result;
   assert.notEqual((await f.raw('accept', { taskId: 'producer', taskRevision: shown.task.taskRevision,
     gatesSatisfied: true, evidenceRefs: ['fixture/self-check'] })).code, 0);
+  const manualWithoutReview = await f.raw('request-manual-acceptance', {
+    taskId: 'producer', taskRevision: shown.task.taskRevision, evidenceRefs: ['fixture/self-check'],
+  });
+  assert.equal(manualWithoutReview.reply.error.code, 'DEPENDENCY_BLOCKED',
+    'Moving a task to manual confirmation cannot replace a required independent review.');
+  assert.equal((await f.ok('show', { taskId: 'producer' })).result.task.taskRevision, shown.task.taskRevision);
   await f.ok('register', { worker: { id: 'reviewer', role: 'team-reviewer', mode: 'lead-proxy',
     capabilities: ['read'], workerToken: secret(), principal: { ...principal, agentId: 'actual-reviewer' } } });
   await f.ok('sync-task', { action: 'prepare', contractApproved: true, task: {

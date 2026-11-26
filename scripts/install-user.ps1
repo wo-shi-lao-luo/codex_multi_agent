@@ -1,6 +1,7 @@
 # Full installation orchestrator: prepare verified dependencies before the offline payload transaction.
 # The selected source contributes data only; this trusted entrypoint never runs its scripts.
 # install-receipt.json remains owned by deploy-user.ps1; this wrapper never removes payload files.
+# Pass -EnableTeamGuidance only with consent to add guidance to the selected Codex home.
 #requires -Version 7.0
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
@@ -10,6 +11,7 @@ param(
   [string]$GitRef,
   [string]$RuntimeArchivePath,
   [switch]$Offline,
+  [switch]$EnableTeamGuidance,
   [switch]$Force
 )
 $ErrorActionPreference = 'Stop'
@@ -72,6 +74,13 @@ try {
   if ($preview.boardRequired -and -not (Test-RuntimePin $preview.runtimeSelection (Get-BoardRuntimeLock))) {
     throw 'RUNTIME_LOCK: Selected Board package has no supported pinned runtime contract; use payload-only Deploy for historical packages.'
   }
+  if ($EnableTeamGuidance) {
+    if (-not ($preview.operations | Where-Object { $_.unit -ceq 'skills/team' -and $_.operation -cin @('install','replace') })) {
+      throw 'TEAM_GUIDANCE_SKILL: The selected source does not install the Team skill.'
+    }
+    $guidanceScript = Join-Path $PSScriptRoot 'enable-team-guidance.ps1'
+    $preview.teamGuidance = & $guidanceScript -CodexHome $CodexHome -AgentsHome $AgentsHome -WhatIf
+  }
   if (-not $PSCmdlet.ShouldProcess($AgentsHome, 'Prepare dependencies and install the full Kit')) {
     $preview.dependency = @{required=$preview.boardRequired; action='resolve-or-provision'; networkAllowed=(-not $Offline)}
     $preview.installationComplete = $false
@@ -111,6 +120,9 @@ try {
   $deployment.installationComplete = $true
   $deployment.filesCommitted = $true
   $deployment.dependency = $dependency
+  if ($EnableTeamGuidance) {
+    $deployment.teamGuidance = & $guidanceScript -CodexHome $CodexHome -AgentsHome $AgentsHome -Confirm:$false
+  }
   $deployment | ConvertTo-Json -Depth 15
   try {
     . (Join-Path $PSScriptRoot 'optional-capabilities.ps1')
