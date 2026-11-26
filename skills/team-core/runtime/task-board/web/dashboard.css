@@ -1,4 +1,4 @@
-/* Extend the existing Board's restrained operations palette and spacing to a session browser. */
+/* Extend the Board's operations palette to the session browser and its evidence reader. */
 :root {
   color-scheme: light;
   color: #182230;
@@ -242,6 +242,19 @@ button:active:not(:disabled) { background: #dbe8ff; }
 .task-state.submitted { border-color: #ead5a8; background: var(--warning-bg); color: var(--warning); }
 .task-state.manual-confirmation { border-color: #acd1c6; background: #eef8f4; color: #19554a; }
 
+.manual-guide {
+  margin-block: 9px;
+  padding-block: 9px;
+  border-block: 1px solid var(--border);
+  font-size: 13px;
+}
+.manual-guide h3, .manual-guide h5 { margin: 0 0 4px; color: #19554a; font-size: inherit; }
+.manual-guide-setup { margin-bottom: 6px; white-space: pre-wrap; }
+.manual-guide-steps { margin: 0; padding-inline-start: 20px; }
+.manual-guide-steps li { padding-inline-start: 2px; white-space: pre-wrap; }
+.manual-guide-steps li + li { margin-top: 6px; }
+.manual-guide-expected { color: var(--muted); }
+
 .task-detail {
   width: min(100% - 28px, 690px);
   max-height: min(86vh, 760px);
@@ -264,6 +277,7 @@ button:active:not(:disabled) { background: #dbe8ff; }
   border-bottom: 1px solid var(--border);
   background: var(--surface);
 }
+.detail-heading > div { min-width: 0; }
 .detail-heading h2 { overflow-wrap: anywhere; }
 .detail-content { padding: 0 20px 20px; }
 .detail-actions {
@@ -292,6 +306,47 @@ button:active:not(:disabled) { background: #dbe8ff; }
 .detail-section p {
   margin-top: 4px;
   color: #34445a;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.detail-reference-row {
+  display: flex;
+  align-items: baseline;
+  column-gap: 3px;
+}
+.detail-reference-button {
+  align-self: start;
+  min-width: 0;
+  min-height: 30px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  color: #174b9b;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.reference-back { margin-bottom: 8px; }
+.reference-preview { padding-top: 16px; overflow-wrap: anywhere; }
+.reference-preview > h3 { margin-bottom: 8px; color: var(--muted); }
+.reference-status { margin-block: 4px 8px; color: var(--muted); font-size: 13px; }
+.reference-content { max-width: 72ch; }
+.reference-content > * + * { margin-top: 12px; }
+.reference-content h4, .reference-content h5, .reference-content h6 { margin-bottom: 4px; }
+.reference-content h4 { font-size: 18px; }
+.reference-content h5, .reference-content h6 { font-size: 15px; }
+.reference-content p { white-space: pre-wrap; }
+.reference-content ol, .reference-content ul { padding-inline-start: 22px; }
+.reference-content pre {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #f5f6f8;
+  color: #34445a;
+  font-size: 13px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }

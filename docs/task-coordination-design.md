@@ -500,9 +500,17 @@ The standalone dashboard gives explicitly canceled tasks their own column. It us
 awaiting verification keep their existing meanings. Reconciliation and cancellation remain
 Lead-authorized coordination operations.
 
+File previews resolve a reference from the selected card in the registered session. The browser
+passes an opaque reference ID. The server resolves it in the associated worktree and returns bounded
+plain text or a structured test summary. The details panel retains its position when the user returns
+from a preview. Execution records retain technical identity fields for diagnostic queries. The dashboard
+uses readable role labels for people.
+
 The dashboard exposes a single write for manual confirmation. An authenticated Lead prepares a
 specific current submission only after its technical and required independent gates pass. The
-browser's confirmation is restricted to that task and revision in the selected registered Board.
+preparation can include the user's setup, actions and observable results. The card surfaces those
+instructions in its human-confirmation column. Legacy cards without instructions say so. The browser's
+confirmation is restricted to that task and revision in the selected registered Board.
 The service revalidates the exact submission and all acceptance gates in the write transaction,
 records the local human confirmation, and uses the ordinary accepted-result transition. The
 browser supplies neither Lead credentials nor acceptance evidence. Confirmation leaves resource

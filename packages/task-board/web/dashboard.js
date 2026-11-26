@@ -1,4 +1,4 @@
-/** View session snapshots and follow committed revisions from the local service. */
+/** View committed task snapshots, inspect evidence, and confirm reviewed work. */
 'use strict';
 
 const elements = Object.fromEntries([
@@ -6,7 +6,8 @@ const elements = Object.fromEntries([
   'session-list', 'group-mode', 'retry', 'catalog-warning', 'work', 'work-title', 'work-project',
   'work-summary', 'work-empty', 'tasks', 'task-detail', 'task-detail-title', 'task-detail-content',
   'work-confirmation-message', 'task-confirmation', 'task-confirmation-message', 'task-confirm-complete',
-  'task-detail-close',
+  'task-detail-close', 'reference-back', 'reference-preview', 'reference-title',
+  'reference-status', 'reference-content',
 ].map(id => [id, document.getElementById(id)]));
 
 const stateNames = new Map([
@@ -25,6 +26,7 @@ const columnForState = new Map([
   ['running', 'active'], ['blocked', 'active'], ['submitted', 'active'],
   ['closed', 'ended'], ['ended', 'ended'], ['archived', 'ended'], ['canceled', 'abandoned'],
 ]);
+const activeStateOrder = new Map([['running', 0], ['blocked', 1], ['submitted', 2]]);
 const roleNames = new Map([
   ['lead', '主 Agent'], ['team-backend-engineer', '后端工程师'],
   ['team-frontend-engineer', '前端工程师'], ['team-reviewer', '代码审查'],
@@ -160,6 +162,7 @@ function stopSelected() {
   const view = state.selected;
   state.selected = null;
   clearConfirmationDrag();
+  resetReferencePreview(view);
   const dialog = elements['task-detail'];
   const wasOpen = dialog.open;
   if (wasOpen) dialog.close();
@@ -174,7 +177,7 @@ function roleName(role) {
 }
 
 function personName(person) {
-  return person ? [roleName(person.role), person.id].filter(Boolean).join(' · ') : '未记录';
+  return person ? roleNames.get(person.role) ?? '角色未记录' : '未记录';
 }
 
 function candidatesText(task) {
@@ -195,6 +198,7 @@ function showTaskDetail(task) {
   if (!view) return;
   const dialog = elements['task-detail'];
   if (!dialog.open || view.detailTaskId !== task.id) {
+    resetReferencePreview(view);
     view.detailConfirmation = confirmationRequest(task);
   }
   view.detailTaskId = task.id;
@@ -205,6 +209,31 @@ function showTaskDetail(task) {
 function needsManualConfirmation(task) {
   return ['ready', 'waiting-for-submission'].includes(task?.manualConfirmation?.state)
     && !['closed', 'ended', 'canceled', 'archived'].includes(task.state);
+}
+
+/** Keep the steps and pass conditions visible on the card, including old cards without a guide. */
+function manualGuide(task, headingTag) {
+  if (!needsManualConfirmation(task)) return null;
+  const { guide, state: confirmationState } = task.manualConfirmation;
+  const section = node('section', '', 'manual-guide');
+  section.append(node(headingTag, '人工核验'));
+  if (!guide?.steps?.length) {
+    const message = confirmationState === 'ready'
+      ? '这张卡尚未附核验步骤，请先核对验收引用。'
+      : '等候可确认的提交，核验步骤准备好后会显示在这里。';
+    section.append(node('p', message, 'manual-guide-expected'));
+    return section;
+  }
+  if (guide.setup) section.append(node('p', guide.setup, 'manual-guide-setup'));
+  const steps = node('ol', '', 'manual-guide-steps');
+  for (const step of guide.steps) {
+    const item = node('li', '');
+    item.append(node('p', step.action),
+      node('p', `通过标准：${step.expected}`, 'manual-guide-expected'));
+    steps.append(item);
+  }
+  section.append(steps);
+  return section;
 }
 
 function confirmationRequest(task) {
@@ -292,6 +321,7 @@ function renderTaskCard(task) {
   heading.append(title);
   header.append(heading, badge);
   item.append(header);
+  if (manual) item.append(manualGuide(task, 'h5'));
 
   item.append(node('p', candidatesText(task), 'subtle task-line'),
     node('p', responsibilityText(task), 'subtle task-line'));
@@ -306,7 +336,6 @@ function renderTaskCard(task) {
   if (!abandoned) item.append(node('p', task.progress || '尚无实际进展报告', 'task-progress'),
     node('p', `下一检查点：${task.nextCheckpoint || '尚未报告'}`, 'task-checkpoint'));
   const flags = [
-    manual && task.manualConfirmation.state === 'waiting-for-submission' && '等候可确认的提交',
     !manual && !abandoned && task.blocker && `阻塞：${task.blocker}`,
     abandoned && task.cancellationReason && `放弃说明：${task.cancellationReason}`,
     task.dependencyCount > 0 && `依赖 ${task.dependencyCount}`,
@@ -327,8 +356,152 @@ function detailSection(title, entries) {
   const values = entries.filter(Boolean);
   if (!values.length) return null;
   const section = node('section', '', 'detail-section');
-  section.append(node('h3', title), ...values.map(value => node('p', value)));
+  section.append(node('h3', title),
+    ...values.map(value => typeof value === 'string' ? node('p', value) : value));
   return section;
+}
+
+/** Bind only projected reference IDs. Older snapshots keep their readable, static labels. */
+function referenceRows(task, labels, ids, prefix = '') {
+  return (labels ?? []).map((label, index) => {
+    const referenceId = ids?.[index];
+    if (!referenceId) return `${prefix}${label}`;
+    const row = node('p', prefix, 'detail-reference-row');
+    const button = node('button', label, 'detail-reference-button');
+    button.type = 'button';
+    button.dataset.referenceId = referenceId;
+    button.addEventListener('click', () => void openReferencePreview(task, referenceId, label));
+    row.append(button);
+    return row;
+  });
+}
+
+function showReferencePane(show) {
+  elements['reference-preview'].hidden = !show;
+  elements['reference-back'].hidden = !show;
+  elements['task-detail-content'].hidden = show;
+  if (show) elements['task-confirmation'].hidden = true;
+}
+
+function resetReferencePreview(view) {
+  view.referencePreview?.controller.abort();
+  view.referencePreview = null;
+  showReferencePane(false);
+  elements['reference-content'].replaceChildren();
+}
+
+/** Return focus even if the task detail controls were rebuilt by a newer snapshot. */
+function returnToReferences(view) {
+  const preview = view?.referencePreview;
+  if (!preview) return;
+  resetReferencePreview(view);
+  const task = view.tasks.get(view.detailTaskId);
+  if (task) updateConfirmationControls(view, task);
+  const trigger = [...elements['task-detail-content'].querySelectorAll('[data-reference-id]')]
+    .find(button => button.dataset.referenceId === preview.referenceId);
+  (trigger ?? elements['task-detail-close']).focus({ preventScroll: true });
+  elements['task-detail'].scrollTop = preview.detailScroll;
+}
+
+/** Open one read-only request per click and ignore responses after leaving the selected preview. */
+async function openReferencePreview(task, referenceId, label) {
+  const view = state.selected;
+  const dialog = elements['task-detail'];
+  if (!view || view.detailTaskId !== task.id || !dialog.open) return;
+  const detailScroll = view.referencePreview?.detailScroll ?? dialog.scrollTop;
+  resetReferencePreview(view);
+  const controller = new AbortController();
+  const preview = { controller, referenceId, detailScroll };
+  view.referencePreview = preview;
+  showReferencePane(true);
+  showText('reference-title', label);
+  showText('reference-status', '正在读取引用…');
+  dialog.scrollTop = 0;
+  elements['reference-title'].focus({ preventScroll: true });
+  const current = () => view === state.selected && view.referencePreview === preview && dialog.open;
+  const parameters = new URLSearchParams({ session: view.id, task: task.id, ref: referenceId });
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await callBoard(`/api/reference?${parameters}`, controller.signal);
+    requireSuccess(response);
+    const result = await response.json();
+    if (!current()) return;
+    if (typeof result.content !== 'string') throw new Error('Invalid reference response.');
+    renderReferenceContent(result);
+  } catch (error) {
+    if (!current()) return;
+    const missing = [403, 404, 410].includes(error.status);
+    showText('reference-status', missing
+      ? '此引用已不存在或无法读取。返回任务详情查看其他引用。'
+      : '暂时无法读取。返回任务详情后可重新打开这条引用。');
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function renderReferenceContent({ format, content, truncated }) {
+  const notice = truncated ? '显示文件的部分内容。' : '';
+  showText('reference-status', content.trim() ? notice : '引用内容为空。');
+  if (!content.trim()) return;
+  const section = elements['reference-content'];
+  if (format !== 'markdown') {
+    section.replaceChildren(node('pre', content));
+    return;
+  }
+  section.replaceChildren(...markdownBlocks(content));
+}
+
+/** Render common Markdown blocks as text nodes. Links, scripts and images stay as document text. */
+function markdownBlocks(content) {
+  const lines = content.split(/\r?\n/);
+  if (lines.length > 1500) return [node('pre', content)];
+  const blocks = [];
+  let paragraph = [];
+  let list = null;
+  let fence = null;
+  function flushParagraph() {
+    if (paragraph.length) blocks.push(node('p', paragraph.join('\n')));
+    paragraph = [];
+  }
+  for (const line of lines) {
+    if (fence) {
+      const closing = line.trim();
+      if (closing.length >= fence.marker.length
+          && [...closing].every(character => character === fence.marker[0])) {
+        blocks.push(node('pre', fence.lines.join('\n')));
+        fence = null;
+      } else fence.lines.push(line);
+      continue;
+    }
+    const fenceMarker = line.match(/^\s*(`{3,}|~{3,})/);
+    const heading = line.match(/^(#{1,6})\s+(.+)$/);
+    const bullet = line.match(/^\s*(?:([-+*])|(\d+)\.)\s+(\S.*)$/);
+    if (bullet) {
+      flushParagraph();
+      const tag = bullet[2] ? 'ol' : 'ul';
+      if (tag !== list?.tag) {
+        const element = node(tag, '');
+        list = { element, tag };
+        blocks.push(element);
+      }
+      const item = node('li', bullet[3]);
+      if (bullet[2]) item.setAttribute('value', bullet[2]);
+      list.element.append(item);
+      continue;
+    }
+    list = null;
+    if (fenceMarker) {
+      flushParagraph();
+      fence = { marker: fenceMarker[1], opening: line, lines: [] };
+    } else if (heading) {
+      flushParagraph();
+      blocks.push(node(`h${Math.min(heading[1].length + 3, 6)}`, heading[2]));
+    } else if (!line.trim()) flushParagraph();
+    else paragraph.push(line);
+  }
+  flushParagraph();
+  if (fence) blocks.push(node('pre', [fence.opening, ...fence.lines].join('\n')));
+  return blocks;
 }
 
 function questionText(question) {
@@ -354,7 +527,7 @@ function updateConfirmationControls(view, task) {
   if (disabled && document.activeElement === button) elements['task-detail-close'].focus();
   button.hidden = !request;
   button.disabled = disabled;
-  elements['task-confirmation'].hidden = !request && !message;
+  elements['task-confirmation'].hidden = Boolean(view?.referencePreview) || (!request && !message);
   showText('task-confirmation-message', message);
 }
 
@@ -409,6 +582,7 @@ async function confirmTask(view, request) {
 
 function renderTaskDetail(task) {
   const detail = task.details ?? {};
+  const previews = detail.referencePreviews ?? {};
   elements['task-detail-title'].textContent = task.title || '未命名任务';
   const result = task.resultValid === true ? '当前结果有效' :
     task.state === 'closed' && task.resultValid === false ? '历史已关闭 · 结果已失效' : '';
@@ -417,10 +591,8 @@ function renderTaskDetail(task) {
   const sections = [
     detailSection('角色与执行者', [candidatesText(task), responsibilityText(task), ...(detail.responsibilities ?? [])]),
     detailSection('任务说明', [detail.outcome]),
-    detailSection('人工确认', [
-      manual && task.manualConfirmation.state === 'waiting-for-submission' && '等候可确认的提交。',
-      task.state === 'closed' && task.manualConfirmed === true && '已人工确认。',
-    ]),
+    manualGuide(task, 'h3'),
+    detailSection('人工确认', [task.state === 'closed' && task.manualConfirmed === true && '已人工确认。']),
     detailSection('放弃记录', [task.cancellationReason,
       abandoned && task.cleanupPending && '资源待安全收尾']),
     detailSection(abandoned ? '历史进展' : '执行进展', [task.progress,
@@ -429,14 +601,15 @@ function renderTaskDetail(task) {
     detailSection('执行与交接记录', (detail.executionHistory ?? []).map(record =>
       `${personName(record.person)}（${record.active ? '当前分配' : '分配已结束'}）`)),
     detailSection('来源与验收引用', [
-      ...(detail.sourceRefs ?? []).map(reference => `来源：${reference}`),
-      ...(detail.acceptanceRefs ?? []).map(reference => `验收：${reference}`),
+      ...referenceRows(task, detail.sourceRefs, previews.sourceRefs, '来源：'),
+      ...referenceRows(task, detail.acceptanceRefs, previews.acceptanceRefs, '验收：'),
     ]),
-    detailSection('结果与提交', [result, ...(detail.acceptanceEvidence ?? []),
-      ...(detail.submissions ?? []).map(submission => [
+    detailSection('结果与提交', [result,
+      ...referenceRows(task, detail.acceptanceEvidence, previews.acceptanceEvidence),
+      ...(detail.submissions ?? []).flatMap((submission, index) => [
         `${submissionLabels.get(submission.kind) ?? '提交'} · ${personName(submission.person)}`,
-        ...(submission.evidenceRefs ?? []),
-      ].join('\n'))]),
+        ...referenceRows(task, submission.evidenceRefs, previews.submissions?.[index]),
+      ])]),
     detailSection('依赖与资源', [
       ...(detail.dependencies ?? []).map(dependency => `依赖：${dependency.title || '名称未记录'}`),
       ...(detail.resources ?? []).map(resource => `资源：${resource.key}${resource.mode ? `（${resource.mode}）` : ''}`),
@@ -445,7 +618,11 @@ function renderTaskDetail(task) {
     detailSection('问询与答复', (detail.questions ?? []).map(questionText)),
   ];
   elements['task-detail-content'].replaceChildren(...sections.filter(Boolean));
-  updateConfirmationControls(state.selected, task);
+  const view = state.selected;
+  if (view?.referencePreview
+      && !Object.values(previews).flat(2).includes(view.referencePreview.referenceId)) {
+    returnToReferences(view);
+  } else updateConfirmationControls(view, task);
 }
 
 function restoreCardFocus(id) {
@@ -475,6 +652,9 @@ function renderTasks(tasks) {
       ? 'confirmation' : columnForState.get(task.state) ?? 'waiting';
     grouped.get(column).push(task);
   }
+  // Keep the snapshot order within each state while surfacing work that is still in motion.
+  grouped.get('active').sort((left, right) =>
+    activeStateOrder.get(left.state) - activeStateOrder.get(right.state));
   elements.tasks.replaceChildren(...taskColumns.map(({ id, title, empty }) => {
     const items = grouped.get(id);
     const column = node('section', '', 'task-column');
@@ -739,13 +919,20 @@ elements['group-mode'].addEventListener('click', () => {
 elements['task-detail'].addEventListener('close', () => {
   if (!state.selected || elements['task-detail'].open) return;
   const id = state.selected.detailTaskId;
+  resetReferencePreview(state.selected);
   state.selected.detailTaskId = null;
   state.selected.detailConfirmation = null;
   restoreCardFocus(id);
 });
+elements['reference-back'].addEventListener('click', () => returnToReferences(state.selected));
+elements['task-detail'].addEventListener('cancel', event => {
+  if (!state.selected?.referencePreview) return;
+  event.preventDefault();
+  returnToReferences(state.selected);
+});
 elements['task-confirm-complete'].addEventListener('click', () => {
   const view = state.selected;
-  if (!view || !elements['task-detail'].open) return;
+  if (!view || view.referencePreview || !elements['task-detail'].open) return;
   void confirmTask(view, view.detailConfirmation);
 });
 elements.retry.addEventListener('click', () => {

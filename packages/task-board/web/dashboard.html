@@ -48,10 +48,19 @@
   </main>
   <dialog id="task-detail" class="task-detail" aria-labelledby="task-detail-title">
     <header class="detail-heading">
-      <h2 id="task-detail-title"></h2>
+      <div>
+        <button id="reference-back" class="reference-back" type="button" hidden>返回任务详情</button>
+        <h2 id="task-detail-title"></h2>
+      </div>
       <form method="dialog"><button id="task-detail-close" type="submit" autofocus>关闭</button></form>
     </header>
     <div id="task-detail-content" class="detail-content"></div>
+    <section id="reference-preview" class="detail-content reference-preview"
+      aria-labelledby="reference-title" hidden>
+      <h3 id="reference-title" tabindex="-1"></h3>
+      <p id="reference-status" class="reference-status" role="status" hidden></p>
+      <div id="reference-content" class="reference-content"></div>
+    </section>
     <footer id="task-confirmation" class="detail-actions" hidden>
       <p id="task-confirmation-message" class="confirmation-status" role="status" hidden></p>
       <button id="task-confirm-complete" class="confirm-task-button" type="button" hidden>确认完成</button>

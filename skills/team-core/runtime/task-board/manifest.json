@@ -75,7 +75,7 @@
     },
     {
       "path": "packages/task-board/src/cli/help.mjs",
-      "sha256": "6443fddc9196a8917168f6289c4a3efbde723c1b8bd3eb8be4ccda0cda3b6323"
+      "sha256": "94f3348f017026c2036c6e656fd36abfda3fb6443fbfc0d410528927b070f71b"
     },
     {
       "path": "packages/task-board/src/cli/maintenance.mjs",
@@ -83,7 +83,7 @@
     },
     {
       "path": "packages/task-board/src/coordination/acceptance.mjs",
-      "sha256": "06f4a1aec44778edc8e94e95480f7b328b2b70846da7384b40cddffcc5182249"
+      "sha256": "e19daa65b3171d4e980fac77f6a88552da3b2e6d89d05838f3fc638737d400c9"
     },
     {
       "path": "packages/task-board/src/coordination/artifact-protection.mjs",
@@ -159,15 +159,19 @@
     },
     {
       "path": "packages/task-board/src/server/dashboard-card-projection.mjs",
-      "sha256": "ed6c3eac3f20b2e0881b9004052b0952f48930993a9cd5baebd30f20970e3dfa"
+      "sha256": "3e7ba3edbbd20b773b687950b2f64a59125ccc354756fcfddc7038ec8ac08918"
     },
     {
       "path": "packages/task-board/src/server/dashboard-catalog.mjs",
-      "sha256": "89e6925b98c897d4e75fd947537218dda391ed2a294214376d44db8a63b77410"
+      "sha256": "e1c04349d69b9b7f0a980e21f1b400f9e0c2dbeb2cc30f96019a1f87eedba854"
+    },
+    {
+      "path": "packages/task-board/src/server/dashboard-reference-preview.mjs",
+      "sha256": "f7210c032de0c98c8d9154de7a709d1d2a1e465434347129f5a102f00ea2a231"
     },
     {
       "path": "packages/task-board/src/server/dashboard.mjs",
-      "sha256": "e9ed499003c5d8a92e27554f8e49f45d567382261ed5b66a21cc6641a75351a6"
+      "sha256": "37fa8dc8d7befecdd199d141b24054ea4e0ee1bbd8a698c76b73dd765a953bd3"
     },
     {
       "path": "packages/task-board/src/server/server.mjs",
@@ -271,15 +275,15 @@
     },
     {
       "path": "packages/task-board/web/dashboard.css",
-      "sha256": "351e7b96a6764c1597beed6aa8bc982b091a783fc8338a394c3612c0dc9f5b5d"
+      "sha256": "f568c82acbc44d66bc9b2526ab4f77035ebb51fc62a7d09e7f34261cf800275d"
     },
     {
       "path": "packages/task-board/web/dashboard.html",
-      "sha256": "e0f7c2a41238cc74abae7259349ce89cf65d8c2481ce95f5d573cad1bda26403"
+      "sha256": "63c5908c537be5724790cdc2fd1379a04647dc3a6d23888e62d37301c4663029"
     },
     {
       "path": "packages/task-board/web/dashboard.js",
-      "sha256": "0ce7b1399dc2366bf8c8a260844b51d490cce1f7b722b966533c1153facf7095"
+      "sha256": "6f4929279786e1cb92a28e0e3e4f370dd85688ba6ea13e0289ec45052c3ae6c7"
     },
     {
       "path": "packages/task-board/web/index.html",
@@ -365,7 +369,7 @@
     },
     {
       "path": "src/cli/help.mjs",
-      "sha256": "6443fddc9196a8917168f6289c4a3efbde723c1b8bd3eb8be4ccda0cda3b6323"
+      "sha256": "94f3348f017026c2036c6e656fd36abfda3fb6443fbfc0d410528927b070f71b"
     },
     {
       "path": "src/cli/maintenance.mjs",
@@ -373,7 +377,7 @@
     },
     {
       "path": "src/coordination/acceptance.mjs",
-      "sha256": "06f4a1aec44778edc8e94e95480f7b328b2b70846da7384b40cddffcc5182249"
+      "sha256": "e19daa65b3171d4e980fac77f6a88552da3b2e6d89d05838f3fc638737d400c9"
     },
     {
       "path": "src/coordination/artifact-protection.mjs",
@@ -449,15 +453,19 @@
     },
     {
       "path": "src/server/dashboard-card-projection.mjs",
-      "sha256": "ed6c3eac3f20b2e0881b9004052b0952f48930993a9cd5baebd30f20970e3dfa"
+      "sha256": "3e7ba3edbbd20b773b687950b2f64a59125ccc354756fcfddc7038ec8ac08918"
     },
     {
       "path": "src/server/dashboard-catalog.mjs",
-      "sha256": "89e6925b98c897d4e75fd947537218dda391ed2a294214376d44db8a63b77410"
+      "sha256": "e1c04349d69b9b7f0a980e21f1b400f9e0c2dbeb2cc30f96019a1f87eedba854"
+    },
+    {
+      "path": "src/server/dashboard-reference-preview.mjs",
+      "sha256": "f7210c032de0c98c8d9154de7a709d1d2a1e465434347129f5a102f00ea2a231"
     },
     {
       "path": "src/server/dashboard.mjs",
-      "sha256": "e9ed499003c5d8a92e27554f8e49f45d567382261ed5b66a21cc6641a75351a6"
+      "sha256": "37fa8dc8d7befecdd199d141b24054ea4e0ee1bbd8a698c76b73dd765a953bd3"
     },
     {
       "path": "src/server/server.mjs",
@@ -561,15 +569,15 @@
     },
     {
       "path": "web/dashboard.css",
-      "sha256": "351e7b96a6764c1597beed6aa8bc982b091a783fc8338a394c3612c0dc9f5b5d"
+      "sha256": "f568c82acbc44d66bc9b2526ab4f77035ebb51fc62a7d09e7f34261cf800275d"
     },
     {
       "path": "web/dashboard.html",
-      "sha256": "e0f7c2a41238cc74abae7259349ce89cf65d8c2481ce95f5d573cad1bda26403"
+      "sha256": "63c5908c537be5724790cdc2fd1379a04647dc3a6d23888e62d37301c4663029"
     },
     {
       "path": "web/dashboard.js",
-      "sha256": "0ce7b1399dc2366bf8c8a260844b51d490cce1f7b722b966533c1153facf7095"
+      "sha256": "6f4929279786e1cb92a28e0e3e4f370dd85688ba6ea13e0289ec45052c3ae6c7"
     },
     {
       "path": "web/index.html",

@@ -9,6 +9,7 @@ import { sessionLocation } from '../domain/session.mjs';
 import { connect, readMetadata } from '../storage/connection.mjs';
 import { openBoard } from '../storage/index.mjs';
 import { dashboardTasks } from './dashboard-card-projection.mjs';
+import { readDashboardReference } from './dashboard-reference-preview.mjs';
 import { boardPaths, inspectPath } from '../storage/paths.mjs';
 
 const sessionsPath = '_work/task-board/sessions/v1';
@@ -25,6 +26,16 @@ function unavailable() {
 
 function boardRevision(board) {
   return `${board.generation}:${board.boardRevision}:${board.eventSeq}`;
+}
+
+/** Release the read transaction before projecting cards or reading project evidence. */
+function readDashboardBoard(location) {
+  const board = openBoard({ ...location, readOnly: true });
+  try {
+    return board.snapshot();
+  } finally {
+    board.close();
+  }
 }
 
 function projectKeyFor(root) {
@@ -168,13 +179,7 @@ export function createDashboardCatalog(projectRoots) {
 
     /** Close the consistent SQLite read before building the dashboard projection. */
     snapshot(location) {
-      const board = openBoard({ ...location, readOnly: true });
-      let snapshot;
-      try {
-        snapshot = board.snapshot();
-      } finally {
-        board.close();
-      }
+      const snapshot = readDashboardBoard(location);
       const { board: metadata } = snapshot;
       return {
         revision: boardRevision(metadata),
@@ -182,6 +187,16 @@ export function createDashboardCatalog(projectRoots) {
         sessionName: metadata.sessionProfile.sessionName,
         tasks: dashboardTasks(snapshot),
       };
+    },
+
+    /** Resolve an ID against the selected card's current rendered references, then read its file. */
+    reference(location, taskId, referenceId) {
+      const snapshot = readDashboardBoard(location);
+      let selected;
+      dashboardTasks(snapshot, { taskId, onReference(reference) {
+        if (reference.id === referenceId) selected = reference;
+      } });
+      return selected ? readDashboardReference(snapshot.board, selected) : null;
     },
 
     /** Commit only the exact prepared result. Every retry shares a deterministic receipt key. */

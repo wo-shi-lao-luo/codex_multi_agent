@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { publicSnapshot } from '../coordination/service.mjs';
+import { dashboardReference } from './dashboard-reference-preview.mjs';
 
 const DETAIL_LIMIT = 20;
 
@@ -11,6 +12,16 @@ function displayText(value, limit = 2000) {
 function displayList(items, format = displayText) {
   return (Array.isArray(items) ? items : []).slice(0, DETAIL_LIMIT)
     .map(item => format(item)).filter(Boolean);
+}
+
+// Keep stable preview slots aligned with the displayed list after labels are filtered.
+function referenceList(items, format, preview) {
+  const rows = (Array.isArray(items) ? items : []).slice(0, DETAIL_LIMIT)
+    .flatMap((item, index) => {
+      const label = format(item);
+      return label ? [{ label, previewId: preview(item, index) }] : [];
+    });
+  return { labels: rows.map(item => item.label), ids: rows.map(item => item.previewId) };
 }
 
 function relativeLabel(value) {
@@ -102,20 +113,22 @@ function responsibilityFor(task, active, attributed, assignments) {
   return { kind: person ? 'executor' : 'unassigned', person };
 }
 
-function submissionDetails(submissions, task, assignments, attributed, formatReference) {
+function submissionDetails(submissions, task, assignments, attributed, formatReference, preview) {
   const historyLimit = attributed ? DETAIL_LIMIT - 1 : DETAIL_LIMIT;
   const history = submissions.filter(item => item !== attributed)
     .sort((left, right) => (right.taskRevision ?? 0) - (left.taskRevision ?? 0))
     .slice(0, historyLimit);
   if (attributed) history.unshift(attributed);
-  return history.map(item => {
+  return history.map((item, index) => {
     let kind = 'historical';
     if (item === attributed) {
       if (task.state === 'submitted') kind = 'current';
       else kind = task.resultValid === false ? 'invalid' : 'accepted';
     }
-    return { kind, person: submissionPerson(item, assignments),
-      evidenceRefs: displayList(item.evidenceRefs, formatReference) };
+    const evidence = referenceList(item.evidenceRefs, formatReference,
+      (reference, slot) => preview(reference, ['submission', index, slot], item));
+    return { detail: { kind, person: submissionPerson(item, assignments),
+      evidenceRefs: evidence.labels }, previewIds: evidence.ids };
   });
 }
 
@@ -174,8 +187,8 @@ function taskResources(task) {
   ].slice(0, DETAIL_LIMIT);
 }
 
-/** Project only the labels, status and evidence needed by the standalone cards. */
-export function dashboardTasks(snapshot) {
+/** Project public cards, optionally selecting one card and collecting its private reference handles. */
+export function dashboardTasks(snapshot, { taskId, onReference } = {}) {
   const view = publicSnapshot(snapshot, { includeManualConfirmation: true });
   const roots = [snapshot.board.projectRoot, ...(snapshot.board.workspaces ?? []).map(item => item?.root)]
     .filter(root => typeof root === 'string' && (path.win32.isAbsolute(root) || path.posix.isAbsolute(root)))
@@ -188,7 +201,8 @@ export function dashboardTasks(snapshot) {
   const answersByQuestion = byKey(view.answers, 'questionId');
   const taskTitles = new Map(snapshot.tasks.map(task => [task.id, displayText(task.title, 160)]));
 
-  return view.tasks.map(task => {
+  const tasks = taskId === undefined ? view.tasks : view.tasks.filter(item => item.id === taskId);
+  return tasks.map(task => {
     const assignments = assignmentsByTask.get(task.id) ?? [];
     const submissions = submissionsByTask.get(task.id) ?? [];
     const dependencies = dependenciesByTask.get(task.id) ?? [];
@@ -199,6 +213,20 @@ export function dashboardTasks(snapshot) {
       questionDetails(item, answersByQuestion.get(item.id) ?? [], formatReference));
     const pendingQuestions = questionViews.filter(item => !['applied', 'stale'].includes(item.status));
     const historicalQuestions = questionViews.filter(item => ['applied', 'stale'].includes(item.status));
+
+    const preview = (value, slot, submission) => {
+      const reference = dashboardReference(snapshot.board, task, value, slot, submission);
+      if (reference) onReference?.(reference);
+      return reference?.id ?? null;
+    };
+    const source = referenceList(task.sourceRefs, value => sourceLabel(value, formatReference),
+      (value, index) => preview(value, ['source', index]));
+    const acceptance = referenceList(task.acceptanceRefs, formatReference,
+      (value, index) => preview(value, ['acceptance', index]));
+    const evidence = referenceList(task.acceptanceEvidence, formatReference,
+      (value, index) => preview(value, ['acceptance-evidence', index]));
+    const submissionViews = submissionDetails(submissions, task, assignments, attributed,
+      formatReference, preview);
 
     return {
       id: task.id,
@@ -227,13 +255,15 @@ export function dashboardTasks(snapshot) {
       details: {
         outcome: displayText(task.outcome),
         responsibilities: displayList(task.responsibilities),
-        sourceRefs: displayList(task.sourceRefs, item => sourceLabel(item, formatReference)),
-        acceptanceRefs: displayList(task.acceptanceRefs, formatReference),
-        acceptanceEvidence: displayList(task.acceptanceEvidence, formatReference),
+        sourceRefs: source.labels,
+        acceptanceRefs: acceptance.labels,
+        acceptanceEvidence: evidence.labels,
+        referencePreviews: { sourceRefs: source.ids, acceptanceRefs: acceptance.ids,
+          acceptanceEvidence: evidence.ids, submissions: submissionViews.map(item => item.previewIds) },
         executionHistory: assignments.slice(-DETAIL_LIMIT).map(item => ({
           person: personOf(item), active: item.active === true,
         })),
-        submissions: submissionDetails(submissions, task, assignments, attributed, formatReference),
+        submissions: submissionViews.map(item => item.detail),
         dependencies: dependencies.slice(0, DETAIL_LIMIT).map(edge => ({
           title: taskTitles.get(edge.dependsOnTaskId) ?? null,
           gate: displayText(edge.gate, 80),

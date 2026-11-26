@@ -13,6 +13,7 @@ const pollIntervalMs = 750;
 const keepaliveMs = 15000;
 const viewHeader = 'x-task-board-view';
 const confirmationRoute = '/api/manual-confirmation';
+const referenceRoute = '/api/reference';
 const confirmationBodyLimit = 16384;
 const confirmationConflictCodes = new Set([
   'CONFLICT', 'STALE_GENERATION', 'STALE_ASSIGNMENT', 'DEPENDENCY_BLOCKED', 'QUESTION_PENDING',
@@ -212,12 +213,16 @@ export async function startDashboard({ projectRoots, port = 43180 }) {
       json(response, 200, catalog.list());
       return;
     }
-    if (!confirming && url.pathname !== '/api/snapshot' && url.pathname !== '/api/events') {
+    const previewing = url.pathname === referenceRoute;
+    if (!confirming && !previewing && url.pathname !== '/api/snapshot' && url.pathname !== '/api/events') {
       response.writeHead(404).end();
       return;
     }
     const id = url.searchParams.get('session') ?? '';
-    if (url.searchParams.size !== 1 || !capabilityFormat.test(id)) {
+    const taskId = url.searchParams.get('task');
+    const referenceId = url.searchParams.get('ref');
+    if (url.searchParams.size !== (previewing ? 3 : 1) || !capabilityFormat.test(id) ||
+        (previewing && (!validManualConfirmationTaskId(taskId) || !capabilityFormat.test(referenceId)))) {
       response.writeHead(400).end();
       return;
     }
@@ -228,6 +233,15 @@ export async function startDashboard({ projectRoots, port = 43180 }) {
     }
     if (confirming) {
       await respondToConfirmation(request, response, catalog, location);
+      return;
+    }
+    if (previewing) {
+      // The browser names a visible reference slot, never a path to open.
+      let preview;
+      try { preview = catalog.reference(location, taskId, referenceId); }
+      catch { /* Internal filesystem and Board errors may contain private paths. */ }
+      if (preview) json(response, 200, preview);
+      else json(response, 404, { error: 'REFERENCE_NOT_AVAILABLE' });
       return;
     }
     try {

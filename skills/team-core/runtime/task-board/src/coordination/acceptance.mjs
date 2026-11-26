@@ -55,6 +55,27 @@ function requireManualCandidate(tx, task) {
     'Human confirmation requires a current submitted task.');
 }
 
+/** Store a short, human-readable checklist beside the exact prepared result. */
+function normalizeManualGuide(guide) {
+  if (guide === undefined) return undefined;
+  const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+  const validText = (value, limit) => typeof value === 'string' && value.trim().length > 0 &&
+    value.length <= limit && !/[\u0000-\u001f\u007f]/.test(value);
+  requireValue(object(guide) && Object.keys(guide).every(key => ['setup', 'steps'].includes(key)) &&
+    Array.isArray(guide.steps) && guide.steps.length > 0 && guide.steps.length <= 8 &&
+    (guide.setup === undefined || validText(guide.setup, 500)),
+  'INVALID_INPUT', 'Manual guide requires one to eight steps and optional setup text.');
+  for (const step of guide.steps) {
+    requireValue(object(step) && Object.keys(step).length === 2 &&
+      validText(step.action, 300) && validText(step.expected, 300),
+    'INVALID_INPUT', 'Each manual step requires a short action and expected result.');
+  }
+  return {
+    ...(guide.setup === undefined ? {} : { setup: guide.setup.trim() }),
+    steps: guide.steps.map(step => ({ action: step.action.trim(), expected: step.expected.trim() })),
+  };
+}
+
 /** The authenticated Lead reserves the human gate for this precise submitted result. */
 export function requestManualAcceptance(tx, task, input) {
   requireValue(validManualConfirmationTaskId(task?.id), 'INVALID_INPUT',
@@ -65,11 +86,13 @@ export function requestManualAcceptance(tx, task, input) {
     'Human confirmation requires explicit acceptance evidence references.');
   const validated = acceptanceEvidence(tx, task, { ...input, gatesSatisfied: true });
   requireValue(tx.board.sessionProfile, 'CONFLICT', 'Human confirmation requires a session Board.');
+  const guide = normalizeManualGuide(input.guide);
   const checkResults = (input.checkResults ?? []).map(({ checkId, taskId, submissionId }) =>
     ({ checkId, taskId, submissionId }));
   task.manualAcceptance = {
     operationId: input.operationId, generation: tx.board.generation,
     submissionId: validated.submission.id, evidenceRefs: input.evidenceRefs, checkResults,
+    ...(guide ? { guide } : {}),
   };
   tx.audit('manual-acceptance-requested', { taskId: task.id, actorId: input.actorId,
     submissionId: validated.submission.id });
@@ -120,7 +143,9 @@ export function manualConfirmationView(tx, task) {
   if (task.state === 'submitted' && task.manualAcceptance) {
     try {
       preparedManualAcceptance(tx, task);
-      return { state: 'ready', taskRevision: task.taskRevision, generation: tx.board.generation };
+      const guide = normalizeManualGuide(task.manualAcceptance.guide);
+      return { state: 'ready', taskRevision: task.taskRevision, generation: tx.board.generation,
+        ...(guide ? { guide } : {}) };
     } catch (error) {
       if (!(error instanceof BoardError)) throw error;
       return { state: 'waiting-for-submission' };

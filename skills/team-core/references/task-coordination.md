@@ -101,7 +101,13 @@ Open the local URL printed by that process. The browser establishes view access 
 When only the user's manual acceptance remains, submit the actual result, finish the applicable
 software and independent checks, then use the Lead-only `request-manual-acceptance` operation.
 Use `help --operation request-manual-acceptance` for current inputs. Prepare the current result with
-its verification references and applicable independent check bindings. This puts the card in
+its verification references and applicable independent check bindings. Include `guide` for new
+requests so the user can start from the card. In `guide.setup`, state the actual entry point,
+account or data needed, when applicable. Use one to eight `guide.steps`, each with the user's
+`action` and observable `expected` result. Each step should be concrete enough for a person
+without implementation context. Keep file links for supporting detail. If the instructions are
+too long for a card, put the complete procedure in the verification guide and make the inline
+steps sufficient to start and recognize the expected outcome. This puts the card in
 **需要人工确认**, distinct from a technical blocker or an ordinary submission pending Lead review.
 The column also shows old cards explicitly labeled `awaiting-manual-acceptance`. Those old records
 need a valid prepared result before the user can confirm them. Review and prepare them with real

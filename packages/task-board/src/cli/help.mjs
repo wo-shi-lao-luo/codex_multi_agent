@@ -127,7 +127,7 @@ commands.at(-1).conditions.push(
 commands.at(-1).notes = 'Only action=report/block records server-owned lastReportAt; submit does not. '
   + 'Caller lastReportAt is rejected. Exact receipt replay preserves the recorded time.';
 write('accept', [...task, 'gatesSatisfied', 'evidenceRefs'], ['checkResults']);
-write('request-manual-acceptance', [...task, 'evidenceRefs'], ['checkResults']);
+write('request-manual-acceptance', [...task, 'evidenceRefs'], ['checkResults', 'guide']);
 commands.at(-1).notes = 'Lead attests the non-human gates for one current frozen submission. '
   + 'The local dashboard can then confirm it. A changed result needs new preparation.';
 write('release', [...task, 'writesStopped', 'processStopped']);
@@ -244,6 +244,20 @@ for (const command of commands) {
   if (fields.includes('checkResults')) command.fieldTypes.checkResults = { type: 'array', items: {
     type: 'object', properties: { checkId: string, taskId: string, submissionId: string },
     required: ['checkId', 'taskId', 'submissionId'], additionalProperties: false } };
+  if (fields.includes('guide')) command.fieldTypes.guide = {
+    type: 'object',
+    properties: {
+      setup: { ...string, maxLength: 500 },
+      steps: { type: 'array', minItems: 1, maxItems: 8, items: {
+        type: 'object', properties: {
+          action: { ...string, maxLength: 300 }, expected: { ...string, maxLength: 300 },
+        },
+        required: ['action', 'expected'], additionalProperties: false,
+      } },
+    },
+    required: ['steps'], additionalProperties: false,
+    description: 'The user-facing setup, actions and pass conditions shown inline on the pending card.',
+  };
   if (command.operation === 'lead-inline-assign') command.preconditions = [
     'Register the actual Lead in lead-inline mode.', 'Explicitly approve the current task contract.',
     'Grant the actual Lead this approvalRevision before assigning; approval alone is not a grant.' ];

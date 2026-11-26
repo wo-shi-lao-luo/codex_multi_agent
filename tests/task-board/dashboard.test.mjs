@@ -1,4 +1,4 @@
-/** Real SQLite/HTTP coverage for the viewer's authorization and independent writer lifecycle. */
+/** Exercise card interactions and real SQLite/HTTP boundaries using disposable Board fixtures. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,9 +25,10 @@ async function dashboardClient(sessions, preferences = new Map()) {
     showModal() { this.open = true; },
     close() { this.open = false; this.listeners.close?.(); },
     focus() { this.focused = true; },
-    querySelectorAll() {
+    querySelectorAll(selector) {
+      const dataKey = selector === '[data-reference-id]' ? 'referenceId' : 'taskId';
       return this.children.flatMap(child =>
-        child.dataset?.taskId ? [child] : child.querySelectorAll());
+        child.dataset?.[dataKey] ? [child] : child.querySelectorAll(selector));
     },
   });
   const context = createContext({
@@ -55,6 +56,18 @@ async function dashboardClient(sessions, preferences = new Map()) {
 
 function sessionButtons(project) {
   return project.children[1].children.map(row => row.children[0]);
+}
+
+function renderedText(element) {
+  return [element.textContent, ...element.children.map(renderedText)].filter(Boolean).join('\n');
+}
+
+function findRendered(element, predicate) {
+  if (predicate(element)) return element;
+  for (const child of element.children) {
+    const found = findRendered(child, predicate);
+    if (found) return found;
+  }
 }
 
 test('dashboard sidebar groups by project identity even if names differ or collide', async () => {
@@ -134,6 +147,19 @@ test('dashboard puts abandoned tasks in their own column and preserves precise t
   assert.ok(history.children.some(item => item.textContent === '放弃前的检查点：Obsolete checkpoint'));
 });
 
+test('dashboard keeps running work at the top and submissions last in the active column', async () => {
+  const { elements, context } = await dashboardClient([]);
+  context.sampleTasks = [
+    ['verify-new', 'submitted'], ['run-new', 'running'], ['blocked', 'blocked'],
+    ['verify-old', 'submitted'], ['run-old', 'running'],
+  ].map(([id, state]) => ({ id, title: id, state }));
+  runInContext('renderTasks(sampleTasks);', context);
+  // Interleaving states in the input must not move submissions above current work.
+  const active = elements.get('tasks').children[1].children[1].children;
+  assert.deepEqual(active.map(card => card.children[0].children[0].children[0].textContent),
+    ['run-new', 'run-old', 'blocked', 'verify-new', 'verify-old']);
+});
+
 test('dashboard cards restore execution context and expose the detailed evidence on demand', async () => {
   const { elements, context } = await dashboardClient([
     { id: 's', projectKey: 'p', projectName: 'Kit', sessionName: 'Development' },
@@ -152,7 +178,7 @@ test('dashboard cards restore execution context and expose the detailed evidence
   const title = card.children[0].children[0].children[0];
   const rendered = card.children.map(child => child.textContent);
   assert.ok(rendered.includes('可承接：后端工程师'));
-  assert.ok(rendered.includes('执行者：后端工程师 · worker'));
+  assert.ok(rendered.includes('执行者：后端工程师'));
   assert.ok(rendered.includes('下一检查点：Verify the endpoint'));
   assert.ok(rendered.some(line => line?.includes('待处理问询 1')));
   card.listeners.click();
@@ -181,6 +207,112 @@ test('dashboard cards restore execution context and expose the detailed evidence
   runInContext('renderTasks([fixtureTask]); showTaskDetail(fixtureTask); renderCatalog([]);', context);
   assert.equal(dialog.open, false, 'Removing a session closes its task details.');
   assert.equal(heading.focused, true, 'Removing the session moves focus to the workspace heading.');
+});
+
+test('manual cards show what to do and expect without exposing recorded executor IDs', async () => {
+  // Without opening task details, a human can read the setup, action and passing condition.
+  // Role names remain visible in the card and the historical rows, while native IDs stay private.
+  const { elements, context } = await dashboardClient([
+    { id: 'guide-session', projectKey: 'p', projectName: 'Kit', sessionName: 'Fixture' },
+  ]);
+  const executor = { id: 'technical-executor-fixture', role: 'team-backend-engineer' };
+  const submitter = { id: 'technical-submitter-fixture', role: 'team-tester' };
+  const guide = {
+    setup: 'Use the prepared sample account.',
+    steps: [{
+      action: 'Open the saved order.',
+      expected: 'The original delivery date appears.',
+    }],
+  };
+  context.fixtureTasks = [{
+    id: 'guide', title: 'Review order', state: 'submitted',
+    manualConfirmation: { state: 'ready', taskRevision: 3, generation: 'fixture', guide },
+    responsibility: { kind: 'submitter', person: submitter },
+    details: {
+      executionHistory: [{ person: executor, active: false }],
+      submissions: [{ kind: 'current', person: submitter }],
+    },
+  }, {
+    id: 'legacy-guide', title: 'Old request', state: 'submitted',
+    manualConfirmation: { state: 'ready', taskRevision: 3, generation: 'fixture' },
+  }];
+  runInContext('renderTasks(fixtureTasks);', context);
+  const [card, legacy] = elements.get('tasks').children[2].children[1].children;
+  assert.equal(elements.get('task-detail').open, false);
+  for (const text of [guide.setup, guide.steps[0].action, guide.steps[0].expected]) {
+    assert.ok(renderedText(card).includes(text), `Missing inline guidance: ${text}`);
+  }
+  assert.match(renderedText(legacy), /(?:未|没有).{0,24}(?:步骤|说明)/);
+  assert.doesNotMatch(renderedText(card), /technical-(?:executor|submitter)-fixture/);
+
+  card.listeners.click();
+  const detail = renderedText(elements.get('task-detail-content'));
+  assert.match(detail, /后端工程师/);
+  assert.match(detail, /测试/);
+  assert.doesNotMatch(detail, /technical-(?:executor|submitter)-fixture/);
+});
+
+test('a visible reference opens its content in the existing card on demand', async () => {
+  // Opening a card fetches nothing. Clicking an eligible label requests the exact Board reference.
+  // The text is rendered in the card dialog, and an ineligible reference remains a label.
+  const { elements, context } = await dashboardClient([
+    { id: 'preview-session', projectKey: 'p', projectName: 'Kit', sessionName: 'Fixture' },
+  ]);
+  const referenceId = 'c'.repeat(64);
+  const requests = [];
+  let releaseLateResponse;
+  context.fetch = async (url, options) => {
+    if (!url.startsWith('/api/reference?')) return new Promise(() => {});
+    requests.push({ query: new URL(url, 'http://127.0.0.1').searchParams, signal: options.signal });
+    if (requests.length > 1) {
+      await new Promise(resolve => { releaseLateResponse = resolve; });
+      return { ok: true, json: async () => ({ format: 'text', content: 'Late fixture content' }) };
+    }
+    return { ok: true, json: async () => ({
+      format: 'markdown', content: '# Evidence preview fixture\n\n<img src="not-rendered">',
+    }) };
+  };
+  context.fixtureTask = {
+    id: 'preview-card', title: 'Verify delivery', state: 'open',
+    details: {
+      sourceRefs: ['docs/review.md', 'Operation receipt'],
+      referencePreviews: { sourceRefs: [referenceId, null] },
+    },
+  };
+  runInContext('renderTasks([fixtureTask]); showTaskDetail(fixtureTask);', context);
+  const content = elements.get('task-detail-content');
+  const isButton = (item, text) => item.tag === 'button' && renderedText(item).includes(text);
+  const trigger = findRendered(content, item => isButton(item, 'docs/review.md'));
+  assert.ok(trigger, 'The safe file reference is actionable.');
+  assert.equal(findRendered(content, item => isButton(item, 'Operation receipt')), undefined);
+  assert.equal(requests.length, 0);
+  const dialog = elements.get('task-detail');
+  dialog.scrollTop = 72;
+  trigger.listeners.click();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(requests.map(({ query }) => Object.fromEntries(query)), [
+    { session: 'preview-session', task: 'preview-card', ref: referenceId },
+  ]);
+  const preview = elements.get('reference-preview');
+  const previewContent = elements.get('reference-content');
+  assert.equal(dialog.open, true);
+  assert.equal(preview.hidden, false);
+  assert.match(renderedText(previewContent), /Evidence preview fixture/);
+  assert.equal(findRendered(previewContent, item => item.tag === 'img'), undefined);
+  elements.get('reference-back').listeners.click();
+  assert.equal(preview.hidden, true);
+  assert.equal(dialog.scrollTop, 72);
+  assert.equal(trigger.focused, true);
+
+  // A response finishing after the reader has left the pane cannot repopulate it.
+  trigger.listeners.click();
+  await new Promise(resolve => setImmediate(resolve));
+  elements.get('reference-back').listeners.click();
+  assert.equal(requests[1].signal.aborted, true);
+  releaseLateResponse();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(preview.hidden, true);
+  assert.doesNotMatch(renderedText(previewContent), /Late fixture content/);
 });
 
 test('dashboard detail button and internal drag confirm the same scoped result', async () => {
@@ -303,12 +435,27 @@ test('only an explicit, current manual confirmation request can close through th
   assert.equal((await snapshot(priorSession.id)).tasks[0].manualConfirmation.state,
     'waiting-for-submission');
   assert.notEqual((await submit(initial)).status, 200, 'Ordinary technical submissions cannot be closed here.');
+  // An empty expectation cannot describe a pass, and rejection leaves the submission unprepared.
+  const invalid = await invoke(board.projectRoot, board.boardPath, 'request-manual-acceptance', {
+    ...initial, actorId: 'lead', leadToken: board.leadToken, operationId: randomUUID(),
+    evidenceRefs: ['fixture/technical-verification'],
+    guide: { steps: [{ action: 'Open the saved order.', expected: ' ' }] },
+  }, { sessionKey: board.sessionKey });
+  assert.notEqual(invalid.code, 0);
+  assert.equal((await snapshot()).tasks[0].manualConfirmation, null);
+
+  const guide = { setup: 'Use the sample account.', steps: [{
+    action: 'Open the saved order.',
+    expected: 'The delivery date matches the prepared order.',
+  }] };
   await boardCommand(board, 'request-manual-acceptance', {
     taskId: 'manual', taskRevision: initial.taskRevision, evidenceRefs: ['fixture/technical-verification'],
+    guide,
   });
   const pending = await snapshot();
   const { manualConfirmation } = pending.tasks[0];
   assert.equal(manualConfirmation.state, 'ready');
+  assert.deepEqual(manualConfirmation.guide, guide);
   const exact = { taskId: 'manual', taskRevision: manualConfirmation.taskRevision,
     generation: manualConfirmation.generation };
   assert.notEqual((await submit(exact, { Origin: 'http://127.0.0.1:1' })).status, 200);
@@ -346,6 +493,9 @@ test('only an explicit, current manual confirmation request can close through th
   assert.equal(complete.tasks[0].state, 'closed');
   assert.equal(complete.tasks[0].manualConfirmed, true);
   assert.equal(complete.tasks[0].responsibility.person.id, 'lead');
+  // Historical attribution still includes the original worker for authenticated CLI callers.
+  const cliView = await boardCommand(board, 'show', { taskId: 'manual' });
+  assert.equal(cliView.result.submissions[0].actualExecutor.workerId, 'lead');
   const stored = openBoard({ ...board, readOnly: true });
   try {
     assert.equal(stored.snapshot().reservations.filter(record => record.active).length, 1,
@@ -353,6 +503,109 @@ test('only an explicit, current manual confirmation request can close through th
   } finally { stored.close(); }
   assert.equal((await submit(exact)).status, 200, 'An exact retry returns the committed confirmation.');
   assert.equal((await snapshot()).revision, complete.revision, 'An exact retry does not write again.');
+});
+
+test('dashboard previews only references bound to the selected visible task', async t => {
+  // Read a listed Markdown document and a JSON evidence summary using actual viewer credentials.
+  // Changing the task, losing credentials, or asking for a filesystem path cannot read content.
+  const parent = sourcePath('_work/test-fixtures');
+  fs.mkdirSync(parent, { recursive: true });
+  const root = fs.mkdtempSync(path.join(parent, 'preview-'));
+  let viewer;
+  t.after(async () => {
+    await viewer?.close();
+    if (path.dirname(root) !== parent || !path.basename(root).startsWith('preview-')) {
+      throw Error('Unexpected fixture cleanup path.');
+    }
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+  const project = path.join(root, 'project');
+  const linked = path.join(root, 'linked');
+  fs.mkdirSync(project);
+  execFileSync('git', ['init', '-q', project]);
+  fs.writeFileSync(path.join(project, '.gitignore'), '/_work/task-board/\n');
+  execFileSync('git', ['-C', project, 'add', '.gitignore']);
+  execFileSync('git', ['-C', project, '-c', 'user.name=Fixture', '-c',
+    'user.email=fixture@example.invalid', '-c', 'core.hooksPath=NUL', 'commit', '-qm', 'Fixture']);
+  execFileSync('git', ['-C', project, 'worktree', 'add', '--quiet', '--detach', linked]);
+  fs.mkdirSync(path.join(project, 'docs'));
+  fs.mkdirSync(path.join(linked, 'docs'));
+  fs.mkdirSync(path.join(project, '.runtime', 'test-probe'), { recursive: true });
+  fs.writeFileSync(path.join(project, 'docs', 'reference.md'), '# Fixture chapter\n\nRead me.\n');
+  fs.writeFileSync(path.join(linked, 'docs', 'reference.md'), '# Linked checkout chapter\n');
+  fs.writeFileSync(path.join(project, 'docs', 'unlisted.md'), 'EXCLUDED-IN-PROJECT');
+  fs.writeFileSync(path.join(project, 'docs', 'payload.html'), '<p>EXCLUDED-HTML</p>');
+  fs.writeFileSync(path.join(root, 'outside.md'), 'EXCLUDED-OUTSIDE');
+  fs.writeFileSync(path.join(project, '.runtime', 'test-probe', 'result.json'), JSON.stringify({
+    status: 'passed', passed: 3, apiKey: 'EXCLUDED-JSON-SECRET',
+  }));
+  const board = session(project, 'Preview project', 'Preview scenario');
+  const otherBoard = session(project, 'Preview project', 'Other scenario');
+  await boardCommand(board, 'workspace-register', { workspace: { id: 'linked', root: linked } });
+  await addTask(board, 'reader', {
+    sourceRefs: ['docs/reference.md', 'docs/payload.html', '../outside.md'],
+    acceptanceRefs: ['.runtime/test-probe/result.json'],
+  });
+  await addTask(board, 'unrelated');
+  await addTask(board, 'linked-reader', {
+    workspaceId: 'linked',
+    sourceRefs: ['docs/reference.md'],
+  });
+  await addTask(otherBoard, 'reader', { sourceRefs: ['docs/unlisted.md'] });
+  viewer = await startDashboard({ projectRoots: [project], port: 0 });
+  const { url } = viewer;
+  const { headers } = await openView(url);
+  const listing = await fetch(url + '/api/sessions', { headers });
+  const { sessions } = await listing.json();
+  const id = sessions.find(item => item.sessionName === 'Preview scenario').id;
+  const otherId = sessions.find(item => item.sessionName === 'Other scenario').id;
+  const response = await fetch(`${url}/api/snapshot?session=${id}`, { headers });
+  const { tasks } = await response.json();
+  const reader = tasks.find(task => task.id === 'reader');
+  const { sourceRefs, acceptanceRefs, referencePreviews } = reader.details;
+  const sourceId = label => referencePreviews.sourceRefs[sourceRefs.indexOf(label)] ?? null;
+  const markdownId = sourceId('docs/reference.md');
+  const jsonId = referencePreviews.acceptanceRefs[acceptanceRefs.indexOf('.runtime/test-probe/result.json')];
+  assert.match(markdownId, /^[a-f0-9]{64}$/);
+  assert.match(jsonId, /^[a-f0-9]{64}$/);
+  assert.equal(sourceId('docs/payload.html'), null);
+  assert.equal(sourceId('../outside.md'), null);
+
+  const reference = (task, ref, auth = headers, sessionId = id) => {
+    const query = new URLSearchParams({ session: sessionId, task, ref });
+    return fetch(`${url}/api/reference?${query}`, { headers: auth });
+  };
+  const markdown = await reference('reader', markdownId);
+  assert.equal(markdown.status, 200);
+  const markdownPreview = await markdown.json();
+  assert.equal(markdownPreview.format, 'markdown');
+  assert.match(markdownPreview.content, /# Fixture chapter/);
+  // Two real worktrees contain the same relative path; each bound card reads its checkout.
+  const linkedId = tasks.find(task => task.id === 'linked-reader').details.referencePreviews.sourceRefs[0];
+  assert.match(linkedId, /^[a-f0-9]{64}$/);
+  assert.notEqual(linkedId, markdownId);
+  const linkedFile = await reference('linked-reader', linkedId);
+  assert.equal(linkedFile.status, 200);
+  assert.match((await linkedFile.json()).content, /# Linked checkout chapter/);
+  const json = await reference('reader', jsonId);
+  assert.equal(json.status, 200);
+  const jsonPreview = await json.json();
+  assert.equal(jsonPreview.format, 'json');
+  assert.equal(JSON.parse(jsonPreview.content).status, 'passed');
+  assert.doesNotMatch(jsonPreview.content, /EXCLUDED-JSON-SECRET/);
+
+  const denied = [
+    await reference('reader', markdownId, {}),
+    await reference('unrelated', markdownId),
+    await reference('reader', markdownId, headers, otherId),
+    await reference('reader', 'f'.repeat(64)),
+    await reference('reader', 'docs/unlisted.md'),
+  ];
+  assert.equal(denied[0].status, 401);
+  for (const reply of denied) {
+    assert.ok(reply.status >= 400 && reply.status < 500);
+    assert.doesNotMatch(await reply.text(), /Fixture chapter|EXCLUDED-|Preview project/);
+  }
 });
 
 /** Create canonical Board files and keep the original credential only in the writer fixture. */
