@@ -3,14 +3,11 @@ import { BoardError } from '../domain/errors.mjs';
 import { currentExecutionEligibility, executionBinding } from '../domain/execution.mjs';
 import { consumableResult, dependenciesReady } from '../domain/graph.mjs';
 import { requireIndependentChecks } from './execution-evidence.mjs';
+import { hasPendingHumanStep, validDashboardTaskId } from './human-step.mjs';
 
 export const legacyManualAcceptancePhase = 'awaiting-manual-acceptance';
 
-/** Keep the Lead preparation and bounded HTTP request on the same task ID contract. */
-export function validManualConfirmationTaskId(id) {
-  return typeof id === 'string' && id.trim().length > 0 &&
-    Buffer.byteLength(id, 'utf8') <= 4096 && !/[\u0000-\u001f\u007f]/.test(id);
-}
+export { validDashboardTaskId as validManualConfirmationTaskId } from './human-step.mjs';
 
 function requireValue(condition, code, message) {
   if (!condition) throw new BoardError(code, message);
@@ -53,6 +50,8 @@ function requireManualCandidate(tx, task) {
     'Board maintenance or recovery is active.');
   requireValue(task && task.state === 'submitted' && !task.archived, 'CONFLICT',
     'Human confirmation requires a current submitted task.');
+  requireValue(!hasPendingHumanStep(tx.board, task), 'CONFLICT',
+    'Receive the pending human step result before preparing final confirmation.');
 }
 
 /** Store a short, human-readable checklist beside the exact prepared result. */
@@ -78,7 +77,7 @@ function normalizeManualGuide(guide) {
 
 /** The authenticated Lead reserves the human gate for this precise submitted result. */
 export function requestManualAcceptance(tx, task, input) {
-  requireValue(validManualConfirmationTaskId(task?.id), 'INVALID_INPUT',
+  requireValue(validDashboardTaskId(task?.id), 'INVALID_INPUT',
     'This task ID cannot be used for browser confirmation.');
   requireManualCandidate(tx, task);
   requireValue(Array.isArray(input.evidenceRefs) && input.evidenceRefs.length > 0 &&

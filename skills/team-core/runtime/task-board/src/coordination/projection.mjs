@@ -3,6 +3,7 @@ import { currentExecutionEligibility } from '../domain/execution.mjs';
 import { compositeId } from '../domain/identity.mjs';
 import { BoardError } from '../domain/errors.mjs';
 import { dispatchUnknown } from './dispatch.mjs';
+import { hasPendingHumanStep } from './human-step.mjs';
 import { effectivePending, notification, questionPolicy, projectQuestion }
   from '../questions/service.mjs';
 
@@ -12,6 +13,9 @@ export function readiness(tx, task, resourcesAvailable, worker) {
     task.inputRevision == null) return { readiness: 'unknown', readinessReason: 'Execution requires reconciliation.' };
   if (tx.board.recoveryRequired || tx.board.maintenance?.active) {
     return { readiness: 'blocked', readinessReason: 'Board recovery or maintenance is active.' };
+  }
+  if (hasPendingHumanStep(tx.board, task)) {
+    return { readiness: 'blocked', readinessReason: 'Waiting for a human step result.' };
   }
   if (task.state !== 'open' || task.cleanupPending ||
     tx.assignments.list({ taskId: task.id, active: true }).length) {

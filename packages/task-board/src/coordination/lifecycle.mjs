@@ -179,7 +179,11 @@ export function lifecycle(tx, operation, input, helpers) {
       (task.approvalRevision > 0 ? 'open' : 'planned') : 'canceled';
     // Keep the approved cancellation fact in read-only snapshots, independently of allocation cleanup.
     if (operation === 'cancel') task.cancellation = { actorId: input.actorId, reason: input.reason };
-    if (operation === 'reopen') task.archived = false;
+    if (operation === 'reopen') {
+      task.archived = false;
+      // The previous execution's human step remains in the audit history.
+      delete task.humanStep;
+    }
   }
   if (operation === 'transfer') {
     requireValue(!task.questionHold, 'QUESTION_PENDING', 'Resolve the approval hold before transfer.');

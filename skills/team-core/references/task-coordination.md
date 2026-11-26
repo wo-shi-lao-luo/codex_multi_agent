@@ -107,16 +107,29 @@ account or data needed, when applicable. Use one to eight `guide.steps`, each wi
 `action` and observable `expected` result. Each step should be concrete enough for a person
 without implementation context. Keep file links for supporting detail. If the instructions are
 too long for a card, put the complete procedure in the verification guide and make the inline
-steps sufficient to start and recognize the expected outcome. This puts the card in
-**需要人工确认**, distinct from a technical blocker or an ordinary submission pending Lead review.
-The column also shows old cards explicitly labeled `awaiting-manual-acceptance`. Those old records
-need a valid prepared result before the user can confirm them. Review and prepare them with real
-evidence, retaining the same card and avoiding invented submissions or pass results.
+steps sufficient to start and recognize the expected outcome. A prepared final result appears as
+**待人工确认** in **需要人工进行**. A legacy `awaiting-manual-acceptance` label or a stale
+preparation still needs the Lead to prepare a valid result from real evidence. Keep that work in
+the Agent queue and retain the same card.
 
 The user can open a prepared card and select **确认完成**, or drag it to **已结束**. Both actions
 confirm the same exact result. Separately recheck and release stopped execution's reservations
 under the normal cleanup rules. A manual decision cannot submit work, satisfy a technical check,
 release a running process, modify scope, or authorize work on another Board.
+
+If a person needs to act before the task can continue, use the Lead-only
+`request-human-step` operation. Select `verification` (待人工核验), `test` (待人工测试), or
+`operation` (待人工操作), identify who should act, and record the concrete action and what
+to observe or return. Use current task and Board revisions from the CLI. Safely pause the
+current executor before placing active work in the human column. Keep the real assignment,
+dependencies, technical blockers and reservations. For an ordinary technical check that an
+Agent can run, keep the card in the Agent queue.
+
+The person enters the observed result and selects **提交结果**. Record failures and partial
+results as they were observed. This returns the same task to the Agent queue without starting
+it or accepting the whole task. The Agent reads the result, checks its assignment and remaining
+dependencies, and reports actual resumption through the usual lifecycle. Prepare final human
+confirmation separately when the current frozen result satisfies the remaining gates.
 
 Agents use the normal activation wrapper and coordination CLI, with no dashboard credential or viewer process dependency. An activation failure may include a bounded `diagnostic` (phase, operation, path category) and verified completed steps. A viewer failure is reported separately from recording or authority failures.
 

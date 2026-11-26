@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { normalizeSessionProfile, sessionLocation } from '../domain/session.mjs';
 import { inspectPath } from '../storage/paths.mjs';
 import { protectArtifacts } from '../coordination/artifact-protection.mjs';
+import { hasPendingHumanStep } from '../coordination/human-step.mjs';
 import { probeRuntime } from '../runtime/preflight.mjs';
 import { tokenHash } from '../coordination/service.mjs';
 import { serviceStatus, serviceOpen, stopService } from '../server/control.mjs';
@@ -27,6 +28,7 @@ const ordered = values => values.map(canonical).sort((a, b) =>
   JSON.stringify(a).localeCompare(JSON.stringify(b)));
 const scopeConflictNextStep = 'Inspect the active reservation. Confirm the old owner stopped '
   + 'before releasing it, or wait for the owner before retrying the same task.';
+const humanStepNextStep = 'Wait for the human step result. Resume Agent work explicitly afterward.';
 
 /** Match the complete effective Add contract, including separately persisted relation rows. */
 function effectiveContract(task, workspaces) {
@@ -106,6 +108,7 @@ async function runActivation(projectRoot, request, { serviceMode = 'legacy', sha
   let selected;
   let retainedService;
   let scopeConflict = false;
+  let humanStepPending = false;
   let diagnostic = { phase: 'prepare', operation: 'verify-request', pathCategory: 'none' };
   const completed = { boardVerified: false, initialReportVerified: false };
   try {
@@ -380,16 +383,26 @@ async function runActivation(projectRoot, request, { serviceMode = 'legacy', sha
     }
     let snapshot = (await call('inspect', {})).result;
     const worker = snapshot.workers.find(item => item.id === request.actorId);
-    if (!worker) await mutate('register', { worker: {
-      id: request.actorId, role: 'lead', mode: 'lead-inline', capabilities: ['write'],
-      ...(request.leadPrincipal ? { principal: request.leadPrincipal } : {}),
-    } }, 'register-lead');
-    else if (worker.role !== 'lead' || worker.mode !== 'lead-inline') fail('EXECUTOR_CONFLICT');
+    const show = async () => {
+      const reply = await call('show', { taskId: task.id });
+      if (reply.generation !== observed.generation) fail('STALE_GENERATION');
+      return reply.result;
+    };
+    const awaitingHuman = shown => hasPendingHumanStep({ generation: observed.generation }, shown?.task);
+    let shown = snapshot.tasks.some(item => item.id === task.id) ? await show() : null;
+    if (!worker) {
+      if (!awaitingHuman(shown)) await mutate('register', { worker: {
+        id: request.actorId, role: 'lead', mode: 'lead-inline', capabilities: ['write'],
+        ...(request.leadPrincipal ? { principal: request.leadPrincipal } : {}),
+      } }, 'register-lead');
+    } else if (worker.role !== 'lead' || worker.mode !== 'lead-inline') fail('EXECUTOR_CONFLICT');
     else if (request.leadPrincipal && !worker.executorKey) fail('LEAD_PRINCIPAL_BINDING_REQUIRED');
     else if (request.leadPrincipal && (worker.principal?.hostId !== request.leadPrincipal.hostId
       || worker.principal?.agentId !== request.leadPrincipal.agentId)) fail('EXECUTOR_CONFLICT');
-    if (!snapshot.tasks.some(item => item.id === task.id)) await mutate('add', { task }, 'add');
-    let shown = (await call('show', { taskId: task.id })).result;
+    if (!shown) {
+      await mutate('add', { task }, 'add');
+      shown = await show();
+    }
     snapshot = (await call('inspect', {})).result;
     const actual = effectiveContract({ ...shown.task,
       resources: snapshot.taskResources.filter(item => item.taskId === task.id && item.kind === 'resource'),
@@ -397,51 +410,84 @@ async function runActivation(projectRoot, request, { serviceMode = 'legacy', sha
         .map(item => ({ taskId: item.dependsOnTaskId, gate: item.gate })),
     }, workspaces);
     if (digest(actual) !== contractDigest) fail('TASK_CONTRACT_CHANGED');
-    if (!shown.task.allowLeadInline || shown.task.needsReconcile || !shown.task.inputValid) {
-      fail('TASK_RECONCILIATION_REQUIRED');
-    }
-    if (shown.task.state === 'planned') {
-      await mutate('approve', { taskId: task.id, taskRevision: shown.task.taskRevision }, 'approve');
-      shown = (await call('show', { taskId: task.id })).result;
-    }
-    if (shown.task.state === 'open') {
-      await mutate('grant', { workerId: request.actorId, taskId: task.id,
-        approvalRevision: shown.task.approvalRevision, executionMode: 'lead-inline',
-        approvedResponsibilities: task.responsibilities ?? [] }, 'grant');
-      try {
-        await mutate('lead-inline-assign', { taskId: task.id, taskRevision: shown.task.taskRevision,
-          approvalRevision: shown.task.approvalRevision, claimToken: request.claimToken }, 'assign');
-      } catch (error) {
-        // The claim transaction rolled back. The authenticated Board can still show the conflict.
-        if (error.code !== 'SCOPE_CONFLICT') throw error;
-        scopeConflict = true;
+    if (!awaitingHuman(shown)) {
+      if (!shown.task.allowLeadInline || shown.task.needsReconcile || !shown.task.inputValid) {
+        fail('TASK_RECONCILIATION_REQUIRED');
       }
-      if (!scopeConflict) shown = (await call('show', { taskId: task.id })).result;
+      try {
+        if (shown.task.state === 'planned') {
+          await mutate('approve', { taskId: task.id, taskRevision: shown.task.taskRevision }, 'approve');
+          shown = await show();
+        }
+        if (shown.task.state === 'open' && !awaitingHuman(shown)) {
+          await mutate('grant', { workerId: request.actorId, taskId: task.id,
+            approvalRevision: shown.task.approvalRevision, executionMode: 'lead-inline',
+            approvedResponsibilities: task.responsibilities ?? [] }, 'grant');
+          try {
+            await mutate('lead-inline-assign', { taskId: task.id, taskRevision: shown.task.taskRevision,
+              approvalRevision: shown.task.approvalRevision, claimToken: request.claimToken }, 'assign');
+          } catch (error) {
+            // The claim rolled back. Keep the authorized display available for its task state.
+            if (error.code !== 'SCOPE_CONFLICT') throw error;
+            scopeConflict = true;
+          }
+          shown = await show();
+        }
+        if (shown.assignment && shown.assignment.workerId !== request.actorId) fail('EXECUTOR_CONFLICT');
+        const retainedTask = journal.tasks[task.id];
+        if (shown.assignment && shown.task.state === 'running' && !awaitingHuman(shown) &&
+          !retainedTask.reported) {
+          // Persist the exact revision before dispatch so an interrupted response can replay its receipt.
+          retainedTask.reportRevision ??= shown.task.taskRevision;
+          retainedTask.initialReport ??= {
+            phase: request.phase ?? 'execution-start',
+            progress: request.progress ?? 'Authorized execution started; task visibility is active.',
+            nextCheckpoint: request.nextCheckpoint ?? 'Complete the next agreed task milestone.',
+          };
+          save();
+          await mutate('lead-inline-report', {
+            taskId: task.id, taskRevision: retainedTask.reportRevision,
+            assignmentId: shown.assignment.id, claimToken: request.claimToken,
+            action: 'report', ...retainedTask.initialReport,
+          }, 'initial-report');
+          retainedTask.reported = true;
+          save();
+          shown = await show();
+        }
+        completed.initialReportVerified = retainedTask.reported === true;
+      } catch (error) {
+        // The Lead may park a task between readback and a write; report the current pause instead.
+        if (error.code !== 'CONFLICT') throw error;
+        const failedAt = diagnostic;
+        shown = await show();
+        if (!awaitingHuman(shown)) {
+          diagnostic = failedAt;
+          throw error;
+        }
+      }
     }
-    if (shown.assignment && shown.assignment.workerId !== request.actorId) fail('EXECUTOR_CONFLICT');
-    const retainedTask = journal.tasks[task.id];
-    if (shown.assignment && shown.task.state === 'running' && !retainedTask.reported) {
-      // Persist the exact revision before dispatch so an interrupted response can replay its receipt.
-      retainedTask.reportRevision ??= shown.task.taskRevision;
-      retainedTask.initialReport ??= {
-        phase: request.phase ?? 'execution-start',
-        progress: request.progress ?? 'Authorized execution started; task visibility is active.',
-        nextCheckpoint: request.nextCheckpoint ?? 'Complete the next agreed task milestone.',
-      };
-      save();
-      await mutate('lead-inline-report', {
-        taskId: task.id, taskRevision: retainedTask.reportRevision,
-        assignmentId: shown.assignment.id, claimToken: request.claimToken,
-        action: 'report', ...retainedTask.initialReport,
-      }, 'initial-report');
-      completed.initialReportVerified = true;
-      retainedTask.reported = true;
-      save();
+    // Refetch even after a read-only resume so the outcome never relies on the first pause lookup.
+    const skippedForHumanStep = awaitingHuman(shown);
+    shown = await show();
+    humanStepPending = awaitingHuman(shown);
+    let resumeOutcome;
+    if (humanStepPending) {
+      resumeOutcome = { taskExecution: 'not-resumed', reasonCode: 'HUMAN_STEP_PENDING',
+        nextStep: humanStepNextStep };
+    } else if (skippedForHumanStep) {
+      resumeOutcome = { taskExecution: 'not-resumed', reasonCode: 'TASK_STATE_CHANGED',
+        nextStep: 'Read the latest task state before explicitly resuming Agent work.' };
+    } else if (scopeConflict) {
+      resumeOutcome = { taskExecution: 'not-resumed', reasonCode: 'SCOPE_CONFLICT',
+        nextStep: scopeConflictNextStep };
     }
-    if (retainedTask.reported === true) completed.initialReportVerified = true;
+    if (humanStepPending || skippedForHumanStep) completed.initialReportVerified = false;
+    const observedIdentity = worker?.executorKey ||
+      (!humanStepPending && !skippedForHumanStep && request.leadPrincipal);
     // Labels change independently from task/approval revisions.
     const labels = observed.result?.sessionProfile;
-    if (labels && (labels.projectName !== profile.projectName || labels.sessionName !== profile.sessionName)) {
+    if (!humanStepPending && !skippedForHumanStep && labels &&
+      (labels.projectName !== profile.projectName || labels.sessionName !== profile.sessionName)) {
       await call('session-sync', { operationId: randomUUID(), generation: observed.generation,
         expectedLabelRevision: labels.labelRevision, projectName: profile.projectName,
         sessionName: profile.sessionName });
@@ -449,9 +495,8 @@ async function runActivation(projectRoot, request, { serviceMode = 'legacy', sha
     if (serviceMode === 'record') {
       return { state: 'enabled', ...selected, taskId: task.id, boardId: observed.boardId,
         generation: observed.generation, activationScope: 'record-only',
-        ...(scopeConflict ? { taskExecution: 'not-resumed', reasonCode: 'SCOPE_CONFLICT',
-          nextStep: scopeConflictNextStep } : {}),
-        identityBinding: request.leadPrincipal || worker?.executorKey ? 'observed' : 'unknown',
+        ...resumeOutcome,
+        identityBinding: observedIdentity ? 'observed' : 'unknown',
         presentation: { status: 'external' }, completed };
     }
     diagnostic = { phase: 'display', operation: 'resolve-listener', pathCategory: 'loopback' };
@@ -509,10 +554,10 @@ async function runActivation(projectRoot, request, { serviceMode = 'legacy', sha
     }
     return { state: 'enabled', ...selected, taskId: task.id, boardId: observed.boardId,
       generation: observed.generation, service: journal.service,
-      ...(scopeConflict ? { activationScope: 'presentation-only', taskExecution: 'not-resumed',
-        reasonCode: 'SCOPE_CONFLICT', nextStep: scopeConflictNextStep } : {}),
-      identityBinding: request.leadPrincipal || worker?.executorKey ? 'observed' : 'unknown',
-      presentation: { ...journal.presentation, ...(firstUrl ? { url: firstUrl } : {}) } };
+      ...(resumeOutcome ? { activationScope: 'presentation-only', ...resumeOutcome } : {}),
+      identityBinding: observedIdentity ? 'observed' : 'unknown',
+      presentation: { ...journal.presentation, ...(firstUrl ? { url: firstUrl } : {}) },
+      ...(humanStepPending || skippedForHumanStep ? { completed } : {}) };
   } catch (error) {
     const transportCode = error.details?.transportCode;
     let nextStep = 'Reconcile the indicated prerequisite or retained state; '
@@ -536,7 +581,8 @@ async function runActivation(projectRoot, request, { serviceMode = 'legacy', sha
     return { state: 'activation-pending', taskExecution:'not-resumed', ...selected,
       ...(retainedService ? { service: retainedService } : {}),
       reasonCode: error.code ?? 'ACTIVATION_STATE_INVALID', diagnostic, completed,
-      ...(scopeConflict ? { taskBlockReasonCode: 'SCOPE_CONFLICT' } : {}),
+      ...(humanStepPending ? { taskBlockReasonCode: 'HUMAN_STEP_PENDING' } :
+        scopeConflict ? { taskBlockReasonCode: 'SCOPE_CONFLICT' } : {}),
       ...(['EACCES', 'EPERM', 'ECONNREFUSED', 'ETIMEDOUT'].includes(transportCode)
         ? { transportCode } : {}),
       nextStep };

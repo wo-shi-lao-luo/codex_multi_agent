@@ -506,16 +506,26 @@ plain text or a structured test summary. The details panel retains its position 
 from a preview. Execution records retain technical identity fields for diagnostic queries. The dashboard
 uses readable role labels for people.
 
-The dashboard exposes a single write for manual confirmation. An authenticated Lead prepares a
-specific current submission only after its technical and required independent gates pass. The
-preparation can include the user's setup, actions and observable results. The card surfaces those
+The dashboard has separate writes for final confirmation and intermediate human work. For final
+confirmation, an authenticated Lead prepares a specific current submission only after its
+technical and required independent gates pass. The preparation can include the user's setup,
+actions and observable results. The card surfaces those
 instructions in its human-confirmation column. Legacy cards without instructions say so. The browser's
 confirmation is restricted to that task and revision in the selected registered Board.
 The service revalidates the exact submission and all acceptance gates in the write transaction,
 records the local human confirmation, and uses the ordinary accepted-result transition. The
 browser supplies neither Lead credentials nor acceptance evidence. Confirmation leaves resource
 cleanup with the existing owner and preserves the submission's actual executor. Legacy explicit
-manual-wait phases can appear in the manual column before preparation, with confirmation disabled.
+manual-wait phases need an Agent to prepare the current frozen result before they enter the
+human column.
+
+For intermediate work, the authenticated Lead records a bounded step with the type, the person
+responsible, the instruction and the expected observation. The view groups explicit pending
+human steps in the human column. A local submission is bound to the registered Board, generation
+and current task revision. The assignee label describes the intended person. The receipt identifies
+the authorized local dashboard as its source. The write records the observed result, including
+failure, and returns the card to the Agent queue with its independent gates, dependencies and
+retained allocations. The Agent resumes through the normal authorization and readiness rules.
 
 ### Legacy shared display service
 

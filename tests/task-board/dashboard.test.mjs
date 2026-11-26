@@ -118,7 +118,7 @@ test('dashboard puts abandoned tasks in their own column and preserves precise t
   const board = elements.get('tasks');
   runInContext('renderTasks([]);', context);
   assert.deepEqual(board.children.map(column => column.children[0].children[0].textContent),
-    ['待开始', '进行中', '需要人工确认', '已结束', '已放弃']);
+    ['待开始', '进行中', '需要人工进行', '已结束', '已放弃']);
   assert.ok(board.children.every(column => column.children[1].tag === 'p'));
 
   context.sampleTasks = ['planned', 'open', 'ready', 'running', 'blocked', 'submitted', 'closed', 'canceled']
@@ -126,22 +126,40 @@ test('dashboard puts abandoned tasks in their own column and preserves precise t
       ? { id: state, state, title: state, cancellationReason: 'The approved scope was superseded.', cleanupPending: true,
           progress: 'Past work', nextCheckpoint: 'Obsolete checkpoint' }
       : { id: state, state, title: state });
-  context.sampleTasks.unshift({ state: 'blocked', title: 'legacy-manual', id: 'legacy-manual',
+  context.sampleTasks.unshift({ state: 'running', title: 'legacy-manual', id: 'legacy-manual',
     manualConfirmation: { state: 'waiting-for-submission' } });
+  context.sampleTasks.push({ id: 'confirm', title: 'confirm', state: 'submitted',
+    manualConfirmation: { state: 'ready', taskRevision: 4, generation: 'fixture' } });
+  for (const kind of ['verification', 'test', 'operation']) {
+    context.sampleTasks.push({ id: kind, title: kind, state: 'blocked',
+      humanStep: { state: 'pending', kind, assignee: 'Fixture operator',
+        instruction: 'Perform the current step', expected: 'Report the observed outcome',
+        taskRevision: 4, generation: 'fixture' } });
+  }
   runInContext('renderTasks(sampleTasks);', context);
   const cards = board.children.map(column => column.children[1].children);
-  assert.deepEqual(cards.map(column => column.map(card => card.children[0].children[0].children[0].textContent)),
-    [['planned', 'open', 'ready'], ['running', 'blocked', 'submitted'], ['legacy-manual'], ['closed'], ['canceled']]);
-  assert.deepEqual(cards[1].map(card => card.children[0].children[1].textContent),
+  const cardName = card => card.children[0].children[0].children[0].textContent;
+  const names = column => column.map(cardName);
+  assert.deepEqual(names(cards[0]).filter(name => name !== 'legacy-manual'), ['planned', 'open', 'ready']);
+  assert.deepEqual(names(cards[1]).filter(name => name !== 'legacy-manual'), ['running', 'blocked', 'submitted']);
+  assert.ok([...names(cards[0]), ...names(cards[1])].includes('legacy-manual'));
+  const legacyCard = [...cards[0], ...cards[1]].find(card => cardName(card) === 'legacy-manual');
+  assert.notEqual(legacyCard.children[0].children[1].textContent, '进行中');
+  assert.deepEqual(names(cards[2]), ['confirm', 'verification', 'test', 'operation']);
+  assert.deepEqual(names(cards[3]), ['closed']);
+  assert.deepEqual(names(cards[4]), ['canceled']);
+  assert.deepEqual(cards[1].filter(card => cardName(card) !== 'legacy-manual')
+    .map(card => card.children[0].children[1].textContent),
     ['进行中', '阻塞', '待核验']);
-  assert.equal(cards[2][0].children[0].children[1].textContent, '待人工确认');
-  assert.equal(cards[2][0].draggable, undefined);
+  assert.deepEqual(cards[2].map(card => card.children[0].children[1].textContent),
+    ['待人工确认', '待人工核验', '待人工测试', '待人工操作']);
+  assert.ok(cards[2].slice(1).every(card => !card.draggable));
   assert.equal(cards[4][0].children[0].children[1].textContent, '已放弃');
   const abandoned = cards[4][0].children.map(child => child.textContent);
   assert.ok(abandoned.some(text => text?.includes('The approved scope was superseded.')));
   assert.ok(abandoned.some(text => text?.includes('资源待安全收尾')));
   assert.ok(!abandoned.some(text => text?.includes('Obsolete checkpoint')));
-  runInContext('renderTaskDetail(sampleTasks.at(-1));', context);
+  runInContext("renderTaskDetail(sampleTasks.find(task => task.id === 'canceled'));", context);
   const detail = elements.get('task-detail-content').children;
   const history = detail.find(section => section.children[0].textContent === '历史进展');
   assert.ok(history.children.some(item => item.textContent === '放弃前的检查点：Obsolete checkpoint'));
@@ -380,6 +398,86 @@ test('dashboard detail button and internal drag confirm the same scoped result',
   assert.equal(tasks.children[3].children[1].children.length, 2);
 });
 
+test('the human results form returns a completed step to the Agent lane after readback', async () => {
+  const { elements, context } = await dashboardClient([
+    { id: 'fixture-session', projectKey: 'p', projectName: 'Kit', sessionName: 'Fixture' },
+  ]);
+  const step = { state: 'pending', kind: 'operation', assignee: 'Client owner',
+    instruction: 'Upload the sample.', expected: 'The asset appears in the shared folder.',
+    taskRevision: 9, generation: 'fixture-generation' };
+  const pending = { id: 'sample', state: 'blocked', title: 'Use the sample', humanStep: step };
+  const recorded = 'The folder denied upload.';
+  let tasks = [pending];
+  let releaseResponse;
+  const requests = [];
+  context.fetch = async (url, options) => {
+    if (url === '/api/human-step?session=fixture-session' && options.method === 'POST') {
+      requests.push(JSON.parse(options.body));
+      await new Promise(resolve => { releaseResponse = resolve; });
+      tasks = [{ ...pending, phase: 'waiting-for-agent',
+        humanStep: { ...step, state: 'completed', result: recorded } }];
+      return { ok: true, json: async () => ({ ok: true }) };
+    }
+    if (url.startsWith('/api/snapshot?')) return { ok: true, json: async () => ({ tasks }) };
+    return new Promise(() => {});
+  };
+  context.fixtureTasks = tasks;
+  runInContext('renderTasks(fixtureTasks);', context);
+  const board = elements.get('tasks');
+  const [card] = board.children[2].children[1].children;
+  assert.match(renderedText(card), /Client owner/);
+  for (const text of [step.instruction, step.expected]) assert.ok(renderedText(card).includes(text));
+  card.listeners.click();
+  const form = elements.get('task-human-step-form');
+  assert.equal(form.hidden, false);
+  assert.equal(elements.get('task-confirm-complete').hidden, true);
+  const input = elements.get('task-human-step-result');
+  input.value = recorded;
+  input.listeners.input({ target: input });
+  form.listeners.submit({ preventDefault() {} });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(requests, [{ taskId: 'sample', taskRevision: 9, generation: 'fixture-generation', result: recorded }]);
+  assert.equal(board.children[2].children[1].children[0], card, 'Pending write cannot move the card.');
+  releaseResponse();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.match(renderedText(board.children[0]), /待 Agent 接续/);
+  assert.doesNotMatch(renderedText(board.children[2]), /Use the sample/);
+  assert.match(renderedText(elements.get('task-detail-content')), /The folder denied upload/);
+});
+
+test('human text drafts follow the same step without populating a replacement step', async () => {
+  const { elements, context } = await dashboardClient([
+    { id: 'draft-session', projectKey: 'p', projectName: 'Kit', sessionName: 'Fixture' },
+  ]);
+  // A revision-only update can preserve the draft, while different instructions cannot reuse it.
+  const step = { state: 'pending', kind: 'test', assignee: 'Client tester', instruction: 'Verify search',
+    expected: 'Matching results appear.', taskRevision: 4, generation: 'fixture', stepKey: 'a'.repeat(64) };
+  context.currentTask = { id: 'same-task', state: 'blocked', title: 'Test the results', humanStep: step };
+  const render = () => runInContext('renderTasks([currentTask]);', context);
+  const open = () => elements.get('tasks').children[2].children[1].children[0].listeners.click();
+  const dialog = elements.get('task-detail');
+  const input = elements.get('task-human-step-result');
+  const submit = elements.get('task-human-step-submit');
+  render();
+  open();
+  input.value = 'Search worked';
+  input.listeners.input({ target: input });
+  context.currentTask = { ...context.currentTask, humanStep: { ...step, taskRevision: 5 } };
+  render();
+  assert.equal(submit.disabled, true, 'The open dialog stays bound to its original revision.');
+  dialog.close();
+  open();
+  assert.equal(input.value, 'Search worked');
+  context.currentTask = { ...context.currentTask, humanStep: { ...step, instruction: 'Upload a sample',
+    expected: 'The uploaded sample appears.', taskRevision: 6, stepKey: 'b'.repeat(64) } };
+  render();
+  assert.equal(submit.disabled, true);
+  dialog.close();
+  open();
+  assert.equal(input.value, '', 'A replacement step cannot inherit the prior evidence draft.');
+  assert.equal(submit.disabled, false);
+});
+
 test('only an explicit, current manual confirmation request can close through the dashboard', async t => {
   // Use the same writer CLI, actual SQLite receipts and same-origin browser boundary as production.
   const parent = sourcePath('_work/task-board/test-fixtures');
@@ -503,6 +601,106 @@ test('only an explicit, current manual confirmation request can close through th
   } finally { stored.close(); }
   assert.equal((await submit(exact)).status, 200, 'An exact retry returns the committed confirmation.');
   assert.equal((await snapshot()).revision, complete.revision, 'An exact retry does not write again.');
+});
+
+test('a human step records an observed failure and hands the same task back to the Agent', async t => {
+  const parent = sourcePath('_work/task-board/test-fixtures');
+  fs.mkdirSync(parent, { recursive: true });
+  const root = fs.mkdtempSync(path.join(parent, 'human-step-'));
+  let viewer;
+  t.after(async () => {
+    await viewer?.close();
+    if (path.dirname(root) !== parent || !path.basename(root).startsWith('human-step-')) {
+      throw Error('Unexpected fixture cleanup path.');
+    }
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+  execFileSync('git', ['init', '-q', root]);
+  fs.writeFileSync(path.join(root, '.gitignore'), '/_work/task-board/\n');
+  const board = session(root, 'Fixture project', 'Human action');
+  await addTask(board, 'check-device', { eligibleRoles: ['lead'], allowLeadInline: true,
+    resources: [{ kind: 'resource', key: 'fixture-editor', mode: 'exclusive' }] });
+  const assigned = await assignTask(board, 'check-device');
+  const assignment = { taskId: 'check-device', assignmentId: assigned.assignment.id,
+    claimToken: assigned.claimToken };
+  const input = { taskId: assignment.taskId, taskRevision: assigned.task.taskRevision,
+    kind: 'test', assignee: 'Client tester', instruction: 'Open the report on the customer device.',
+    expected: 'The original order and its delivery date appear.' };
+  const tryCommand = (operation, data) => invoke(board.projectRoot, board.boardPath, operation, {
+    actorId: 'lead', leadToken: board.leadToken, operationId: randomUUID(), generation: board.generation,
+    ...data,
+  }, { sessionKey: board.sessionKey });
+  assert.notEqual((await tryCommand('request-human-step', input)).code, 0,
+    'A running assignment must be safely paused before handing its next step to a human.');
+  const request = await boardCommand(board, 'request-human-step', {
+    ...input, writesStopped: true, processStopped: true,
+  });
+  const ready = request.result.task;
+  const premature = await tryCommand('lead-inline-report', { ...assignment, taskRevision: ready.taskRevision,
+    action: 'report', phase: 'implementation', progress: 'Incorrect premature resume' });
+  assert.notEqual(premature.code, 0);
+
+  viewer = await startDashboard({ projectRoots: [root], port: 0 });
+  const { url } = viewer;
+  const { headers } = await openView(url);
+  const listing = await fetch(url + '/api/sessions', { headers });
+  const [target] = (await listing.json()).sessions;
+  assert.equal(target.hasRunningTasks, false);
+  const snapshot = async () => {
+    const reply = await fetch(`${url}/api/snapshot?session=${target.id}`, { headers });
+    assert.equal(reply.status, 200);
+    return reply.json();
+  };
+  const post = (route, payload, overrides = {}) => fetch(`${url}/api/${route}?session=${target.id}`, {
+    method: 'POST', headers: { ...headers, Origin: url, 'Sec-Fetch-Site': 'same-origin',
+      'Content-Type': 'application/json', ...overrides }, body: JSON.stringify(payload),
+  });
+  const pending = await snapshot();
+  const [card] = pending.tasks;
+  assert.equal(card.humanStep.kind, 'test');
+  assert.equal(card.humanStep.state, 'pending');
+  for (const key of ['assignee', 'instruction', 'expected']) assert.equal(card.humanStep[key], input[key]);
+  const binding = { taskId: card.id, taskRevision: card.humanStep.taskRevision,
+    generation: card.humanStep.generation };
+  const result = 'Failed: the delivery date was missing on the customer device.';
+  const submission = { ...binding, result };
+  assert.equal((await post('manual-confirmation', binding)).status, 409,
+    'A test step never confers final acceptance authority.');
+  assert.equal((await post('human-step', submission, { 'Sec-Fetch-Site': 'same-site' })).status, 403);
+  assert.equal((await post('human-step', { ...submission, taskRevision: input.taskRevision })).status, 409);
+  assert.equal((await post('human-step', { ...submission, result: '  ' })).status, 400);
+  assert.equal((await snapshot()).revision, pending.revision);
+  const stream = await subscribe(url, target.id, headers, t);
+  assert.equal(await stream.next(), pending.revision);
+  const reply = await post('human-step', submission);
+  assert.equal(reply.status, 200);
+  assert.deepEqual(await reply.json(), { ok: true });
+  assert.notEqual(await stream.next(), pending.revision);
+  const completed = await snapshot();
+  assert.equal(completed.tasks[0].humanStep.state, 'completed');
+  assert.equal(completed.tasks[0].humanStep.result, result);
+  assert.equal(completed.tasks[0].state, 'blocked', 'The existing assignment is waiting to resume.');
+  assert.equal(completed.tasks[0].phase, 'waiting-for-agent');
+  assert.equal(completed.tasks[0].manualConfirmation, null);
+  assert.equal((await post('human-step', submission)).status, 200);
+  assert.equal((await post('human-step', { ...submission, result: 'Different result' })).status, 409);
+  assert.equal((await snapshot()).revision, completed.revision);
+  const stored = openBoard({ ...board, readOnly: true });
+  let revision;
+  try {
+    const raw = stored.snapshot();
+    revision = raw.tasks[0].taskRevision;
+    assert.equal(raw.reservations.filter(record => record.active).length, 1);
+    assert.equal(raw.assignments.find(record => record.active).id, assignment.assignmentId);
+  } finally { stored.close(); }
+  await boardCommand(board, 'lead-inline-report', { ...assignment, taskRevision: revision,
+    action: 'report', phase: 'implementation', progress: 'Agent investigates the failed test.' });
+  assert.equal((await snapshot()).tasks[0].state, 'running');
+  const longId = '测'.repeat(1400);
+  await addTask(board, longId);
+  const unaddressable = await tryCommand('request-human-step', { ...input, taskId: longId, taskRevision: 1 });
+  assert.notEqual(unaddressable.code, 0, 'A task that cannot be addressed by the browser may not be parked.');
+  assert.equal((await snapshot()).tasks.find(task => task.id === longId).humanStep, null);
 });
 
 test('dashboard previews only references bound to the selected visible task', async t => {

@@ -1,9 +1,10 @@
-/** Independent loopback dashboard with one bounded write for prepared human confirmation. */
+/** Independent loopback dashboard with bounded writes for prepared human actions. */
 import http from 'node:http';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { createDashboardCatalog } from './dashboard-catalog.mjs';
 import { validManualConfirmationTaskId } from '../coordination/acceptance.mjs';
+import { validHumanStepResult } from '../coordination/human-step.mjs';
 import { BoardError } from '../domain/errors.mjs';
 import { StorageError } from '../storage/errors.mjs';
 
@@ -13,11 +14,13 @@ const pollIntervalMs = 750;
 const keepaliveMs = 15000;
 const viewHeader = 'x-task-board-view';
 const confirmationRoute = '/api/manual-confirmation';
+const humanStepRoute = '/api/human-step';
 const referenceRoute = '/api/reference';
 const confirmationBodyLimit = 16384;
 const confirmationConflictCodes = new Set([
   'CONFLICT', 'STALE_GENERATION', 'STALE_ASSIGNMENT', 'DEPENDENCY_BLOCKED', 'QUESTION_PENDING',
   'WORKSPACE_MISMATCH', 'UNAUTHORIZED', 'SOURCE_INVALID', 'SOURCE_UNAVAILABLE', 'UNSAFE_PATH',
+  'IDEMPOTENCY_MISMATCH',
 ]);
 const assets = new Map([
   ['/', ['dashboard.html', 'text/html;charset=utf-8']],
@@ -41,8 +44,8 @@ function json(response, status, value) {
   response.end(JSON.stringify(value));
 }
 
-/** Decode only the three bounded parameters accepted by the local confirmation transaction. */
-async function confirmationInput(request) {
+/** Decode only the bounded fields accepted by the selected dashboard write. */
+async function confirmationInput(request, includeResult) {
   if (Number(request.headers['content-length']) > confirmationBodyLimit) return { tooLarge: true };
   const chunks = [];
   let size = 0;
@@ -53,24 +56,25 @@ async function confirmationInput(request) {
   }
   try {
     const body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks)));
-    if (!body || Object.keys(body).length !== 3 ||
+    if (!body || Object.keys(body).length !== (includeResult ? 4 : 3) ||
       !validManualConfirmationTaskId(body.taskId) ||
       typeof body.generation !== 'string' || !/^[a-f0-9-]{36}$/.test(body.generation) ||
-      !Number.isSafeInteger(body.taskRevision) || body.taskRevision < 1) return {};
+      !Number.isSafeInteger(body.taskRevision) || body.taskRevision < 1 ||
+      includeResult && !validHumanStepResult(body.result)) return {};
     return { input: body };
   } catch {
     return {};
   }
 }
 
-/** Handle only an authorized same-origin confirmation; never accept caller-supplied evidence. */
-async function respondToConfirmation(request, response, catalog, location) {
+/** Handle an authorized same-origin human action; the browser cannot supply board credentials. */
+async function respondToConfirmation(request, response, catalog, location, includeResult) {
   const contentType = request.headers['content-type']?.split(';')[0].trim().toLowerCase();
   if (contentType !== 'application/json') {
     json(response, 415, { error: 'CONFIRMATION_REQUIRES_JSON' });
     return;
   }
-  const { input, tooLarge } = await confirmationInput(request);
+  const { input, tooLarge } = await confirmationInput(request, includeResult);
   if (tooLarge) {
     response.setHeader('Connection', 'close');
     json(response, 413, { error: 'CONFIRMATION_TOO_LARGE' });
@@ -81,7 +85,8 @@ async function respondToConfirmation(request, response, catalog, location) {
     return;
   }
   try {
-    catalog.confirmManual(location, input);
+    if (includeResult) catalog.completeHumanStep(location, input);
+    else catalog.confirmManual(location, input);
     json(response, 200, { ok: true });
   } catch (error) {
     if (error instanceof BoardError && error.code === 'ARTIFACTS') {
@@ -185,7 +190,9 @@ export async function startDashboard({ projectRoots, port = 43180 }) {
       }).end();
       return;
     }
-    const confirming = request.method === 'POST' && url.pathname === confirmationRoute;
+    const completingStep = url.pathname === humanStepRoute;
+    const confirming = request.method === 'POST' &&
+      (url.pathname === confirmationRoute || completingStep);
     if (confirming && (request.headers.origin !== origin ||
         request.headers['sec-fetch-site'] !== 'same-origin')) {
       response.writeHead(403).end();
@@ -232,7 +239,7 @@ export async function startDashboard({ projectRoots, port = 43180 }) {
       return;
     }
     if (confirming) {
-      await respondToConfirmation(request, response, catalog, location);
+      await respondToConfirmation(request, response, catalog, location, completingStep);
       return;
     }
     if (previewing) {

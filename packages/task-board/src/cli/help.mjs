@@ -127,6 +127,11 @@ commands.at(-1).conditions.push(
 commands.at(-1).notes = 'Only action=report/block records server-owned lastReportAt; submit does not. '
   + 'Caller lastReportAt is rejected. Exact receipt replay preserves the recorded time.';
 write('accept', [...task, 'gatesSatisfied', 'evidenceRefs'], ['checkResults']);
+write('request-human-step', [...task, 'kind', 'assignee', 'instruction', 'expected'],
+  ['writesStopped', 'processStopped']);
+commands.at(-1).notes = 'Lead parks a session task for one human verification, test, or operation. '
+  + 'Active work or ownership requires stopped-write and stopped-process evidence. '
+  + 'The human result returns to the Agent queue without accepting the task.';
 write('request-manual-acceptance', [...task, 'evidenceRefs'], ['checkResults', 'guide']);
 commands.at(-1).notes = 'Lead attests the non-human gates for one current frozen submission. '
   + 'The local dashboard can then confirm it. A changed result needs new preparation.';

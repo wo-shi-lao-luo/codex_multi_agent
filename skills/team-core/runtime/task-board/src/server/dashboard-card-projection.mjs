@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { publicSnapshot } from '../coordination/service.mjs';
+import { humanStepView } from '../coordination/human-step.mjs';
 import { dashboardReference } from './dashboard-reference-preview.mjs';
 
 const DETAIL_LIMIT = 20;
@@ -232,6 +233,7 @@ export function dashboardTasks(snapshot, { taskId, onReference } = {}) {
       id: task.id,
       title: taskTitles.get(task.id) ?? '',
       state: task.state,
+      humanStep: humanStepView(snapshot.board, task),
       manualConfirmation: task.manualConfirmation,
       manualConfirmed: task.state === 'closed' && task.resultValid === true &&
         task.acceptedResult?.confirmation?.source === 'local-dashboard',

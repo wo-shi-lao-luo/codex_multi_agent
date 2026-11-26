@@ -55,6 +55,15 @@
       <form method="dialog"><button id="task-detail-close" type="submit" autofocus>关闭</button></form>
     </header>
     <div id="task-detail-content" class="detail-content"></div>
+    <form id="task-human-step-form" class="human-step-form" hidden>
+      <label id="task-human-step-label" for="task-human-step-result">实际结果</label>
+      <textarea id="task-human-step-result" rows="3" maxlength="2000" required
+        aria-describedby="task-human-step-status"></textarea>
+      <div class="human-step-actions">
+        <p id="task-human-step-status" class="confirmation-status" role="status" hidden></p>
+        <button id="task-human-step-submit" class="confirm-task-button" type="submit">提交结果</button>
+      </div>
+    </form>
     <section id="reference-preview" class="detail-content reference-preview"
       aria-labelledby="reference-title" hidden>
       <h3 id="reference-title" tabindex="-1"></h3>

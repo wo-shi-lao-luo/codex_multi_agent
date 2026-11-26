@@ -153,6 +153,29 @@ async function boardCall(f, operation, input = {}) {
   return response.reply;
 }
 
+test('ACTIVATION.humanStepWaitReportsNoExecutionResume', async t => {
+  const f = await fixture(t);
+  const first = f.run({}, [], ['--record-only']).result;
+  assert.equal(first.completed.initialReportVerified, true);
+  const taskId = f.request.task.id;
+  const task = (await boardCall(f, 'show', { taskId })).result.task;
+  await boardCall(f, 'request-human-step', {
+    taskId, taskRevision: task.taskRevision, generation: first.generation,
+    operationId: 'fixture-human-step', kind: 'test', assignee: 'Fixture tester',
+    instruction: 'Check the result on a real device.', expected: 'Record the actual result.',
+    writesStopped: true, processStopped: true,
+  });
+  const parked = (await boardCall(f, 'inspect')).result;
+  const resume = f.run({ action: 'resume' }, [], ['--record-only']).result;
+  assert.equal(resume.state, 'enabled');
+  assert.equal(resume.taskExecution, 'not-resumed');
+  assert.equal(resume.reasonCode, 'HUMAN_STEP_PENDING');
+  assert.deepEqual(resume.completed, { boardVerified: true, initialReportVerified: false });
+  const after = (await boardCall(f, 'inspect')).result;
+  assert.deepEqual(after.tasks, parked.tasks);
+  assert.deepEqual(after.assignments, parked.assignments);
+});
+
 // Redeem the real first entry ticket and reuse the same authenticated read-only session.
 async function browserSnapshotReader(activation) {
   const { service, presentation } = activation;

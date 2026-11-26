@@ -18,6 +18,8 @@ import { executorIdentity, executorBinding, roleEligible, validateExecutionContr
 import { requireIndependentChecks } from './execution-evidence.mjs';
 import { acceptanceEvidence, manualConfirmationView, preparedManualAcceptance,
   recordAcceptance, requestManualAcceptance } from './acceptance.mjs';
+import { replayHumanStepRequest, requestHumanStep, requireHumanStepCleared, waitingForAgentPhase }
+  from './human-step.mjs';
 import { assertWorkspaceBinding, verifyWorkspaceRoot, workspaceBindings, MAX_WORKSPACES,
   beginWorkspaceObservation, finishWorkspaceObservation, discardWorkspaceObservation }
   from '../storage/workspaces.mjs';
@@ -87,6 +89,7 @@ export function authorizeReplay(tx, operation, input, result, context = {}) {
     operation = operation === 'assign' ? 'claim' :
       ['lead-proxy-report', 'lead-record-report'].includes(operation) ? input.action : operation;
   }
+  requireHumanStepCleared(tx, operation, input);
   if (operation === 'grant') {
     const task = tx.tasks.get(input.taskId);
     const registered = tx.workers.get(input.workerId);
@@ -117,6 +120,7 @@ export function authorizeReplay(tx, operation, input, result, context = {}) {
     preparedManualAcceptance(tx, task);
     return;
   }
+  if (operation === 'request-human-step') return replayHumanStepRequest(tx, input);
   if (operation === 'accept') {
     const task = tx.tasks.get(input.taskId);
     const evidence = tx.submissions.get(result.task.acceptedResult?.submissionId);
@@ -310,6 +314,7 @@ export function mutate(tx, operation, input, context = {}) {
 function mutateAuthorized(tx, operation, input, worker, provenance) {
   requireValue(!tx.board.recoveryRequired || operation === 'recover', 'RECOVERY_REQUIRED',
     'Restored state requires explicit reconciliation before any new coordination writes.');
+  requireHumanStepCleared(tx, operation, input);
   if (questionOperations.has(operation)) {
     return questionMutation(tx, operation, input, worker, { authenticate, provenance });
   }
@@ -544,7 +549,8 @@ function mutateAuthorized(tx, operation, input, worker, provenance) {
         'QUESTION_PENDING', 'A current task decision still blocks execution.');
       task.state = operation === 'block' || !applicable ?
         'blocked' : 'running';
-      task.phase = input.phase ?? task.phase;
+      task.phase = input.phase ?? (task.state === 'running' && task.phase === waitingForAgentPhase ?
+        'running' : task.phase);
       task.progress = input.progress ?? '';
       task.blocker = input.blocker ?? null;
       if (input.nextCheckpoint !== undefined) {
@@ -553,6 +559,8 @@ function mutateAuthorized(tx, operation, input, worker, provenance) {
         task.nextCheckpoint = input.nextCheckpoint;
       }
     }
+  } else if (operation === 'request-human-step') {
+    requestHumanStep(tx, task, input);
   } else if (operation === 'request-manual-acceptance') {
     requestManualAcceptance(tx, task, input);
   } else if (operation === 'accept') {

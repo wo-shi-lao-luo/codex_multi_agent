@@ -301,6 +301,31 @@ button:active:not(:disabled) { background: #dbe8ff; }
 .confirm-task-button { border-color: var(--accent); background: var(--accent); color: white; }
 .confirm-task-button:hover:not(:disabled),
 .confirm-task-button:active:not(:disabled) { background: #124aab; color: white; }
+.human-step-form {
+  display: grid;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--border);
+}
+.human-step-form label { font-weight: 600; }
+.human-step-form textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 82px;
+  padding: 8px 10px;
+  resize: vertical;
+  border: 1px solid #8796a7;
+  border-radius: 8px;
+  color: inherit;
+  font: inherit;
+}
+.human-step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px 16px;
+}
 .detail-section { padding-top: 13px; }
 .detail-section + .detail-section { margin-top: 12px; border-top: 1px solid var(--border); }
 .detail-section p {
@@ -376,6 +401,6 @@ button:active:not(:disabled) { background: #dbe8ff; }
   main.frame { padding-block: 16px 32px; }
   .work-heading, .task-board { padding-inline: 14px; }
   .work-heading { flex-wrap: wrap; gap: 4px; }
-  .detail-heading, .detail-content, .detail-actions { padding-inline: 14px; }
+  .detail-heading, .detail-content, .detail-actions, .human-step-form { padding-inline: 14px; }
   .confirmation-notice { margin-inline: 14px; }
 }

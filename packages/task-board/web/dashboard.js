@@ -7,6 +7,8 @@ const elements = Object.fromEntries([
   'work-summary', 'work-empty', 'tasks', 'task-detail', 'task-detail-title', 'task-detail-content',
   'work-confirmation-message', 'task-confirmation', 'task-confirmation-message', 'task-confirm-complete',
   'task-detail-close', 'reference-back', 'reference-preview', 'reference-title',
+  'task-human-step-form', 'task-human-step-label', 'task-human-step-result',
+  'task-human-step-submit', 'task-human-step-status',
   'reference-status', 'reference-content',
 ].map(id => [id, document.getElementById(id)]));
 
@@ -18,7 +20,7 @@ const stateNames = new Map([
 const taskColumns = [
   { id: 'waiting', title: '待开始', empty: '暂无待开始的任务' },
   { id: 'active', title: '进行中', empty: '暂无进行中的任务' },
-  { id: 'confirmation', title: '需要人工确认', empty: '暂无需要人工确认的任务' },
+  { id: 'confirmation', title: '需要人工进行', empty: '暂无需要人工进行的任务' },
   { id: 'ended', title: '已结束', empty: '暂无已结束的任务' },
   { id: 'abandoned', title: '已放弃', empty: '暂无已放弃的任务' },
 ];
@@ -200,6 +202,9 @@ function showTaskDetail(task) {
   if (!dialog.open || view.detailTaskId !== task.id) {
     resetReferencePreview(view);
     view.detailConfirmation = confirmationRequest(task);
+    view.detailHumanStep = humanStepRequest(task);
+    view.detailHumanStepDraftKey = humanStepDraftKey(task);
+    elements['task-human-step-result'].value = view.humanStepDrafts.get(view.detailHumanStepDraftKey) ?? '';
   }
   view.detailTaskId = task.id;
   renderTaskDetail(task);
@@ -207,16 +212,46 @@ function showTaskDetail(task) {
 }
 
 function needsManualConfirmation(task) {
-  return ['ready', 'waiting-for-submission'].includes(task?.manualConfirmation?.state)
-    && !['closed', 'ended', 'canceled', 'archived'].includes(task.state);
+  return task?.manualConfirmation?.state === 'ready' && !isTerminalTask(task) && !pendingHumanStep(task);
+}
+
+function isTerminalTask(task) {
+  return ['closed', 'ended', 'canceled', 'archived'].includes(task.state);
+}
+
+const humanStepLabels = new Map([
+  ['verification', '待人工核验'],
+  ['test', '待人工测试'],
+  ['operation', '待人工操作'],
+]);
+
+function pendingHumanStep(task) {
+  const step = task?.humanStep;
+  if (step?.state !== 'pending' || !humanStepLabels.has(step.kind) || isTerminalTask(task)) {
+    return null;
+  }
+  return step;
+}
+
+function waitsForAgent(task) {
+  return task.phase === 'waiting-for-agent' && ['planned', 'open', 'blocked'].includes(task.state)
+    && !task.blocker && !task.needsReconcile;
+}
+
+function waitsForConfirmableSubmission(task) {
+  return task.manualConfirmation?.state === 'waiting-for-submission' && !isTerminalTask(task);
+}
+
+function waitsForAgentPreparation(task) {
+  return waitsForConfirmableSubmission(task) && !task.blocker && !task.needsReconcile;
 }
 
 /** Keep the steps and pass conditions visible on the card, including old cards without a guide. */
 function manualGuide(task, headingTag) {
-  if (!needsManualConfirmation(task)) return null;
+  if (!needsManualConfirmation(task) && !waitsForConfirmableSubmission(task)) return null;
   const { guide, state: confirmationState } = task.manualConfirmation;
   const section = node('section', '', 'manual-guide');
-  section.append(node(headingTag, '人工核验'));
+  section.append(node(headingTag, confirmationState === 'ready' ? '人工核验' : '待 Agent 准备确认'));
   if (!guide?.steps?.length) {
     const message = confirmationState === 'ready'
       ? '这张卡尚未附核验步骤，请先核对验收引用。'
@@ -242,16 +277,51 @@ function confirmationRequest(task) {
   return { taskId: task.id, taskRevision: confirmation.taskRevision, generation: confirmation.generation };
 }
 
+function humanStepRequest(task) {
+  const step = pendingHumanStep(task);
+  if (!step) return null;
+  return { taskId: task.id, taskRevision: step.taskRevision, generation: step.generation };
+}
+
+/** Keep draft identity private and separate from the current revision in the POST body. */
+function humanStepDraftKey(task) {
+  const step = pendingHumanStep(task);
+  if (!step) return null;
+  if (typeof step.stepKey === 'string' && step.stepKey) {
+    return JSON.stringify([step.generation, task.id, 'step', step.stepKey]);
+  }
+  return JSON.stringify([step.generation, task.id, 'revision', step.taskRevision]);
+}
+
+function humanStepLines(step) {
+  return [
+    step.assignee && `负责人：${step.assignee}`,
+    step.instruction && `要做什么：${step.instruction}`,
+    step.expected && `预期结果：${step.expected}`,
+  ].filter(Boolean);
+}
+
 function sameConfirmation(a, b) {
   return Boolean(a && b && a.taskId === b.taskId && a.taskRevision === b.taskRevision
     && a.generation === b.generation);
 }
 
 function canConfirm(view, request) {
-  if (!view || view !== state.selected || !request || view.pendingConfirmation) return false;
+  if (!view || view !== state.selected || !request || view.pendingConfirmation || view.pendingHumanStep) {
+    return false;
+  }
   const current = confirmationRequest(view.tasks?.get(request.taskId));
   return sameConfirmation(current, request)
     && !sameConfirmation(view.completedConfirmations.get(request.taskId), request);
+}
+
+function canReportHumanStep(view, request) {
+  if (!view || view !== state.selected || !request || view.pendingHumanStep || view.pendingConfirmation) {
+    return false;
+  }
+  const current = humanStepRequest(view.tasks?.get(request.taskId));
+  return sameConfirmation(current, request)
+    && !sameConfirmation(view.completedHumanSteps.get(request.taskId), request);
 }
 
 /** Accept a drop only when it starts in this view with the same current result. */
@@ -291,15 +361,23 @@ function dropConfirmation(event) {
 
 function renderTaskCard(task) {
   const manual = needsManualConfirmation(task);
+  const humanStep = pendingHumanStep(task);
+  const agentWaiting = waitsForAgent(task);
+  const unprepared = waitsForConfirmableSubmission(task);
+  const agentPreparation = waitsForAgentPreparation(task);
   let stateLabel = stateNames.get(task.state) ?? '状态未知';
+  if (unprepared) stateLabel = agentPreparation ? '待 Agent 准备确认' : '阻塞';
   if (manual) stateLabel = '待人工确认';
+  if (humanStep) stateLabel = humanStepLabels.get(humanStep.kind);
+  if (agentWaiting && !unprepared && !humanStep && !manual) stateLabel = '待 Agent 接续';
   if (task.state === 'closed' && task.manualConfirmed === true) stateLabel = '已人工确认';
   const abandoned = task.state === 'canceled';
   const item = node('li', '', 'task');
   const header = node('div', '', 'task-heading');
   const badge = node('span', stateLabel, 'task-state');
-  if (manual) badge.classList.add('manual-confirmation');
-  else if (stateNames.has(task.state)) badge.classList.add(task.state);
+  if (manual || humanStep) badge.classList.add('manual-confirmation');
+  else if (unprepared && !agentPreparation) badge.classList.add('blocked');
+  else if (!agentWaiting && !unprepared && stateNames.has(task.state)) badge.classList.add(task.state);
   const title = node('button', task.title || '未命名任务', 'task-title-button');
   title.type = 'button';
   title.dataset.taskId = task.id;
@@ -321,12 +399,16 @@ function renderTaskCard(task) {
   heading.append(title);
   header.append(heading, badge);
   item.append(header);
-  if (manual) item.append(manualGuide(task, 'h5'));
+  const guide = manualGuide(task, 'h5');
+  if (guide) item.append(guide);
+  if (humanStep) {
+    item.append(...humanStepLines(humanStep).map(line => node('p', line, 'task-line')));
+  }
 
   item.append(node('p', candidatesText(task), 'subtle task-line'),
     node('p', responsibilityText(task), 'subtle task-line'));
-  const phase = stateNames.get(task.phase) ?? task.phase;
-  if (!manual && !abandoned && phase && phase !== stateLabel) {
+  const phase = task.phase === 'waiting-for-agent' ? '' : stateNames.get(task.phase) ?? task.phase;
+  if (!manual && !humanStep && !agentWaiting && !unprepared && !abandoned && phase && phase !== stateLabel) {
     item.append(node('p', `阶段 · ${phase}`, 'subtle task-phase'));
   }
   if (task.state === 'open' && task.readinessReason) {
@@ -380,7 +462,10 @@ function showReferencePane(show) {
   elements['reference-preview'].hidden = !show;
   elements['reference-back'].hidden = !show;
   elements['task-detail-content'].hidden = show;
-  if (show) elements['task-confirmation'].hidden = true;
+  if (show) {
+    elements['task-confirmation'].hidden = true;
+    elements['task-human-step-form'].hidden = true;
+  }
 }
 
 function resetReferencePreview(view) {
@@ -396,7 +481,10 @@ function returnToReferences(view) {
   if (!preview) return;
   resetReferencePreview(view);
   const task = view.tasks.get(view.detailTaskId);
-  if (task) updateConfirmationControls(view, task);
+  if (task) {
+    updateConfirmationControls(view, task);
+    updateHumanStepControls(view, task);
+  }
   const trigger = [...elements['task-detail-content'].querySelectorAll('[data-reference-id]')]
     .find(button => button.dataset.referenceId === preview.referenceId);
   (trigger ?? elements['task-detail-close']).focus({ preventScroll: true });
@@ -531,6 +619,80 @@ function updateConfirmationControls(view, task) {
   showText('task-confirmation-message', message);
 }
 
+function updateHumanStepControls(view, task) {
+  const request = humanStepRequest(task);
+  const draftKey = humanStepDraftKey(task);
+  const sameDraft = view?.detailHumanStepDraftKey === draftKey;
+  const changed = request && view?.detailTaskId === task.id
+    && (!sameDraft || !sameConfirmation(view.detailHumanStep, request));
+  const previous = view?.humanStepMessage;
+  let message = previous?.taskId === task.id && (!request || previous.draftKey === draftKey)
+    ? previous.text : '';
+  if (changed) message = sameDraft
+    ? '人工步骤已更新。请重新打开详情核对，已填内容会保留。'
+    : '待处理的人工步骤已变化。请重新打开详情核对。';
+  const input = elements['task-human-step-result'];
+  const button = elements['task-human-step-submit'];
+  const disabled = Boolean(changed) || !canReportHumanStep(view, request);
+  if (disabled && document.activeElement === button) elements['task-detail-close'].focus();
+  input.hidden = !request;
+  input.readOnly = disabled;
+  button.hidden = !request;
+  button.disabled = disabled;
+  elements['task-human-step-label'].hidden = !request;
+  elements['task-human-step-form'].hidden = Boolean(view?.referencePreview) || (!request && !message);
+  showText('task-human-step-status', message);
+}
+
+function reportHumanStep(view, request, draftKey, message) {
+  view.humanStepMessage = { taskId: request.taskId, draftKey, text: message };
+  const detail = view.tasks.get(view.detailTaskId);
+  if (detail) {
+    updateHumanStepControls(view, detail);
+    updateConfirmationControls(view, detail);
+  }
+}
+
+/** Keep the textarea draft during retries and wait for board readback before moving the card. */
+async function submitHumanStep(view, request, result) {
+  if (!canReportHumanStep(view, request)) return;
+  const draftKey = view.detailHumanStepDraftKey;
+  if (!draftKey || humanStepDraftKey(view.tasks.get(request.taskId)) !== draftKey) return;
+  if (!result) {
+    reportHumanStep(view, request, draftKey, '请填写实际结果。测试失败时可记录现象和错误。');
+    elements['task-human-step-result'].focus();
+    return;
+  }
+  view.pendingHumanStep = request;
+  clearConfirmationDrag();
+  reportHumanStep(view, request, draftKey, '正在保存结果…');
+
+  let message;
+  try {
+    const response = await callBoard(sessionUrl('human-step', view.id), AbortSignal.timeout(8000), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...request, result }),
+    });
+    requireSuccess(response);
+    const receipt = await response.json();
+    if (receipt.ok !== true) throw new Error('Missing human step receipt.');
+    view.completedHumanSteps.set(request.taskId, request);
+    view.humanStepDrafts.delete(draftKey);
+    message = '已保存人工结果。';
+  } catch (error) {
+    message = '暂时无法核实是否已保存。正在重新读取任务，填写的结果仍在这里。';
+    if (error.status === 400) message = '结果未保存。请填写 2000 字以内的实际情况。';
+    if (error.status === 409) message = '当前步骤暂不能提交。请核对更新后的详情。';
+  } finally {
+    view.pendingHumanStep = null;
+    if (view === state.selected) {
+      reportHumanStep(view, request, draftKey, message);
+      void refreshSnapshot(view);
+    }
+  }
+}
+
 function reportConfirmation(view, request, message) {
   view.confirmationMessage = { taskId: request.taskId, text: message };
   showText('work-confirmation-message', message);
@@ -588,9 +750,18 @@ function renderTaskDetail(task) {
     task.state === 'closed' && task.resultValid === false ? '历史已关闭 · 结果已失效' : '';
   const abandoned = task.state === 'canceled';
   const manual = needsManualConfirmation(task);
+  const humanStep = task.humanStep;
+  const humanLabel = humanStepLabels.get(humanStep?.kind);
+  const humanDetails = humanLabel && detailSection(humanStep.state === 'completed'
+    ? '已记录的人工结果' : humanLabel, [
+    ...humanStepLines(humanStep),
+    humanStep.state === 'completed' && humanStep.result && `实际结果：${humanStep.result}`,
+  ]);
   const sections = [
+    humanStep?.state === 'pending' && humanDetails,
     detailSection('角色与执行者', [candidatesText(task), responsibilityText(task), ...(detail.responsibilities ?? [])]),
     detailSection('任务说明', [detail.outcome]),
+    humanStep?.state === 'completed' && humanDetails,
     manualGuide(task, 'h3'),
     detailSection('人工确认', [task.state === 'closed' && task.manualConfirmed === true && '已人工确认。']),
     detailSection('放弃记录', [task.cancellationReason,
@@ -622,7 +793,10 @@ function renderTaskDetail(task) {
   if (view?.referencePreview
       && !Object.values(previews).flat(2).includes(view.referencePreview.referenceId)) {
     returnToReferences(view);
-  } else updateConfirmationControls(view, task);
+  } else {
+    updateConfirmationControls(view, task);
+    updateHumanStepControls(view, task);
+  }
 }
 
 function restoreCardFocus(id) {
@@ -641,6 +815,11 @@ function renderTasks(tasks) {
         view.completedConfirmations.delete(id);
       }
     }
+    for (const [id, request] of view.completedHumanSteps) {
+      if (!sameConfirmation(humanStepRequest(view.tasks.get(id)), request)) {
+        view.completedHumanSteps.delete(id);
+      }
+    }
   }
   const drag = state.confirmationDrag;
   if (drag && !canConfirm(drag.view, drag.request)) clearConfirmationDrag();
@@ -648,8 +827,9 @@ function renderTasks(tasks) {
   const focused = document.activeElement?.dataset?.taskId;
   const grouped = new Map(taskColumns.map(({ id }) => [id, []]));
   for (const task of tasks) {
-    const column = needsManualConfirmation(task)
-      ? 'confirmation' : columnForState.get(task.state) ?? 'waiting';
+    let column = columnForState.get(task.state) ?? 'waiting';
+    if (waitsForAgent(task) || waitsForAgentPreparation(task)) column = 'waiting';
+    if (needsManualConfirmation(task) || pendingHumanStep(task)) column = 'confirmation';
     grouped.get(column).push(task);
   }
   // Keep the snapshot order within each state while surfacing work that is still in motion.
@@ -675,7 +855,8 @@ function renderTasks(tasks) {
   }));
   elements.tasks.hidden = false;
   showText('work-empty', '');
-  const running = tasks.filter(task => task.state === 'running' && !needsManualConfirmation(task)).length;
+  const running = tasks.filter(task => task.state === 'running' && !needsManualConfirmation(task)
+    && !pendingHumanStep(task) && !waitsForAgent(task) && !waitsForConfirmableSubmission(task)).length;
   showText('work-summary', `${tasks.length} 项任务 · ${running} 项进行中`);
   const detailId = state.selected?.detailTaskId;
   if (detailId) {
@@ -715,6 +896,8 @@ function selectSession(id) {
     id, live: false, lastSync: null, error: false, refreshPending: false,
     tasks: new Map(),
     completedConfirmations: new Map(),
+    completedHumanSteps: new Map(),
+    humanStepDrafts: new Map(),
   };
   state.selected = view;
   state.lastSessionId = id;
@@ -922,6 +1105,8 @@ elements['task-detail'].addEventListener('close', () => {
   resetReferencePreview(state.selected);
   state.selected.detailTaskId = null;
   state.selected.detailConfirmation = null;
+  state.selected.detailHumanStep = null;
+  state.selected.detailHumanStepDraftKey = null;
   restoreCardFocus(id);
 });
 elements['reference-back'].addEventListener('click', () => returnToReferences(state.selected));
@@ -934,6 +1119,17 @@ elements['task-confirm-complete'].addEventListener('click', () => {
   const view = state.selected;
   if (!view || view.referencePreview || !elements['task-detail'].open) return;
   void confirmTask(view, view.detailConfirmation);
+});
+elements['task-human-step-form'].addEventListener('submit', event => {
+  event.preventDefault();
+  const view = state.selected;
+  if (!view || view.referencePreview || !elements['task-detail'].open) return;
+  void submitHumanStep(view, view.detailHumanStep, elements['task-human-step-result'].value.trim());
+});
+elements['task-human-step-result'].addEventListener('input', event => {
+  const view = state.selected;
+  if (!view?.detailHumanStepDraftKey || event.target.readOnly) return;
+  view.humanStepDrafts.set(view.detailHumanStepDraftKey, event.target.value);
 });
 elements.retry.addEventListener('click', () => {
   void refreshCatalog();

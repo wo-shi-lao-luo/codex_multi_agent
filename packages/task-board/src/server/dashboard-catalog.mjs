@@ -1,10 +1,11 @@
-/** Discover existing session Boards beneath approved projects; only prepared confirmation writes. */
+/** Discover existing session Boards and scope dashboard writes to their prepared human actions. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { confirmManualAcceptance, legacyManualAcceptancePhase, replayManualAcceptance }
   from '../coordination/acceptance.mjs';
 import { protectArtifacts } from '../coordination/artifact-protection.mjs';
+import { completeHumanStep, replayHumanStepResult } from '../coordination/human-step.mjs';
 import { sessionLocation } from '../domain/session.mjs';
 import { connect, readMetadata } from '../storage/connection.mjs';
 import { openBoard } from '../storage/index.mjs';
@@ -26,6 +27,25 @@ function unavailable() {
 
 function boardRevision(board) {
   return `${board.generation}:${board.boardRevision}:${board.eventSeq}`;
+}
+
+/** Write only to a catalog-resolved Board. A result retry cannot replace data at the same CAS. */
+function writeDashboardAction(location, operation, input, apply, replay) {
+  protectArtifacts({ ...location, allowAppend: false });
+  const { taskId, taskRevision, generation, result } = input;
+  const identity = createHash('sha256')
+    .update(JSON.stringify([operation, generation, taskId, taskRevision])).digest('hex');
+  const requestHash = result === undefined ? identity : createHash('sha256')
+    .update(JSON.stringify([identity, result])).digest('hex');
+  const request = { ...input, operationId: `${operation}:${identity}` };
+  const board = openBoard(location);
+  try {
+    board.transactOperation({ request, requestHash, operation,
+      authorizeReplay: (tx, receipt) => replay(tx, request, receipt.result),
+    }, tx => apply(tx, request));
+  } finally {
+    board.close();
+  }
 }
 
 /** Release the read transaction before projecting cards or reading project evidence. */
@@ -200,20 +220,14 @@ export function createDashboardCatalog(projectRoots) {
     },
 
     /** Commit only the exact prepared result. Every retry shares a deterministic receipt key. */
-    confirmManual(location, { taskId, taskRevision, generation }) {
-      protectArtifacts({ ...location, allowAppend: false });
-      const operation = 'manual-confirmation';
-      const requestHash = createHash('sha256')
-        .update(JSON.stringify([operation, generation, taskId, taskRevision])).digest('hex');
-      const request = { taskId, taskRevision, generation, operationId: `${operation}:${requestHash}` };
-      const board = openBoard(location);
-      try {
-        board.transactOperation({ request, requestHash, operation,
-          authorizeReplay: (tx, receipt) => replayManualAcceptance(tx, request, receipt.result),
-        }, tx => confirmManualAcceptance(tx, request));
-      } finally {
-        board.close();
-      }
+    confirmManual(location, input) {
+      writeDashboardAction(location, 'manual-confirmation', input, confirmManualAcceptance,
+        replayManualAcceptance);
+    },
+
+    /** Append the human observation and return the pending task to its Agent queue. */
+    completeHumanStep(location, input) {
+      writeDashboardAction(location, 'human-step', input, completeHumanStep, replayHumanStepResult);
     },
   };
 }
