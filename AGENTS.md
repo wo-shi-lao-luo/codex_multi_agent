@@ -13,7 +13,7 @@
 
 Keep root README files focused on stable orientation, setup, basic commands, user-relevant limitations and navigation. Put detailed procedures and task results in their existing authoritative documents under `docs/`. Follow `docs/release-versioning.md` for release numbering and coordinated public-document updates.
 
-Before merging any pull request to `master`, prepare the new version in that pull request and pass the check in `docs/release-versioning.md#before-merging-to-master` against the current target commit.
+This repository maintains release versions on `master` and `Beta`. For a pull request targeting either, prepare the new version in the same pull request and run the [release version check](docs/release-versioning.md#before-merging-to-a-release-branch) against that branch's current target commit. Other branches may use temporary versions.
 
 ## User-level Codex installation
 
