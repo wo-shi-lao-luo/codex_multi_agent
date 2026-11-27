@@ -2,6 +2,16 @@
 
 English | [简体中文](CHANGELOG.zh-CN.md)
 
+## [1.3.0] - 2026-11-27
+
+### Added
+
+- Let users opt in to record explicit feedback on Team work locally or route redacted summaries to a designated Codex chat. Show whether feedback was saved locally or is awaiting a receiver receipt.
+
+### Changed
+
+- Validate the version and matching release notes of pull requests against their target branch, with independent version sequences for master and Beta.
+
 ## [1.2.0] - 2026-11-23
 
 ### Added

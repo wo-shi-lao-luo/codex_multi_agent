@@ -26,14 +26,17 @@ Updating already confirmed version/date/release notes is metadata preparation, n
 
 Choose verification from the changed inputs and applicable due gate. For metadata-only preparation, run the paired-document checks above, check version/date/item alignment and outgoing scope, and run package validation once on the intended source. Do not run the package-validator regression suite, installation/deployment tests, or unrelated feature suites merely because the version or changelog changed. Run those relevant isolated suites when their implementation, assertions, dependencies or risk changed. Reuse only trustworthy reachable evidence with relevant input identity; invalidate affected evidence and honor any gate requiring a fresh result. A later delivery step can reuse valid checks rather than repeating them automatically, but still checks its own current index/history/target scope.
 
-## Before merging to master
+## Before merging to a release branch
 
-Prepare the release metadata in the same pull request. Choose a `VERSION` higher than the current `master` version, promote the pending notes in both changelogs, and synchronize both README release labels and the packaged version stamp. This applies to changes coming from a preview branch as well as direct contributions. Feature branches can keep pending notes while development continues.
+This repository maintains separate release versions on `master` and `Beta`. Development branches may use temporary version numbers and keep pending notes under `Unreleased`. The release-branch check applies when a pull request targets either maintained branch.
 
-Before reporting a pull request ready to merge, check the candidate against the current target commit. Repeat the check if the target moves. GitHub's Master version workflow runs the same check against the pull request's base commit.
+Prepare the release metadata in the same pull request. Choose a `VERSION` higher than that target branch's current version, promote the pending notes in both changelogs, and synchronize both README release labels and the packaged version stamp. When transferring work between `master` and `Beta`, use the destination's release sequence.
+
+Before reporting a pull request ready to merge, check the candidate against the current target commit. Repeat the check if the target moves. GitHub's Release branch version workflow runs the same check against the pull request's base commit. Run the command for the actual target:
 
 ```powershell
-pwsh -NoProfile -File scripts/validate-docs.ps1 -ProjectRoot . -MasterBaseRef origin/master
+pwsh -NoProfile -File scripts/validate-docs.ps1 -ProjectRoot . -ReleaseBaseRef origin/master
+pwsh -NoProfile -File scripts/validate-docs.ps1 -ProjectRoot . -ReleaseBaseRef origin/Beta
 ```
 
 ## Before releasing
