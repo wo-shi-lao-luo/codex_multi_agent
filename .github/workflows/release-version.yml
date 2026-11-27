@@ -1,8 +1,8 @@
-name: Master version
+name: Release branch version
 
 on:
   pull_request:
-    branches: [master]
+    branches: [master, Beta]
 
 permissions:
   contents: read
@@ -17,8 +17,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Compare the candidate with the master base
+      - name: Compare the candidate with the target release branch
         shell: pwsh
         env:
-          KIT_MASTER_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: ./scripts/validate-docs.ps1 -ProjectRoot . -MasterBaseRef $env:KIT_MASTER_BASE_SHA
+          KIT_RELEASE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: ./scripts/validate-docs.ps1 -ProjectRoot . -ReleaseBaseRef $env:KIT_RELEASE_BASE_SHA
