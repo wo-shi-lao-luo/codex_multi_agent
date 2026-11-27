@@ -37,6 +37,8 @@ $checks = @(
   @{name='documentation';path='tests/test-documentation.ps1';arguments=@()},
   @{name='feedback-runtime';path='tests/test-feedback-runtime.ps1';arguments=@()},
   @{name='feedback-concurrency';path='tests/test-feedback-concurrency.ps1';arguments=@()},
+  @{name='user-feedback';path='tests/test-user-feedback.ps1';arguments=@()},
+  @{name='user-feedback-receiver';path='tests/test-user-feedback-receiver.ps1';arguments=@()},
   @{name='formatter-tool';path='tests/test-formatter-tool.ps1';arguments=@()},
   @{name='generated-artifacts';path='tests/test-generated-artifacts.ps1';arguments=@()},
   @{name='git-delivery';path='tests/test-git-delivery.ps1';arguments=@()},
