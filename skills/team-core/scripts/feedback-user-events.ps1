@@ -152,18 +152,27 @@ function Read-UserFeedbackEventPayload {
   $payload = Read-UserFeedbackInput -InputPath $InputPath
   if ($Update) {
     Assert-UserFeedbackFields $payload @('schemaVersion', 'status', 'result')
-    if ($payload.status -isnot [string] -or
-        $payload.status -cnotin @('open', 'investigating', 'resolved', 'deferred')) {
-      throw 'USER_FEEDBACK: Unsupported result status.'
-    }
-    Assert-UserFeedbackSummary $payload.result 'result' -AllowEmpty
+    Assert-UserFeedbackOutcome $payload
     return $payload
   }
 
-  Assert-UserFeedbackFields $payload @(
+  Assert-UserFeedbackEventPayload $payload
+  return $payload
+}
+
+# A persisted record must still satisfy the original intake contract before a
+# replay can use its file as evidence of an earlier successful write.
+function Assert-UserFeedbackEventPayload {
+  param([hashtable]$Payload, [switch]$Persisted)
+
+  $fields = @(
     'schemaVersion', 'workflow', 'projectDigest', 'sessionDigest', 'taskDigest',
     'messageDigest', 'issueKey', 'kitVersion', 'observed', 'expected', 'impact', 'severity'
   )
+  if ($Persisted) {
+    $fields += @('id', 'caseId', 'recordedAt', 'updatedAt', 'status', 'result')
+  }
+  Assert-UserFeedbackFields $Payload $fields
   $workflows = @(
     'team-dev', 'team-plan', 'team-debug', 'team-review', 'verification-only',
     'team-code-maintain', 'team-doc-check', 'team-project-rules', 'team-ai-simulate',
@@ -188,22 +197,91 @@ function Read-UserFeedbackEventPayload {
   Assert-UserFeedbackSummary $payload.observed 'observed'
   Assert-UserFeedbackSummary $payload.expected 'expected' -AllowEmpty
   Assert-UserFeedbackSummary $payload.impact 'impact' -AllowEmpty
-  return $payload
+  if ($Persisted) {
+    Assert-UserFeedbackOutcome $Payload
+    foreach ($name in @('recordedAt', 'updatedAt')) {
+      $value = $Payload[$name]
+      if ($value -isnot [string] -or
+          $value -cnotmatch '\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{7}Z\z') {
+        throw 'USER_FEEDBACK: Invalid persisted event timestamp.'
+      }
+    }
+  }
 }
 
-# Record once per message and issue. Follow-up messages share a case identity
-# within one project, session and task. Updates leave the original report intact.
-function Save-UserFeedbackEvent {
-  param([string]$Store, [string]$InputPath, [string]$EventId, [switch]$Update)
+# Keep the stored outcome and its update request on the same bounded contract.
+function Assert-UserFeedbackOutcome {
+  param([hashtable]$Payload)
 
-  if (-not (Get-UserFeedbackEnabled $Store)) { return @{ action = 'disabled' } }
+  if ($Payload.status -isnot [string] -or
+      $Payload.status -cnotin @('open', 'investigating', 'resolved', 'deferred')) {
+    throw 'USER_FEEDBACK: Unsupported result status.'
+  }
+  Assert-UserFeedbackSummary $Payload.result 'result' -AllowEmpty
+}
+
+# Derive the same receipt identifiers for direct storage and a relayed payload
+# before the receiving chat has made any changes.
+function Get-UserFeedbackEventIdentity {
+  param([hashtable]$Payload)
+
+  $caseKey = @(
+    $Payload.projectDigest, $Payload.sessionDigest, $Payload.taskDigest, $Payload.issueKey
+  ) -join ':'
+  $caseId = Get-HashId "user-feedback-case:$caseKey"
+  return @{
+    caseId = $caseId
+    eventId = Get-HashId "user-feedback-event:$($caseId):$($Payload.messageDigest)"
+  }
+}
+
+# Check the contents against the pending receipt under the caller's store lock.
+# A corrupt or unrelated plain file must never be acknowledged or replaced.
+function Assert-UserFeedbackDuplicate {
+  param([string]$Path, [hashtable]$Expected)
+
+  try {
+    $stored = Read-UserFeedbackJson -Path $Path -Intake
+    Assert-UserFeedbackEventPayload -Payload $stored -Persisted
+    $identity = Get-UserFeedbackEventIdentity $stored
+    if ($stored.id -cne $Expected.eventId -or $stored.caseId -cne $Expected.caseId -or
+        $identity.eventId -cne $Expected.eventId -or $identity.caseId -cne $Expected.caseId) {
+      throw 'Stored event identity did not match.'
+    }
+  } catch {
+    throw 'USER_FEEDBACK: Existing event cannot verify the duplicate receipt.'
+  }
+}
+
+# Record once per message and issue. Routed events enter with a prevalidated
+# payload and separate consent store. Updates leave the original report intact.
+function Save-UserFeedbackEvent {
+  param(
+    [string]$Store,
+    [string]$InputPath,
+    [string]$EventId,
+    [switch]$Update,
+    [hashtable]$Payload,
+    [string]$ConsentStore = $Store,
+    [hashtable]$ReceiverBinding
+  )
+
+  if (-not (Get-UserFeedbackEnabled $ConsentStore)) { return @{ action = 'disabled' } }
   if ($Update) { Assert-UserFeedbackDigest $EventId 'EventId' }
-  $payload = Read-UserFeedbackEventPayload -InputPath $InputPath -Update:$Update
+  if ($null -eq $Payload) {
+    $Payload = Read-UserFeedbackEventPayload -InputPath $InputPath -Update:$Update
+  }
 
   $storeLock = Enter-FeedbackStoreLock -Store $Store
   try {
-    # Capture may have been disabled while intake was read or the lock was busy.
-    if (-not (Get-UserFeedbackEnabled $Store)) { return @{ action = 'disabled' } }
+    # Recheck consent and the expected route after a potential wait on this store.
+    if (-not (Get-UserFeedbackEnabled $ConsentStore)) { return @{ action = 'disabled' } }
+    if ($ReceiverBinding) {
+      $currentBinding = Get-UserFeedbackReceiverBinding $ConsentStore
+      if (-not (Test-UserFeedbackReceiverBinding $currentBinding $ReceiverBinding)) {
+        return @{ action = 'unconfigured' }
+      }
+    }
     $now = Get-UtcTimestamp
     if ($Update) {
       $eventPath = Resolve-TeamContainedPath $Store "feedback/user-events/$EventId.json"
@@ -215,16 +293,15 @@ function Save-UserFeedbackEvent {
       $event.result = $payload.result
       $action = 'updated'
     } else {
-      $caseKey = @(
-        $payload.projectDigest, $payload.sessionDigest, $payload.taskDigest, $payload.issueKey
-      ) -join ':'
-      $event = $payload
-      $event.caseId = Get-HashId "user-feedback-case:$caseKey"
-      $EventId = Get-HashId "user-feedback-event:$($event.caseId):$($payload.messageDigest)"
+      $identity = Get-UserFeedbackEventIdentity $Payload
+      $EventId = $identity.eventId
       $eventPath = Resolve-TeamContainedPath $Store "feedback/user-events/$EventId.json"
       if (Test-Path -LiteralPath $eventPath -PathType Leaf) {
-        return @{ action = 'duplicate'; eventId = $EventId; caseId = $event.caseId }
+        Assert-UserFeedbackDuplicate -Path $eventPath -Expected $identity
+        return @{ action = 'duplicate'; eventId = $EventId; caseId = $identity.caseId }
       }
+      $event = $payload
+      $event.caseId = $identity.caseId
       $event.id = $EventId
       $event.recordedAt = $now
       $event.status = 'open'

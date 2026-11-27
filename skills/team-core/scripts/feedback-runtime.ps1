@@ -1,12 +1,14 @@
-# Store workflow runs, user feedback and candidate states in one local directory.
-# Serialize mutations across sessions to protect counts and state transitions.
+# Manage local workflow feedback and optional routed user-feedback intake.
+# Serialize each store's mutations across sessions to protect counts and state transitions.
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
   [Parameter(Mandatory = $true)]
   [ValidateSet(
     'Record', 'Maintain', 'SetCandidateState', 'UserFeedbackStatus',
     'SetUserFeedbackCapture', 'RecordUserEvent', 'UpdateUserEvent',
-    'ListUserEvents', 'PromoteUserFeedback'
+    'ListUserEvents', 'PromoteUserFeedback', 'SetUserFeedbackReceiver',
+    'ClearUserFeedbackReceiver', 'GetUserFeedbackReceiver',
+    'PrepareUserFeedbackDelivery', 'ReceiveUserFeedback'
   )]
   [string]$Action,
   [string]$InputPath,
@@ -17,6 +19,12 @@ param(
   [ValidateSet('enabled', 'disabled')]
   [string]$CaptureState,
   [string]$EventId,
+  [string]$ProjectRoot,
+  [string]$ReceiverThreadId,
+  [string]$ReceiverHostId,
+  [string]$ReceiverProjectId,
+  [string]$SourceThreadId,
+  [string]$ExpectedEventId,
   [int]$Limit = 50,
   [switch]$DeleteArchived,
   [switch]$ConfirmDeletion
@@ -25,6 +33,7 @@ param(
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'platform-filesystem.ps1')
 . (Join-Path $PSScriptRoot 'feedback-user-events.ps1')
+. (Join-Path $PSScriptRoot 'feedback-receiver.ps1')
 
 function Get-DefaultFeedbackHome {
   $skillDirectory = Split-Path -Parent $PSScriptRoot
@@ -237,6 +246,63 @@ switch ($Action) {
     $settings = Resolve-TeamContainedPath $FeedbackHome 'feedback/user-feedback-settings.json'
     Write-AtomicJson -Path $settings -Value @{ schemaVersion = 1; enabled = $enabled }
     @{ action = 'capture_state_updated'; enabled = $enabled } | ConvertTo-Json
+  }
+  'GetUserFeedbackReceiver' {
+    @{
+      enabled = Get-UserFeedbackEnabled $FeedbackHome
+      receiver = Get-UserFeedbackReceiverBinding $FeedbackHome
+    } | ConvertTo-Json
+  }
+  'SetUserFeedbackReceiver' {
+    $receiver = Read-UserFeedbackInput $InputPath
+    Assert-UserFeedbackReceiverBinding $receiver
+    if (-not $PSCmdlet.ShouldProcess('local feedback settings', 'Bind feedback collector chat')) {
+      @{ action = 'what_if' } | ConvertTo-Json
+      break
+    }
+    $storeLock = Enter-FeedbackStoreLock -Store $FeedbackHome
+    $bindingPath = Get-UserFeedbackReceiverPath $FeedbackHome
+    Write-AtomicJson -Path $bindingPath -Value $receiver
+    @{ action = 'receiver_configured'; receiver = $receiver } | ConvertTo-Json
+  }
+  'ClearUserFeedbackReceiver' {
+    if (-not $PSCmdlet.ShouldProcess('local feedback settings', 'Clear feedback collector chat')) {
+      @{ action = 'what_if' } | ConvertTo-Json
+      break
+    }
+    $bindingPath = Get-UserFeedbackReceiverPath $FeedbackHome
+    if (Test-Path -LiteralPath $bindingPath) {
+      $storeLock = Enter-FeedbackStoreLock -Store $FeedbackHome
+      $bindingPath = Get-UserFeedbackReceiverPath $FeedbackHome
+      if (Test-Path -LiteralPath $bindingPath -PathType Container) {
+        throw 'USER_FEEDBACK_RECEIVER: Invalid receiver settings.'
+      }
+      if (Test-Path -LiteralPath $bindingPath -PathType Leaf) {
+        Remove-Item -LiteralPath $bindingPath
+      }
+    }
+    @{ action = 'receiver_cleared' } | ConvertTo-Json
+  }
+  'PrepareUserFeedbackDelivery' {
+    New-UserFeedbackDelivery -ConsentStore $FeedbackHome -InputPath $InputPath |
+      ConvertTo-Json -Depth 5
+  }
+  'ReceiveUserFeedback' {
+    if ($WhatIfPreference) {
+      @{ action = 'what_if' } | ConvertTo-Json
+      break
+    }
+    $delivery = @{
+      ConsentStore = $FeedbackHome
+      InputPath = $InputPath
+      ProjectRoot = $ProjectRoot
+      ReceiverThreadId = $ReceiverThreadId
+      ReceiverHostId = $ReceiverHostId
+      ReceiverProjectId = $ReceiverProjectId
+      SourceThreadId = $SourceThreadId
+      ExpectedEventId = $ExpectedEventId
+    }
+    Receive-UserFeedbackDelivery @delivery | ConvertTo-Json
   }
   { $_ -in @('RecordUserEvent', 'UpdateUserEvent') } {
     if ($WhatIfPreference) {
