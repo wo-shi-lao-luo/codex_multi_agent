@@ -3,7 +3,8 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-  [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot)
+  [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot),
+  [Alias('MasterBaseRef')][ValidateNotNullOrEmpty()][string]$ReleaseBaseRef
 )
 
 $ErrorActionPreference = 'Stop'
@@ -64,6 +65,22 @@ try {
   if ($failures.Count -eq 0) {
     $version = $contents['VERSION'].Trim()
     if ($version -notmatch '^\d+\.\d+\.\d+$') { $failures.Add('VERSION must be X.Y.Z.') }
+    if ($ReleaseBaseRef) {
+      $baseCommit = & git -C $root rev-parse --verify --end-of-options "${ReleaseBaseRef}^{commit}" 2>$null
+      if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the target release commit.' }
+      $baseVersion = (& git -C $root show "${baseCommit}:VERSION" 2>$null) -join ''
+      if ($LASTEXITCODE -ne 0 -or $baseVersion -cnotmatch '^\d+\.\d+\.\d+$') {
+        throw 'The target release commit must contain a numeric VERSION.'
+      }
+      if ([version]$version -le [version]$baseVersion) {
+        $failures.Add("VERSION $version must be newer than the target branch VERSION $baseVersion.")
+      }
+      $stamp = Join-Path $root 'skills/team-core/runtime/kit-version.txt'
+      if (-not (Test-Path -LiteralPath $stamp -PathType Leaf) -or
+          [IO.File]::ReadAllText($stamp).Trim() -cne $version) {
+        $failures.Add('Packaged Kit version must match VERSION. Run scripts/sync-kit-version.ps1.')
+      }
+    }
     foreach ($pair in @(@('README.md', 'README.zh-CN.md'), @('CHANGELOG.md', 'CHANGELOG.zh-CN.md'))) {
       $english = $pair[0]; $chinese = $pair[1]
       $parts = @{}
@@ -88,7 +105,14 @@ try {
         }
         Compare-Signals 'README model/effort rows' @(Get-ModelSignals $english $parts[$english].Prose) @(Get-ModelSignals $chinese $parts[$chinese].Prose)
       } else {
-        Compare-Signals 'CHANGELOG release/date/category/item structure' @(Get-ReleaseSignals $english $parts[$english].Prose $version $failures) @(Get-ReleaseSignals $chinese $parts[$chinese].Prose $version $failures)
+        $signals = @{}
+        foreach ($name in $pair) {
+          $signals[$name] = @(Get-ReleaseSignals $name $parts[$name].Prose $version $failures)
+          if ($ReleaseBaseRef -and $signals[$name] -clike 'Unreleased|*') {
+            $failures.Add("$name still has changes under Unreleased. Promote them to the new version before merging to the release branch.")
+          }
+        }
+        Compare-Signals 'CHANGELOG release/date/category/item structure' $signals[$english] $signals[$chinese]
       }
     }
   }

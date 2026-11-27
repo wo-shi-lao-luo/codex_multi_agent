@@ -7,7 +7,7 @@
     },
     {
       "path": "VERSION",
-      "sha256": "c89b87c262e9d5ffd20e73aac74a1772adcc9f5a21682cc33adcf5086e5fef5c"
+      "sha256": "7b3ff271f1373cfb97e9e53349794e1450f3794e4c0788c54a2060c7596da821"
     },
     {
       "path": "packages/task-board/package.json",
@@ -75,7 +75,7 @@
     },
     {
       "path": "packages/task-board/src/cli/help.mjs",
-      "sha256": "47330192e8ead837aa813e6b9550cd59b74d6f3a940fb844b1200d8c11ec7f8b"
+      "sha256": "d6eb8281fd5910cf52a53ac8fe21632c077b42fb165ea351505fd0a2bae43ae5"
     },
     {
       "path": "packages/task-board/src/cli/maintenance.mjs",
@@ -83,7 +83,7 @@
     },
     {
       "path": "packages/task-board/src/coordination/acceptance.mjs",
-      "sha256": "4c1df125b00a5142e14129a75002c3d952ebb9fb2b891bbaf413890809b61f36"
+      "sha256": "6aeac651899b7e1560b41ad350d4ce389b84c61ca674e1bd1814250c80029e6d"
     },
     {
       "path": "packages/task-board/src/coordination/artifact-protection.mjs",
@@ -99,7 +99,7 @@
     },
     {
       "path": "packages/task-board/src/coordination/human-step.mjs",
-      "sha256": "1892adbcb353640ad1dc388ed20d2105191d13c1337abb8e6983534ca49d894c"
+      "sha256": "179933b00a968cb2975f24aa123251224069feea044a65b1866b4f8d1f017127"
     },
     {
       "path": "packages/task-board/src/coordination/lifecycle.mjs",
@@ -167,7 +167,7 @@
     },
     {
       "path": "packages/task-board/src/server/dashboard-catalog.mjs",
-      "sha256": "aecccdf2b671b46baccd1b27d269730e5c8432a7592bf4cf2781aec15f5436e0"
+      "sha256": "1e26cfd4fb9ec0392d6254260ddd85cdd61217e8aff32e7a1552425198dfea30"
     },
     {
       "path": "packages/task-board/src/server/dashboard-reference-preview.mjs",
@@ -279,7 +279,7 @@
     },
     {
       "path": "packages/task-board/web/dashboard.css",
-      "sha256": "9aec00b46c971dd19ae8a32814906b97a2f6c8beef9cc6b7bf516244da9c2af7"
+      "sha256": "768326f3ab92f652ea9996690ee389af4774895bd5f98842adde7a4d2df7e8dc"
     },
     {
       "path": "packages/task-board/web/dashboard.html",
@@ -287,7 +287,7 @@
     },
     {
       "path": "packages/task-board/web/dashboard.js",
-      "sha256": "3f7a57c0863104b163a717983133c320304a6903fa889545b64366605a58563d"
+      "sha256": "9821c84566ea5c51ef0f9b42a39d4e006236419a6df9fe00e2c0c120429d532c"
     },
     {
       "path": "packages/task-board/web/index.html",
@@ -373,7 +373,7 @@
     },
     {
       "path": "src/cli/help.mjs",
-      "sha256": "47330192e8ead837aa813e6b9550cd59b74d6f3a940fb844b1200d8c11ec7f8b"
+      "sha256": "d6eb8281fd5910cf52a53ac8fe21632c077b42fb165ea351505fd0a2bae43ae5"
     },
     {
       "path": "src/cli/maintenance.mjs",
@@ -381,7 +381,7 @@
     },
     {
       "path": "src/coordination/acceptance.mjs",
-      "sha256": "4c1df125b00a5142e14129a75002c3d952ebb9fb2b891bbaf413890809b61f36"
+      "sha256": "6aeac651899b7e1560b41ad350d4ce389b84c61ca674e1bd1814250c80029e6d"
     },
     {
       "path": "src/coordination/artifact-protection.mjs",
@@ -397,7 +397,7 @@
     },
     {
       "path": "src/coordination/human-step.mjs",
-      "sha256": "1892adbcb353640ad1dc388ed20d2105191d13c1337abb8e6983534ca49d894c"
+      "sha256": "179933b00a968cb2975f24aa123251224069feea044a65b1866b4f8d1f017127"
     },
     {
       "path": "src/coordination/lifecycle.mjs",
@@ -465,7 +465,7 @@
     },
     {
       "path": "src/server/dashboard-catalog.mjs",
-      "sha256": "aecccdf2b671b46baccd1b27d269730e5c8432a7592bf4cf2781aec15f5436e0"
+      "sha256": "1e26cfd4fb9ec0392d6254260ddd85cdd61217e8aff32e7a1552425198dfea30"
     },
     {
       "path": "src/server/dashboard-reference-preview.mjs",
@@ -577,7 +577,7 @@
     },
     {
       "path": "web/dashboard.css",
-      "sha256": "9aec00b46c971dd19ae8a32814906b97a2f6c8beef9cc6b7bf516244da9c2af7"
+      "sha256": "768326f3ab92f652ea9996690ee389af4774895bd5f98842adde7a4d2df7e8dc"
     },
     {
       "path": "web/dashboard.html",
@@ -585,7 +585,7 @@
     },
     {
       "path": "web/dashboard.js",
-      "sha256": "3f7a57c0863104b163a717983133c320304a6903fa889545b64366605a58563d"
+      "sha256": "9821c84566ea5c51ef0f9b42a39d4e006236419a6df9fe00e2c0c120429d532c"
     },
     {
       "path": "web/index.html",

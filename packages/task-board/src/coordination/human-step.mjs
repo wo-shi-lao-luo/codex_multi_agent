@@ -31,6 +31,27 @@ export function validHumanStepResult(value) {
   return boundedText(value, 2000);
 }
 
+/** Validate and trim the checklist shared by final acceptance and intermediate human work. */
+export function normalizeHumanChecklist(guide) {
+  if (guide === undefined) return undefined;
+  const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+  const validText = (value, limit) => typeof value === 'string' && value.trim().length > 0 &&
+    value.length <= limit && !/[\u0000-\u001f\u007f]/.test(value);
+  requireValue(object(guide) && Object.keys(guide).every(key => ['setup', 'steps'].includes(key)) &&
+    Array.isArray(guide.steps) && guide.steps.length > 0 && guide.steps.length <= 8 &&
+    (guide.setup === undefined || validText(guide.setup, 500)),
+  'INVALID_INPUT', 'Manual guide requires one to eight steps and optional setup text.');
+  for (const step of guide.steps) {
+    requireValue(object(step) && Object.keys(step).length === 2 &&
+      validText(step.action, 300) && validText(step.expected, 300),
+    'INVALID_INPUT', 'Each manual step requires a short action and expected result.');
+  }
+  return {
+    ...(guide.setup === undefined ? {} : { setup: guide.setup.trim() }),
+    steps: guide.steps.map(step => ({ action: step.action.trim(), expected: step.expected.trim() })),
+  };
+}
+
 function currentHumanStep(board, task) {
   const step = task?.humanStep;
   return step && !task.archived && task.state !== 'canceled' && step.generation === board.generation &&
@@ -76,16 +97,25 @@ export function requestHumanStep(tx, task, input) {
   requireValue(!(owned || task.state === 'running') ||
     input.writesStopped === true && input.processStopped === true, 'RECOVERY_REQUIRED',
     'Confirm that Agent writes and related processes have stopped before parking the task.');
+  const guide = normalizeHumanChecklist(input.guide);
+  requireValue(input.resultPrompt === undefined || boundedText(input.resultPrompt, 500, false),
+    'INVALID_INPUT', 'Result instructions must be a short line of text.');
+  requireValue(input.kind !== 'verification' || guide && input.resultPrompt !== undefined, 'INVALID_INPUT',
+    'Human verification requires a checklist and instructions for what to record.');
 
   const step = {
     state: 'pending', requestOperationId: input.operationId, generation: tx.board.generation,
     inputRevision: task.inputRevision, executionRevision: task.executionRevision, kind: input.kind,
     assignee: input.assignee.trim(), instruction: input.instruction.trim(), expected: input.expected.trim(),
+    ...(guide ? { guide } : {}),
+    ...(input.resultPrompt === undefined ? {} : { resultPrompt: input.resultPrompt.trim() }),
   };
   if (owned || task.state === 'running') task.state = 'blocked';
   task.humanStep = step;
   tx.audit('human-step-requested', { taskId: task.id, actorId: input.actorId,
-    kind: step.kind, assignee: step.assignee, instruction: step.instruction, expected: step.expected });
+    kind: step.kind, assignee: step.assignee, instruction: step.instruction, expected: step.expected,
+    ...(guide ? { guide } : {}),
+    ...(step.resultPrompt ? { resultPrompt: step.resultPrompt } : {}) });
   tx.change('human-step-requested', { taskId: task.id });
 }
 
@@ -132,10 +162,12 @@ export function replayHumanStepResult(tx, input, receipt) {
 export function humanStepView(board, task) {
   const step = currentHumanStep(board, task);
   if (!step) return null;
-  const { state, kind, assignee, instruction, expected, generation, result } = step;
+  const { state, kind, assignee, instruction, expected, generation, guide, resultPrompt, result } = step;
   const stepKey = createHash('sha256')
     .update(JSON.stringify([generation, task.id, step.requestOperationId])).digest('hex');
   return { state, kind, assignee, instruction, expected, generation, stepKey,
     taskRevision: task.taskRevision,
+    ...(guide ? { guide } : {}),
+    ...(resultPrompt ? { resultPrompt } : {}),
     ...(state === 'completed' ? { result } : {}) };
 }

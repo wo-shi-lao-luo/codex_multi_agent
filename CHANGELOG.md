@@ -4,6 +4,13 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The two historical `0.10.1` preview records came from separate development branches. Both retain their original release text and dates, `2026-10-04` and `2026-10-10`.
 
+## [2.1.1] - 2026-11-27
+
+### Changed
+
+- Show the entry point, required actions, expected outcome, and result to report directly on dashboard cards that need human work. Mark legacy cards with incomplete instructions and show the next human action in the session sidebar.
+- Validate the version and matching release notes of pull requests against their target branch, with independent version sequences for master and Beta.
+
 ## [2.1.0] - 2026-11-27
 
 ### Added

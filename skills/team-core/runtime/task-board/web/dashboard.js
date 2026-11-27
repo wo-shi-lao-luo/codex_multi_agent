@@ -259,16 +259,20 @@ function manualGuide(task, headingTag) {
     section.append(node('p', message, 'manual-guide-expected'));
     return section;
   }
-  if (guide.setup) section.append(node('p', guide.setup, 'manual-guide-setup'));
+  appendChecklist(section, guide);
+  return section;
+}
+
+function appendChecklist(section, guide, expectedLabel = '通过标准') {
+  if (guide.setup) section.append(node('p', `开始前：${guide.setup}`, 'manual-guide-setup'));
   const steps = node('ol', '', 'manual-guide-steps');
   for (const step of guide.steps) {
     const item = node('li', '');
     item.append(node('p', step.action),
-      node('p', `通过标准：${step.expected}`, 'manual-guide-expected'));
+      node('p', `${expectedLabel}：${step.expected}`, 'manual-guide-expected'));
     steps.append(item);
   }
   section.append(steps);
-  return section;
 }
 
 function confirmationRequest(task) {
@@ -294,10 +298,11 @@ function humanStepDraftKey(task) {
 }
 
 function humanStepLines(step) {
+  const verification = step.kind === 'verification';
   return [
     step.assignee && `负责人：${step.assignee}`,
-    step.instruction && `要做什么：${step.instruction}`,
-    step.expected && `预期结果：${step.expected}`,
+    step.instruction && `${verification ? '要核验什么' : '要做什么'}：${step.instruction}`,
+    step.expected && `${verification ? '通过标准' : '预期结果'}：${step.expected}`,
   ].filter(Boolean);
 }
 
@@ -753,10 +758,19 @@ function renderTaskDetail(task) {
   const humanStep = task.humanStep;
   const humanLabel = humanStepLabels.get(humanStep?.kind);
   const humanDetails = humanLabel && detailSection(humanStep.state === 'completed'
-    ? '已记录的人工结果' : humanLabel, [
-    ...humanStepLines(humanStep),
-    humanStep.state === 'completed' && humanStep.result && `实际结果：${humanStep.result}`,
-  ]);
+    ? '已记录的人工结果' : humanLabel, humanStepLines(humanStep));
+  if (humanDetails) {
+    const verification = humanStep.kind === 'verification';
+    if (humanStep.guide?.steps?.length) {
+      appendChecklist(humanDetails, humanStep.guide, verification ? '通过标准' : '预期结果');
+    } else if (verification && humanStep.state === 'pending') {
+      humanDetails.append(node('p', '这张卡还没有分步核验说明。', 'manual-guide-expected'));
+    }
+    if (humanStep.resultPrompt) humanDetails.append(node('p', `请记录：${humanStep.resultPrompt}`));
+    if (humanStep.state === 'completed' && humanStep.result) {
+      humanDetails.append(node('p', `实际结果：${humanStep.result}`));
+    }
+  }
   const sections = [
     humanStep?.state === 'pending' && humanDetails,
     detailSection('角色与执行者', [candidatesText(task), responsibilityText(task), ...(detail.responsibilities ?? [])]),
@@ -925,11 +939,18 @@ function sidebarProjects(sessions, headingTag, buttons) {
     button.dataset.sessionId = session.id;
     if (session.id === state.selected?.id) button.setAttribute('aria-current', 'true');
     button.append(node('span', session.sessionName, 'session-label'));
-  if (session.hasRunningTasks) {
-    const activity = node('span', '进行中', 'session-activity');
-    activity.title = '此会话有已开始且仍为进行中的看板任务';
-    button.append(activity);
-  }
+    if (session.hasHumanTasks || session.hasRunningTasks) {
+      const indicators = node('span', '', 'session-indicators');
+      if (session.hasHumanTasks) indicators.append(node('span', '需人工', 'session-human'));
+      if (session.hasRunningTasks) {
+        const spinner = node('span', '', 'session-spinner');
+        spinner.setAttribute('role', 'img');
+        spinner.setAttribute('aria-label', '进行中');
+        spinner.title = '此会话有进行中的 Agent 任务';
+        indicators.append(spinner);
+      }
+      button.append(indicators);
+    }
     button.addEventListener('click', () => {
       if (state.selected?.id !== session.id) selectSession(session.id);
     });
@@ -944,8 +965,8 @@ function sidebarProjects(sessions, headingTag, buttons) {
 function renderSidebar() {
   const sessions = [...state.catalog.values()];
   const signature = JSON.stringify([state.groupByActivity, state.selected?.id,
-    ...sessions.map(({ id, projectKey, projectName, sessionName, hasRunningTasks }) =>
-      [id, projectKey, projectName, sessionName, Boolean(hasRunningTasks)])]);
+    ...sessions.map(({ id, projectKey, projectName, sessionName, hasRunningTasks, hasHumanTasks }) =>
+      [id, projectKey, projectName, sessionName, Boolean(hasRunningTasks), Boolean(hasHumanTasks)])]);
   if (signature === state.catalogSignature) return;
   state.catalogSignature = signature;
   elements['group-mode'].setAttribute('aria-pressed', String(state.groupByActivity));
