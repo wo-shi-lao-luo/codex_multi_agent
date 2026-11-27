@@ -101,13 +101,30 @@ main.frame {
 }
 .session-link[aria-current="true"] { background: var(--selected); border-color: #cadbfc; color: #174b9b; }
 .session-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.session-activity {
+.session-indicators {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   flex-shrink: 0;
+}
+.session-human {
   padding: 0 5px;
   border-radius: 4px;
-  background: #e7f2ff;
-  color: #174b9b;
+  background: #fff0d2;
+  color: #784500;
   font-size: 12px;
+}
+.session-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #c0d5f7;
+  border-top-color: #174b9b;
+  border-radius: 50%;
+  animation: session-spin 0.9s linear infinite;
+}
+@keyframes session-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .session-spinner { animation: none; }
 }
 .catalog-empty { color: var(--muted); padding: 4px 7px; font-size: 13px; }
 

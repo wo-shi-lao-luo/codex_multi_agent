@@ -520,8 +520,11 @@ manual-wait phases need an Agent to prepare the current frozen result before the
 human column.
 
 For intermediate work, the authenticated Lead records a bounded step with the type, the person
-responsible, the instruction and the expected observation. The view groups explicit pending
-human steps in the human column. A local submission is bound to the registered Board, generation
+responsible, the instruction and the expected observation. A new verification step also includes an
+ordered checklist with observable pass conditions and a prompt for recording the result. The view
+groups explicit pending human steps in the human column. A session's sidebar shows **需人工**
+when it has a current human step or prepared final acceptance, and a spinner while Agent work is
+running. A local submission is bound to the registered Board, generation
 and current task revision. The assignee label describes the intended person. The receipt identifies
 the authorized local dashboard as its source. The write records the observed result, including
 failure, and returns the card to the Agent queue with its independent gates, dependencies and

@@ -3,7 +3,7 @@ import { BoardError } from '../domain/errors.mjs';
 import { currentExecutionEligibility, executionBinding } from '../domain/execution.mjs';
 import { consumableResult, dependenciesReady } from '../domain/graph.mjs';
 import { requireIndependentChecks } from './execution-evidence.mjs';
-import { hasPendingHumanStep, validDashboardTaskId } from './human-step.mjs';
+import { hasPendingHumanStep, normalizeHumanChecklist, validDashboardTaskId } from './human-step.mjs';
 
 export const legacyManualAcceptancePhase = 'awaiting-manual-acceptance';
 
@@ -54,27 +54,6 @@ function requireManualCandidate(tx, task) {
     'Receive the pending human step result before preparing final confirmation.');
 }
 
-/** Store a short, human-readable checklist beside the exact prepared result. */
-function normalizeManualGuide(guide) {
-  if (guide === undefined) return undefined;
-  const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
-  const validText = (value, limit) => typeof value === 'string' && value.trim().length > 0 &&
-    value.length <= limit && !/[\u0000-\u001f\u007f]/.test(value);
-  requireValue(object(guide) && Object.keys(guide).every(key => ['setup', 'steps'].includes(key)) &&
-    Array.isArray(guide.steps) && guide.steps.length > 0 && guide.steps.length <= 8 &&
-    (guide.setup === undefined || validText(guide.setup, 500)),
-  'INVALID_INPUT', 'Manual guide requires one to eight steps and optional setup text.');
-  for (const step of guide.steps) {
-    requireValue(object(step) && Object.keys(step).length === 2 &&
-      validText(step.action, 300) && validText(step.expected, 300),
-    'INVALID_INPUT', 'Each manual step requires a short action and expected result.');
-  }
-  return {
-    ...(guide.setup === undefined ? {} : { setup: guide.setup.trim() }),
-    steps: guide.steps.map(step => ({ action: step.action.trim(), expected: step.expected.trim() })),
-  };
-}
-
 /** The authenticated Lead reserves the human gate for this precise submitted result. */
 export function requestManualAcceptance(tx, task, input) {
   requireValue(validDashboardTaskId(task?.id), 'INVALID_INPUT',
@@ -85,7 +64,7 @@ export function requestManualAcceptance(tx, task, input) {
     'Human confirmation requires explicit acceptance evidence references.');
   const validated = acceptanceEvidence(tx, task, { ...input, gatesSatisfied: true });
   requireValue(tx.board.sessionProfile, 'CONFLICT', 'Human confirmation requires a session Board.');
-  const guide = normalizeManualGuide(input.guide);
+  const guide = normalizeHumanChecklist(input.guide);
   const checkResults = (input.checkResults ?? []).map(({ checkId, taskId, submissionId }) =>
     ({ checkId, taskId, submissionId }));
   task.manualAcceptance = {
@@ -142,7 +121,7 @@ export function manualConfirmationView(tx, task) {
   if (task.state === 'submitted' && task.manualAcceptance) {
     try {
       preparedManualAcceptance(tx, task);
-      const guide = normalizeManualGuide(task.manualAcceptance.guide);
+      const guide = normalizeHumanChecklist(task.manualAcceptance.guide);
       return { state: 'ready', taskRevision: task.taskRevision, generation: tx.board.generation,
         ...(guide ? { guide } : {}) };
     } catch (error) {

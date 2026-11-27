@@ -128,9 +128,12 @@ commands.at(-1).notes = 'Only action=report/block records server-owned lastRepor
   + 'Caller lastReportAt is rejected. Exact receipt replay preserves the recorded time.';
 write('accept', [...task, 'gatesSatisfied', 'evidenceRefs'], ['checkResults']);
 write('request-human-step', [...task, 'kind', 'assignee', 'instruction', 'expected'],
-  ['writesStopped', 'processStopped']);
+  ['guide', 'resultPrompt', 'writesStopped', 'processStopped']);
+commands.at(-1).conditions.push({ when: 'kind=verification', requiredFields: ['guide', 'resultPrompt'] });
 commands.at(-1).notes = 'Lead parks a session task for one human verification, test, or operation. '
   + 'Active work or ownership requires stopped-write and stopped-process evidence. '
+  + 'For verification, instruction identifies the subject, expected defines overall success, '
+  + 'guide lists the steps, and resultPrompt explains what to record. '
   + 'The human result returns to the Agent queue without accepting the task.';
 write('request-manual-acceptance', [...task, 'evidenceRefs'], ['checkResults', 'guide']);
 commands.at(-1).notes = 'Lead attests the non-human gates for one current frozen submission. '
@@ -261,8 +264,9 @@ for (const command of commands) {
       } },
     },
     required: ['steps'], additionalProperties: false,
-    description: 'The user-facing setup, actions and pass conditions shown inline on the pending card.',
+    description: 'The user-facing setup, actions and pass conditions shown with the pending card.',
   };
+  if (fields.includes('resultPrompt')) command.fieldTypes.resultPrompt = { ...string, maxLength: 500 };
   if (command.operation === 'lead-inline-assign') command.preconditions = [
     'Register the actual Lead in lead-inline mode.', 'Explicitly approve the current task contract.',
     'Grant the actual Lead this approvalRevision before assigning; approval alone is not a grant.' ];
