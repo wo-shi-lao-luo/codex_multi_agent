@@ -2,10 +2,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { confirmManualAcceptance, legacyManualAcceptancePhase, replayManualAcceptance }
+import { confirmManualAcceptance, legacyManualAcceptancePhase, manualConfirmationView, replayManualAcceptance }
   from '../coordination/acceptance.mjs';
 import { protectArtifacts } from '../coordination/artifact-protection.mjs';
-import { completeHumanStep, replayHumanStepResult } from '../coordination/human-step.mjs';
+import { completeHumanStep, hasPendingHumanStep, replayHumanStepResult } from '../coordination/human-step.mjs';
 import { sessionLocation } from '../domain/session.mjs';
 import { connect, readMetadata } from '../storage/connection.mjs';
 import { openBoard } from '../storage/index.mjs';
@@ -62,6 +62,29 @@ function projectKeyFor(root) {
   return createHash('sha256').update(JSON.stringify(['dashboard-project', root])).digest('hex');
 }
 
+/** Skip full reads for ordinary sessions and validate human candidates with the same gates as cards. */
+function sessionActivity(db, location) {
+  // Older Leads could report waiting for final acceptance while leaving the persisted state running.
+  const { running, humanCandidate } = db.prepare(`SELECT
+    EXISTS(SELECT 1 FROM tasks WHERE state = 'running'
+      AND coalesce(json_extract(payload, '$.phase'), '') <> ?) AS running,
+    EXISTS(SELECT 1 FROM tasks WHERE state NOT IN ('closed', 'canceled')
+      AND coalesce(json_extract(payload, '$.archived'), 0) = 0
+      AND (json_extract(payload, '$.humanStep.state') = 'pending'
+        OR (state = 'submitted' AND json_type(payload, '$.manualAcceptance') = 'object'))) AS humanCandidate`)
+    .get(legacyManualAcceptancePhase);
+  const activity = { hasRunningTasks: Boolean(running), hasHumanTasks: false };
+  if (!humanCandidate) return activity;
+  const board = openBoard({ ...location, readOnly: true });
+  try {
+    activity.hasHumanTasks = board.read(tx => tx.tasks.list().some(task =>
+      hasPendingHumanStep(tx.board, task) || manualConfirmationView(tx, task)?.state === 'ready'));
+    return activity;
+  } finally {
+    board.close();
+  }
+}
+
 /** Require the stored checkout and native identity to match the exact discovered layout. */
 function describeBoard(projectRoot, boardPath, { expectedSessionKey, includeActivity = false } = {}) {
   const location = boardPaths(projectRoot, boardPath);
@@ -80,12 +103,7 @@ function describeBoard(projectRoot, boardPath, { expectedSessionKey, includeActi
       sessionName: board.sessionProfile.sessionName,
       updatedAt: board.updatedAt ?? null,
       revision: boardRevision(board),
-      ...(includeActivity ? {
-        // Some older Leads reported waiting for a human while leaving the persisted state running.
-        hasRunningTasks: db.prepare(`SELECT 1 FROM tasks WHERE state = 'running'
-          AND coalesce(json_extract(payload, '$.phase'), '') <> ? LIMIT 1`)
-          .get(legacyManualAcceptancePhase) !== undefined,
-      } : {}),
+      ...(includeActivity ? sessionActivity(db, { projectRoot, boardPath, sessionKey: binding.sessionKey }) : {}),
     };
   } finally {
     db.close();
@@ -177,9 +195,9 @@ export function createDashboardCatalog(projectRoots) {
         }
       }
       return {
-        sessions: sessions.map(({ id, projectKey, projectRoot, sessionName, updatedAt, hasRunningTasks }) => ({
+        sessions: sessions.map(({ id, projectKey, projectRoot, sessionName, updatedAt, hasRunningTasks, hasHumanTasks }) => ({
           id, projectKey, projectName: names.get(projectKey) ?? path.basename(projectRoot),
-          sessionName, updatedAt, hasRunningTasks,
+          sessionName, updatedAt, hasRunningTasks, hasHumanTasks,
         })),
         unavailable: unavailableCount,
       };

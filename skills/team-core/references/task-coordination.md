@@ -125,6 +125,14 @@ current executor before placing active work in the human column. Keep the real a
 dependencies, technical blockers and reservations. For an ordinary technical check that an
 Agent can run, keep the card in the Agent queue.
 
+For `verification`, name the exact screen, artifact, or sample and the version or reference needed
+to locate it in `instruction`. Define the overall pass condition in `expected`. Supply `guide.steps`
+in order, each with an `action` and an observable `expected` result. Use `guide.setup` for any
+prerequisite. In `resultPrompt`, say which actual values, observations, or evidence references to
+return, including what to record if a check fails. For example, identify sample order A-17, explain
+where to compare its two dates, and ask for both observed values and a screenshot link if they differ.
+Older cards with only the original instructions still display them.
+
 The person enters the observed result and selects **提交结果**. Record failures and partial
 results as they were observed. This returns the same task to the Agent queue without starting
 it or accepting the whole task. The Agent reads the result, checks its assignment and remaining

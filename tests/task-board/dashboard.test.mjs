@@ -10,6 +10,7 @@ import { initializeBoard, openBoard } from '../../packages/task-board/src/storag
 import { sessionLocation } from '../../packages/task-board/src/domain/session.mjs';
 import { hash } from '../../packages/task-board/src/coordination/service.mjs';
 import { startDashboard } from '../../packages/task-board/src/server/dashboard.mjs';
+import { createDashboardCatalog } from '../../packages/task-board/src/server/dashboard-catalog.mjs';
 import { invoke, secret, sourcePath } from './helpers.mjs';
 
 const viewHeader = 'x-task-board-view';
@@ -90,7 +91,8 @@ test('dashboard restores its last session and can group by real activity without
   const { elements, context } = await dashboardClient(sessions, preferences);
   assert.equal(elements.get('work-title').textContent, 'Saved session');
   const [active, idle] = sessionButtons(elements.get('session-list').children[0]);
-  assert.equal(active.children[1].textContent, '进行中');
+  assert.equal(active.children[1].children[0].className, 'session-spinner');
+  assert.equal(active.children[1].children[0].attributes['aria-label'], '进行中');
   assert.equal(idle.children.length, 1);
   assert.equal(idle.attributes['aria-current'], 'true');
   const toggle = elements.get('group-mode');
@@ -111,6 +113,23 @@ test('dashboard restores its last session and can group by real activity without
     .map(button => button.dataset.sessionId), ['a', 'b']);
   runInContext('renderCatalog([]);', context);
   assert.equal(preferences.get('task-board:last-session'), 'a', 'Temporary absence keeps the saved session.');
+});
+
+test('dashboard sidebar updates human and running indicators independently', async () => {
+  // A session can require a person and have another task running. A human-only refresh keeps the selection.
+  const session = { id: 'a', projectKey: 'one', projectName: 'Kit', sessionName: 'Selected session' };
+  const { elements, context } = await dashboardClient([{ ...session, hasRunningTasks: true, hasHumanTasks: true }]);
+  const status = () => sessionButtons(elements.get('session-list').children[0])[0].children[1]?.children ?? [];
+  assert.deepEqual(status().map(item => item.className), ['session-human', 'session-spinner']);
+  assert.equal(status()[0].textContent, '需人工');
+  assert.equal(status()[1].textContent, '');
+  context.nextSession = { ...session, hasRunningTasks: true, hasHumanTasks: false };
+  runInContext('renderCatalog([nextSession]);', context);
+  assert.deepEqual(status().map(item => item.className), ['session-spinner']);
+  context.nextSession = { ...session, hasRunningTasks: false, hasHumanTasks: true };
+  runInContext('renderCatalog([nextSession]);', context);
+  assert.deepEqual(status().map(item => item.textContent), ['需人工']);
+  assert.equal(elements.get('work-title').textContent, 'Selected session');
 });
 
 test('dashboard puts abandoned tasks in their own column and preserves precise task states', async () => {
@@ -398,6 +417,38 @@ test('dashboard detail button and internal drag confirm the same scoped result',
   assert.equal(tasks.children[3].children[1].children.length, 2);
 });
 
+test('verification details show the checklist, acceptance criteria and requested evidence', async () => {
+  // New verification steps give a reader a checklist. Legacy steps still show the instructions on record.
+  const { elements, context } = await dashboardClient([
+    { id: 'fixture-session', projectKey: 'fixture', projectName: 'Kit', sessionName: 'Session' },
+  ]);
+  const step = { state: 'pending', kind: 'verification', assignee: 'Client owner',
+    instruction: 'Check the delivery date for sample order A-17.', expected: 'The date matches the shipment record.',
+    taskRevision: 9, generation: 'fixture-generation' };
+  const guide = { setup: 'Sign in with the sample account.', steps: [
+    { action: 'Open sample order A-17.', expected: 'The order shows November 30.' },
+    { action: 'Open the shipment record.', expected: 'The same date is displayed.' },
+  ] };
+  const resultPrompt = 'Record both dates and include a screenshot link if they differ.';
+  context.fixtureTasks = [
+    { id: 'new', state: 'blocked', title: 'New verification', humanStep: { ...step, guide, resultPrompt } },
+    { id: 'old', state: 'blocked', title: 'Earlier verification', humanStep: step },
+  ];
+  runInContext('renderTasks(fixtureTasks);', context);
+  const cards = elements.get('tasks').children[2].children[1].children;
+  const open = title => cards.find(card => renderedText(card).includes(title)).listeners.click();
+  const details = () => renderedText(elements.get('task-detail-content'));
+  open('New verification');
+  for (const text of [step.instruction, step.expected, guide.setup, ...guide.steps.flatMap(Object.values), resultPrompt]) {
+    assert.ok(details().includes(text), text);
+  }
+  assert.equal(elements.get('task-confirm-complete').hidden, true);
+  open('Earlier verification');
+  assert.ok(details().includes(step.instruction));
+  assert.match(details(), /还没有分步核验说明/);
+  assert.ok(!details().includes(resultPrompt));
+});
+
 test('the human results form returns a completed step to the Agent lane after readback', async () => {
   const { elements, context } = await dashboardClient([
     { id: 'fixture-session', projectKey: 'p', projectName: 'Kit', sessionName: 'Fixture' },
@@ -519,6 +570,8 @@ test('only an explicit, current manual confirmation request can close through th
   const target = sessions.find(item => item.sessionName === 'Manual confirmation');
   const priorSession = sessions.find(item => item.sessionName === 'Legacy manual wait');
   assert.equal(priorSession.hasRunningTasks, false);
+  assert.equal(priorSession.hasHumanTasks, false, 'An unprepared legacy task still needs Agent work.');
+  assert.equal(target.hasHumanTasks, false, 'An ordinary submission is not ready for a person.');
   const snapshot = async (sessionId = target.id) => {
     const reply = await fetch(`${url}/api/snapshot?session=${sessionId}`, { headers });
     assert.equal(reply.status, 200);
@@ -554,6 +607,8 @@ test('only an explicit, current manual confirmation request can close through th
   const { manualConfirmation } = pending.tasks[0];
   assert.equal(manualConfirmation.state, 'ready');
   assert.deepEqual(manualConfirmation.guide, guide);
+  const currentBadge = () => createDashboardCatalog([root]).list().sessions.find(item => item.id === target.id).hasHumanTasks;
+  assert.equal(currentBadge(), true, 'A fully prepared final result is shown in the sidebar.');
   const exact = { taskId: 'manual', taskRevision: manualConfirmation.taskRevision,
     generation: manualConfirmation.generation };
   assert.notEqual((await submit(exact, { Origin: 'http://127.0.0.1:1' })).status, 200);
@@ -590,6 +645,7 @@ test('only an explicit, current manual confirmation request can close through th
   const complete = await snapshot();
   assert.equal(complete.tasks[0].state, 'closed');
   assert.equal(complete.tasks[0].manualConfirmed, true);
+  assert.equal(currentBadge(), false, 'The final confirmation clears the human indicator.');
   assert.equal(complete.tasks[0].responsibility.person.id, 'lead');
   // Historical attribution still includes the original worker for authenticated CLI callers.
   const cliView = await boardCommand(board, 'show', { taskId: 'manual' });
@@ -624,7 +680,7 @@ test('a human step records an observed failure and hands the same task back to t
   const assignment = { taskId: 'check-device', assignmentId: assigned.assignment.id,
     claimToken: assigned.claimToken };
   const input = { taskId: assignment.taskId, taskRevision: assigned.task.taskRevision,
-    kind: 'test', assignee: 'Client tester', instruction: 'Open the report on the customer device.',
+    kind: 'verification', assignee: 'Client tester', instruction: 'Verify the report on the customer device.',
     expected: 'The original order and its delivery date appear.' };
   const tryCommand = (operation, data) => invoke(board.projectRoot, board.boardPath, operation, {
     actorId: 'lead', leadToken: board.leadToken, operationId: randomUUID(), generation: board.generation,
@@ -632,8 +688,14 @@ test('a human step records an observed failure and hands the same task back to t
   }, { sessionKey: board.sessionKey });
   assert.notEqual((await tryCommand('request-human-step', input)).code, 0,
     'A running assignment must be safely paused before handing its next step to a human.');
+  assert.notEqual((await tryCommand('request-human-step', { ...input, writesStopped: true, processStopped: true })).code,
+    0, 'New verification requests need a checklist and instructions for recording the result.');
+  const guide = { setup: 'Use the report for test order A-17.', steps: [
+    { action: 'Open the report on the customer device.', expected: 'A delivery date is visible.' },
+  ] };
+  const resultPrompt = 'Record the delivered date or include a screenshot link for the missing value.';
   const request = await boardCommand(board, 'request-human-step', {
-    ...input, writesStopped: true, processStopped: true,
+    ...input, guide, resultPrompt, writesStopped: true, processStopped: true,
   });
   const ready = request.result.task;
   const premature = await tryCommand('lead-inline-report', { ...assignment, taskRevision: ready.taskRevision,
@@ -646,6 +708,7 @@ test('a human step records an observed failure and hands the same task back to t
   const listing = await fetch(url + '/api/sessions', { headers });
   const [target] = (await listing.json()).sessions;
   assert.equal(target.hasRunningTasks, false);
+  assert.equal(target.hasHumanTasks, true);
   const snapshot = async () => {
     const reply = await fetch(`${url}/api/snapshot?session=${target.id}`, { headers });
     assert.equal(reply.status, 200);
@@ -657,15 +720,17 @@ test('a human step records an observed failure and hands the same task back to t
   });
   const pending = await snapshot();
   const [card] = pending.tasks;
-  assert.equal(card.humanStep.kind, 'test');
+  assert.equal(card.humanStep.kind, 'verification');
   assert.equal(card.humanStep.state, 'pending');
+  assert.deepEqual(card.humanStep.guide, guide);
+  assert.equal(card.humanStep.resultPrompt, resultPrompt);
   for (const key of ['assignee', 'instruction', 'expected']) assert.equal(card.humanStep[key], input[key]);
   const binding = { taskId: card.id, taskRevision: card.humanStep.taskRevision,
     generation: card.humanStep.generation };
   const result = 'Failed: the delivery date was missing on the customer device.';
   const submission = { ...binding, result };
   assert.equal((await post('manual-confirmation', binding)).status, 409,
-    'A test step never confers final acceptance authority.');
+    'Intermediate verification never confers final acceptance authority.');
   assert.equal((await post('human-step', submission, { 'Sec-Fetch-Site': 'same-site' })).status, 403);
   assert.equal((await post('human-step', { ...submission, taskRevision: input.taskRevision })).status, 409);
   assert.equal((await post('human-step', { ...submission, result: '  ' })).status, 400);
@@ -679,6 +744,7 @@ test('a human step records an observed failure and hands the same task back to t
   const completed = await snapshot();
   assert.equal(completed.tasks[0].humanStep.state, 'completed');
   assert.equal(completed.tasks[0].humanStep.result, result);
+  assert.equal(createDashboardCatalog([root]).list().sessions[0].hasHumanTasks, false);
   assert.equal(completed.tasks[0].state, 'blocked', 'The existing assignment is waiting to resume.');
   assert.equal(completed.tasks[0].phase, 'waiting-for-agent');
   assert.equal(completed.tasks[0].manualConfirmation, null);
@@ -698,7 +764,9 @@ test('a human step records an observed failure and hands the same task back to t
   assert.equal((await snapshot()).tasks[0].state, 'running');
   const longId = '测'.repeat(1400);
   await addTask(board, longId);
-  const unaddressable = await tryCommand('request-human-step', { ...input, taskId: longId, taskRevision: 1 });
+  const unaddressable = await tryCommand('request-human-step', {
+    ...input, guide, resultPrompt, taskId: longId, taskRevision: 1,
+  });
   assert.notEqual(unaddressable.code, 0, 'A task that cannot be addressed by the browser may not be parked.');
   assert.equal((await snapshot()).tasks.find(task => task.id === longId).humanStep, null);
 });
